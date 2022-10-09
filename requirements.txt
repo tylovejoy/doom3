@@ -1,0 +1,4 @@
+aiohttp
+asyncpg
+discord.py
+jishaku
