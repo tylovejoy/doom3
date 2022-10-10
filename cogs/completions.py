@@ -21,7 +21,8 @@ class Completions(commands.Cog):
     @app_commands.command(name="submit-completion")
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def submit_completion(
-        self, interaction: core.Interaction[core.Doom],
+        self,
+        interaction: core.Interaction[core.Doom],
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
         # second: str
     ) -> None:

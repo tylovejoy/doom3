@@ -12,10 +12,10 @@ if typing.TYPE_CHECKING:
 class Tasks(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
-
-        self.cache_map_codes.start()
-        self.cache_map_names.start()
-        self.cache_map_types.start()
+        # TODO:
+        # self.cache_map_codes.start()
+        # self.cache_map_names.start()
+        # self.cache_map_types.start()
 
     @tasks.loop(minutes=5)
     async def cache_map_codes(self):

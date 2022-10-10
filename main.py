@@ -2,7 +2,6 @@ import asyncio
 import os
 
 import aiohttp
-import discord
 
 import core
 import database

@@ -36,7 +36,8 @@ class Maps(commands.Cog):
     @app_commands.command(name="map-search")
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def map_search(
-        self, interaction: core.Interaction[core.Doom],
+        self,
+        interaction: core.Interaction[core.Doom],
     ) -> None:
         await interaction.response.defer(ephemeral=False)
         embed = utils.DoomEmbed(title="Map Search")
@@ -57,30 +58,35 @@ class Maps(commands.Cog):
             embed.add_field(
                 name=f"{_map.map_code} - {_map.map_name}",
                 value=(
-                    self.display_official(_map.official) +
-                    f"┣ **Creator(s):** {_map.creators}\n"
+                    self.display_official(_map.official)
+                    + f"┣ **Creator(s):** {_map.creators}\n"
                     f"┣ **Type(s):** {_map.map_type}\n"
                     f"┗ **Description:** {_map.desc}\n"
                 ),
             )
-        await interaction.edit_original_response(embed=embed)\
+        await interaction.edit_original_response(embed=embed)
 
     @staticmethod
     def display_official(official: bool):
         return (
-            "┃<:_:998055526468423700>"
-            "<:_:998055528355860511>"
-            "<:_:998055530440437840>"
-            "<:_:998055532030079078>"
-            "<:_:998055534068510750>"
-            "<:_:998055536346021898>\n"
-            "┃<:_:998055527412142100>"
-            "<:_:998055529219887154>"
-            "<:_:998055531346415656>"
-            "<:_:998055533225455716>"
-            "<:_:998055534999654480>"
-            "<:_:998055537432338532>\n"
-        ) if official else ""
+            (
+                "┃<:_:998055526468423700>"
+                "<:_:998055528355860511>"
+                "<:_:998055530440437840>"
+                "<:_:998055532030079078>"
+                "<:_:998055534068510750>"
+                "<:_:998055536346021898>\n"
+                "┃<:_:998055527412142100>"
+                "<:_:998055529219887154>"
+                "<:_:998055531346415656>"
+                "<:_:998055533225455716>"
+                "<:_:998055534999654480>"
+                "<:_:998055537432338532>\n"
+            )
+            if official
+            else ""
+        )
+
 
 async def setup(bot):
     """Add Cog to Discord bot."""
