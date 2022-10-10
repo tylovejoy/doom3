@@ -29,6 +29,7 @@ class Doom(commands.Bot):
         self.map_names: list[app_commands.Choice] | None = None
         self.map_codes: list[app_commands.Choice] | None = None
         self.map_types: list[app_commands.Choice] | None = None
+        self.exercise_names: list[app_commands.Choice] | None = None
 
     async def setup_hook(self) -> None:
         """

@@ -16,6 +16,7 @@ class Tasks(commands.Cog):
         # self.cache_map_codes.start()
         # self.cache_map_names.start()
         # self.cache_map_types.start()
+        self.cache_exercise_names.start()
 
     @tasks.loop(minutes=5)
     async def cache_map_codes(self):
@@ -49,6 +50,15 @@ class Tasks(commands.Cog):
             )
         ]
         self.bot.logger.debug("Map types cached.")
+
+    @tasks.loop(hours=24)
+    async def cache_exercise_names(self):
+        self.bot.exercise_names = [
+            app_commands.Choice(name=x.name, value=x.name)
+            async for x in self.bot.database.get(
+                "SELECT * FROM all_exercises ORDER BY 1;"
+            )
+        ]
 
 
 async def setup(bot: core.Doom):

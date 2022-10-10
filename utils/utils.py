@@ -25,5 +25,3 @@ async def delete_interaction(interaction: core.Interaction[core.Doom], *, minute
         await interaction.delete_original_response()
     except (discord.HTTPException, discord.NotFound, discord.Forbidden):
         ...
-
-
