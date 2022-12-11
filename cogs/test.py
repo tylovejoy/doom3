@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import typing
 
 import discord
@@ -29,6 +30,7 @@ class Test(commands.Cog):
         ?sync ^ -> clears all commands from the current
                         guild target and syncs (removes guild commands)
         ?sync id_1 id_2 -> syncs guilds with id 1 and 2
+        >sync $ -> Clears global commands
         """
         if not guilds:
             if spec == "~":
@@ -64,62 +66,25 @@ class Test(commands.Cog):
 
         await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
-    @app_commands.command(name="command-2")
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
-    async def my_private_command(
-        self, interaction: core.Interaction[core.Doom], first: int, second: str
-    ) -> None:
-        """/command-2"""
-        users = [
-            x async for x in interaction.client.database.get("""SELECT * FROM users;""")
-        ]
-        embed = utils.DoomEmbed(title="Test", description="Test")
+    @commands.command()
+    @commands.is_owner()
+    async def xx(self, ctx: commands.Context[core.Doom]):
+        members = [(member.id, member.name[:25]) for member in ctx.guild.members]
+        await ctx.bot.database.set_many(
+            "INSERT INTO users (user_id, nickname, alertable) VALUES ($1, $2, true)",
+            [(_id, nick) for _id, nick in members],
+        )
+        await ctx.send("done")
 
-        embed.add_field(
-            name="Ayutthaya (20 CP) by SoulCrusher",
-            value=(
-                "┣ **Code:** TEST\n"
-                "┣ **Map Type(s):** Single\n"
-                "┣ **Rating:** 5.0/10\n"
-                "┗ **Description:** Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="Ayutthaya (20 CP) by SoulCrusher",
-            value=(
-                "┣ **Code:** TEST\n"
-                "┣ **Map Type(s):** Single\n"
-                "┣ **Rating:** 5.0/10\n"
-                "┗ **Description:** Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="Ayutthaya (20 CP) by SoulCrusher",
-            value=(
-                "> **Code:** TEST\n"
-                "> **Map Type(s):** Single\n"
-                "> **Rating:** 5.0/10\n"
-                "> **Description:** Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="Ayutthaya (20 CP) by SoulCrusher",
-            value=(
-                "> **Code:** TEST\n"
-                "> **Map Type(s):** Single\n"
-                "> **Rating:** 5.0/10\n"
-                "> **Description:** Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            ),
-            inline=False,
-        )
-
-        await interaction.response.send_message(
-            f"{users} {first} {second}", embed=embed
-        )
-        # raise ValueError
+    @commands.command()
+    @commands.is_owner()
+    async def log(
+        self,
+        ctx: commands.Context[core.Doom],
+        level: typing.Literal["debug", "info", "DEBUG", "INFO"],
+    ):
+        ctx.bot.logger.setLevel(level.upper())
+        await ctx.message.delete()
 
 
 async def setup(bot: core.Doom):

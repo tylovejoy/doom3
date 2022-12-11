@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import typing
 
 import discord
 
@@ -30,6 +31,13 @@ class DoomEmbed(discord.Embed):
             self.set_image(url="https://i.imgur.com/YhJokJW.png")
         else:
             self.set_image(url=image)
+
+    def add_description_field(self, name: str, value: str):
+        if not self.description:
+            self.description = ""
+        self.description += (
+            f"```ansi\n\u001b[1;37m{name}\n```{value}\n"  # \u001b[{format};{color}m
+        )
 
 
 class ErrorEmbed(DoomEmbed):
@@ -72,4 +80,28 @@ def set_embed_thumbnail_maps(
     """
     map_name = re.sub(r"[:'\s]", "", map_name).lower()
     embed.set_thumbnail(url=f"http://bkan0n.com/assets/images/maps/{map_name}.png")
+    return embed
+
+
+def record_embed(data: dict[str, typing.Any]):
+    if not data.get("video", None):
+        description = (
+            f"┣ `   Code ` {data['map_code']}\n"
+            f"┣ `  Level ` {data['map_level']}\n"
+            f"┗ ` Record ` {data['record']}\n"
+        )
+    else:
+        description = (
+            f"┣ `   Code ` {data['map_code']}\n"
+            f"┣ `  Level ` {data['map_level']}\n"
+            f"┣ ` Record ` {data['record']}\n"
+            f"┗ `  Video ` [Link]({data['video']})\n"
+        )
+
+    embed = DoomEmbed(
+        title="New Personal Record!",
+        description=description,
+    )
+    embed.set_author(name=data["user_name"], icon_url=data["user_url"])
+    embed.set_image(url="attachment://image.png")
     return embed

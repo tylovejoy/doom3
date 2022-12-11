@@ -31,6 +31,8 @@ async def _autocomplete(
     current: str,
     choices: list[app_commands.Choice],
 ) -> list[app_commands.Choice[str]]:
+    if not choices:  # Quietly ignore empty choices
+        return []
     if current == "":
         response = choices[:25]
     else:
@@ -38,13 +40,52 @@ async def _autocomplete(
     return response
 
 
-async def map_name_autocomplete(
-    interaction: core.Interaction[core.Doom], current: str
+async def map_codes_autocomplete(
+    itx: core.Interaction[core.Doom], current: str
 ) -> list[app_commands.Choice[str]]:
-    return await _autocomplete(current, interaction.client.map_names)
+    return await _autocomplete(current, itx.client.map_codes_choices)
+
+
+async def map_levels_autocomplete(
+    itx: core.Interaction[core.Doom], current: str
+) -> list[app_commands.Choice[str]]:
+    return await _autocomplete(
+        current,
+        (itx.client.map_cache.get(itx.namespace.map_code, None)).get("choices", None),
+    )
+
+
+async def map_name_autocomplete(
+    itx: core.Interaction[core.Doom], current: str
+) -> list[app_commands.Choice[str]]:
+    return await _autocomplete(current, itx.client.map_names_choices)
+
+
+async def map_type_autocomplete(
+    itx: core.Interaction[core.Doom], current: str
+) -> list[app_commands.Choice[str]]:
+    return await _autocomplete(current, itx.client.map_types_choices)
 
 
 async def exercise_name_autocomplete(
-    interaction: core.Interaction[core.Doom], current: str
+    itx: core.Interaction[core.Doom], current: str
 ) -> list[app_commands.Choice[str]]:
-    return await _autocomplete(current, interaction.client.exercise_names)
+    return await _autocomplete(current, itx.client.exercise_names)
+
+
+async def tags_autocomplete(
+    itx: core.Interaction[core.Doom], current: str
+) -> list[app_commands.Choice[str]]:
+    return await _autocomplete(current, itx.client.tag_choices)
+
+
+async def users_autocomplete(
+    itx: core.Interaction[core.Doom], current: str
+) -> list[app_commands.Choice[str]]:
+    return await _autocomplete(current, itx.client.users_choices)
+
+
+async def exercise_name_search_autocomplete(
+    itx: core.Interaction[core.Doom], current: str
+) -> list[app_commands.Choice[str]]:
+    return await _autocomplete(current, itx.client.exercise_names_search)

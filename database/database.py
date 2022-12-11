@@ -81,3 +81,24 @@ class Database:
         async with self.pool.acquire() as conn:
             async with conn.transaction():
                 await conn.execute(query, *args)
+
+    async def set_many(
+        self,
+        query: str,
+        *args: typing.Any,
+    ):
+        """
+        The set_query_handler function takes a query string
+        and an arbitrary number of arguments.
+        It then executes the given query with the given arguments.
+        Used for INSERT queries.
+        Args:
+            query (str) Store the query string
+            *args (Any) Pass any additional arguments to the query
+        """
+        if self.pool is None:
+            raise utils.DatabaseConnectionError()
+
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                await conn.executemany(query, *args)

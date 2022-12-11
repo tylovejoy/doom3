@@ -8,6 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import cogs
+from utils import MapCacheData, UserCacheData
 
 if typing.TYPE_CHECKING:
     import aiohttp
@@ -26,10 +27,26 @@ class Doom(commands.Bot):
         self.database = db
         self.logger = self._setup_logging()
         # Caches
-        self.map_names: list[app_commands.Choice] | None = None
-        self.map_codes: list[app_commands.Choice] | None = None
-        self.map_types: list[app_commands.Choice] | None = None
+        self.map_names: list[str] | None = None
+        self.map_types: list[str] | None = None
+        self.map_cache: dict[str, MapCacheData] | None = {}
+        self.all_users: dict[int, UserCacheData] | None = {}
+
+        self.map_names_choices: list[app_commands.Choice] | None = None
+        self.map_codes_choices: list[app_commands.Choice] | None = None
+        self.map_types_choices: list[app_commands.Choice] | None = None
+        self.users_choices: list[app_commands.Choice] | None = None
+
         self.exercise_names: list[app_commands.Choice] | None = None
+        self.exercise_names_search: list[app_commands.Choice] | None = None
+
+        self.tag_cache: list[str] | None = None
+        self.tag_choices: list[app_commands.Choice] | None = None
+
+        self.keep_alives: list[int] | None = None
+        self.auto_join_threads: list[tuple[int, int]] | None = None
+
+        self.persistent_views_added = False
 
     async def setup_hook(self) -> None:
         """

@@ -2,3 +2,5 @@ aiohttp
 asyncpg
 discord.py
 jishaku
+thefuzz
+python-Levenshtein
