@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 import utils
@@ -121,19 +122,23 @@ class BotEvents(commands.Cog):
         self.bot.all_users[member.id] = utils.UserCacheData(
             nickname=member.nick, alertable=True
         )
+        self.bot.users_choices.append(
+            app_commands.Choice(name=member.nick, value=str(member.id))
+        )
         self.bot.logger.debug(f"Adding user to DB/cache: {member.name}: {member.id}")
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        members = [(member.id, member.name[:25]) for member in guild.members]
-        await self.bot.database.set_many(
-            "INSERT INTO users (user_id, nickname, alertable) VALUES ($1, $2, true)",
-            [(_id, nick) for _id, nick in members],
-        )
+        # members = [(member.id, member.name[:25]) for member in guild.members]
+        # await self.bot.database.set_many(
+        #     "INSERT INTO users (user_id, nickname, alertable) VALUES ($1, $2, true)",
+        #     [(_id, nick) for _id, nick in members],
+        # )
+        ...
 
     @commands.Cog.listener()
     async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
-        if before.parent_id not in self.bot.keep_alives:
+        if before.id not in self.bot.keep_alives:
             return
 
         if after.archived and not after.locked:

@@ -81,6 +81,14 @@ class NoPermissionsError(BaseParkourException):
     """You do not have permission to do this action."""
 
 
+class CreatorAlreadyExists(BaseParkourException):
+    """Creator already associated with this map."""
+
+
+class CreatorDoesntExist(BaseParkourException):
+    """Creator is not associated with this map."""
+
+
 class LevelExistsError(BaseParkourException):
     """This level already exists!"""
 

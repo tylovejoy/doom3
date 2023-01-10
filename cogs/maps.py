@@ -22,8 +22,95 @@ class Maps(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
 
-    @app_commands.command(name="add-level-name")
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    _map_maker = app_commands.Group(
+        name="map-maker",
+        guild_ids=[utils.GUILD_ID],
+        description="Map maker only commands",
+    )
+
+    _level = app_commands.Group(
+        name="level",
+        guild_ids=[utils.GUILD_ID],
+        description="Edit levels",
+        parent=_map_maker,
+    )
+
+    _creator = app_commands.Group(
+        name="creator",
+        guild_ids=[utils.GUILD_ID],
+        description="Edit creators",
+        parent=_map_maker,
+    )
+
+    @_creator.command(name="remove")
+    @app_commands.autocomplete(
+        map_code=cogs.map_codes_autocomplete,
+        creator=cogs.users_autocomplete,
+    )
+    async def remove_creator(
+        self,
+        itx: core.Interaction[core.Doom],
+        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
+        creator: app_commands.Transform[int, utils.UserTransformer],
+    ) -> None:
+        await itx.response.defer(ephemeral=True)
+        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
+            raise utils.NoPermissionsError
+
+        if creator not in itx.client.map_cache[map_code]["user_ids"]:
+            raise utils.CreatorDoesntExist
+
+        await itx.client.database.set(
+            "DELETE FROM map_creators WHERE "
+            "map_code = $1 AND user_id = $2;",
+            map_code,
+            creator,
+        )
+        itx.client.map_cache[map_code]["user_ids"].remove(creator)
+
+        await itx.edit_original_response(
+            content=(
+                f"Removing **{itx.client.all_users[creator]['nickname']}** "
+                f"from list of creators for map code **{map_code}**."
+            )
+        )
+
+
+    @_creator.command(name="add")
+    @app_commands.autocomplete(
+        map_code=cogs.map_codes_autocomplete,
+        creator=cogs.users_autocomplete,
+    )
+    async def add_creator(
+        self,
+        itx: core.Interaction[core.Doom],
+        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
+        creator: app_commands.Transform[int, utils.UserTransformer],
+    ) -> None:
+        await itx.response.defer(ephemeral=True)
+        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
+            raise utils.NoPermissionsError
+
+        if creator in itx.client.map_cache[map_code]["user_ids"]:
+            raise utils.CreatorAlreadyExists
+
+        await itx.client.database.set(
+            "INSERT INTO map_creators (map_code, user_id) VALUES ($1, $2)",
+            map_code,
+            creator,
+        )
+        itx.client.map_cache[map_code]["user_ids"].append(creator)
+
+        await itx.edit_original_response(
+            content=(
+                f"Adding **{itx.client.all_users[creator]['nickname']}** "
+                f"to list of creators for map code **{map_code}**."
+            )
+        )
+
+
+
+    @_level.command(name="add")
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete,
     )
@@ -71,8 +158,7 @@ class Maps(commands.Cog):
             app_commands.Choice(name=new_level_name, value=new_level_name)
         )
 
-    @app_commands.command(name="delete-level-name")
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @_level.command(name="remove")
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete,
         map_level=cogs.map_levels_autocomplete,
@@ -119,8 +205,7 @@ class Maps(commands.Cog):
             )
         )
 
-    @app_commands.command(name="edit-level-name")
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @_level.command(name="edit")
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete,
         map_level=cogs.map_levels_autocomplete,
@@ -246,8 +331,8 @@ class Maps(commands.Cog):
         if map_type:
             if map_type not in itx.client.map_types:
                 raise utils.InvalidMapTypeError
-            where_clause.append(f"map_type <@ ${tracking_number}")
-            args.append([map_type])
+            where_clause.append(f"${tracking_number} = ANY(map_type)")
+            args.append(map_type)
             tracking_number += 1
 
         if map_name:
@@ -278,7 +363,7 @@ class Maps(commands.Cog):
                          "desc",
                          official,
                          string_agg(distinct (nickname), ', ') as creators,
-                         AVG(rating)                           as rating
+                         AVG(COALESCE(rating, 0))              as rating
                   FROM maps
                            JOIN map_creators mc on maps.map_code = mc.map_code
                            JOIN users u on u.user_id = mc.user_id
@@ -292,7 +377,7 @@ class Maps(commands.Cog):
             *args,
         ):
             maps.append(_map)
-        if maps is None:
+        if not maps:
             raise utils.NoMapsFoundError
 
         embeds = self.create_map_embeds(maps)
@@ -354,7 +439,7 @@ class Maps(commands.Cog):
     async def view_guide(
         self,
         itx: core.Interaction[core.Doom],
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer] | None = None,
+        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
     ):
         await itx.response.defer(ephemeral=False)
         if map_code not in itx.client.map_cache.keys():
@@ -395,8 +480,7 @@ class Maps(commands.Cog):
             )
         ]
         guides = [x.url for x in guides]
-        if not guides:
-            raise utils.NoGuidesExistError
+
         if url in guides:
             raise utils.GuideExistsError
 

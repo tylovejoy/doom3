@@ -26,6 +26,7 @@ class Doom(commands.Bot):
         self.session = session
         self.database = db
         self.logger = self._setup_logging()
+        self.database.logger = self.logger
         # Caches
         self.map_names: list[str] | None = None
         self.map_types: list[str] | None = None

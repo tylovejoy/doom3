@@ -29,6 +29,9 @@ class ExerciseView(discord.ui.View):
         self.page_num = 0
         self.max_page = 0
 
+
+
+
     @discord.ui.select(
         placeholder="Select an exercise.",
         options=[discord.SelectOption(label="Loading...", value="0")],

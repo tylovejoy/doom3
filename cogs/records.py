@@ -100,7 +100,7 @@ class Records(commands.Cog):
                 "map_level": level_name,
                 "record": utils.pretty_record(record),
                 "video": video,
-                "user_name": user.nickname,
+                "user_name": user["nickname"],
                 "user_url": itx.user.display_avatar.url,
             }
         )
@@ -123,14 +123,15 @@ class Records(commands.Cog):
         await itx.client.database.set(
             """
             INSERT INTO records_queue 
-            (map_code, user_id, level_name, record, 
+            (map_code, user_id, level_name, record, screenshot,
             video, message_id, channel_id, hidden_id, rating) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             """,
             map_code,
             itx.user.id,
             level_name,
             record,
+            channel_msg.jump_url,
             video,
             channel_msg.id,
             channel_msg.channel.id,
@@ -168,6 +169,7 @@ class Records(commands.Cog):
         SELECT u.nickname, 
                level_name, 
                record, 
+               screenshot,
                video, 
                verified,
                r.map_code,

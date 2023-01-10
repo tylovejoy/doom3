@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import typing
 
@@ -18,7 +19,7 @@ with open("assets/emoji-data.json", "r", encoding="utf8") as f:
 
 class Personal(commands.Cog):
     async def cog_check(self, ctx: commands.Context[core.Doom]) -> bool:
-        return ctx.channel.id == 882243150419197952  # Spam-friendly
+        return ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239  # Spam-friendly
 
     @app_commands.command(name="name")
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
@@ -43,9 +44,19 @@ class Personal(commands.Cog):
         itx.client.all_users[itx.user.id]["nickname"] = nickname
 
     @app_commands.command(name="brug-mode")
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
     async def brug_mode(self, itx: core.Interaction[core.Doom], text: str):
         await itx.response.send_message(utils.emojify(text)[:2000])
+
+    @app_commands.command(name="uwu")
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    async def uwufier(self, itx: core.Interaction[core.Doom], text: str):
+        await itx.response.send_message(utils.uwuify(text)[:2000])
+
+    @app_commands.command(name="blarg")
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    async def blarg(self, itx: core.Interaction[core.Doom]):
+        await itx.response.send_message("BLARG")
 
 
 async def setup(bot: core.Doom):

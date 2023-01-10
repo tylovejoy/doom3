@@ -90,7 +90,7 @@ class GymUtils(commands.Cog):
 
     @staticmethod
     def _convert_lb_to_kg(value: float) -> float:
-        return round(0.45359237 * round(value, 2), 2)
+        return round(round(value, 2) / 2.2, 2)
 
     @staticmethod
     def _convert_kg_to_lb(value: float) -> float:
@@ -177,7 +177,11 @@ class GymUtils(commands.Cog):
     @app_commands.command(name="show-pr")
     @app_commands.autocomplete(exercise=cogs.exercise_name_autocomplete)
     @app_commands.guilds(discord.Object(id=689587520496730129))
-    async def show_prs(self, itx: DoomInteraction, exercise: str):
+    async def show_prs(
+        self,
+        itx: DoomInteraction,
+        exercise: app_commands.Transform[str, utils.ExerciseTransformer],
+    ):
         """
         Show a leaderboard for submitted PRs per exercise
 
@@ -202,7 +206,10 @@ class GymUtils(commands.Cog):
         leaderboard = f"{exercise} Leaderboard\n"
         for i, x in enumerate(prs):
             lb = self._convert_kg_to_lb(float(x.weight))
-            leaderboard += f"{i + 1}. {itx.client.get_user(x.user_id).name} - {x.weight} kg / {lb} lb\n"
+            user_data = itx.client.all_users.get(x.user_id, {})
+            name = user_data.get("nickname", "Unknown User")
+
+            leaderboard += f"{i + 1}. {name} - {x.weight} kg / {lb} lb\n"
 
         await itx.edit_original_response(content=leaderboard)
 

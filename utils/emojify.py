@@ -48,3 +48,17 @@ def emojify(text: str) -> str:
             res += f"{raw} {emojis}"
         res += " "
     return res
+
+
+def uwuify(s):
+    res = ""
+    for ch in s:
+        if ch in "lr":
+            ch = "w"
+        elif ch in "LR":
+            ch = "W"
+        res += ch
+
+    return res
+
+

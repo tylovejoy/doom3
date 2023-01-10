@@ -142,19 +142,14 @@ def all_levels_records_embed(
             description = (
                 f"┣ `Name` {record.nickname}\n"
                 f"┗ `Record` [{pretty_record(record.record)}]"
-                f"(https://discord.com/channels/"
-                f"{utils.GUILD_ID}/"
-                f"{record.channel_id}/"
-                f"{record.message_id}) "
+                f"({record.screenshot}) "
                 f"{utils.HALF_VERIFIED}\n"
             )
         else:
             description = (
                 f"┣ `Name` {record.nickname}\n"
                 f"┣ `Record` [{pretty_record(record.record)}]"
-                f"(https://discord.com/channels/"
-                f"{utils.GUILD_ID}/{record.channel_id}/"
-                f"{record.message_id}) "
+                f"({record.screenshot}) "
                 f"{utils.VERIFIED}\n "
                 f"┗ `Video` [Link]({record.video})\n"
             )
@@ -197,19 +192,14 @@ def pr_records_embed(
             description += (
                 f"┣ `Level` ***{record.level_name}***\n"
                 f"┣ `Record` [{pretty_record(record.record)}]"
-                f"(https://discord.com/channels/"
-                f"{utils.GUILD_ID}/"
-                f"{record.channel_id}/"
-                f"{record.message_id}) "
+                f"({record.screenshot}) "
                 f"{utils.HALF_VERIFIED}\n┃\n"
             )
         else:
             description += (
                 f"┣ `Level` ***{record.level_name}***\n"
                 f"┣ `Record` [{pretty_record(record.record)}]"
-                f"(https://discord.com/channels/"
-                f"{utils.GUILD_ID}/{record.channel_id}/"
-                f"{record.message_id}) "
+                f"({record.screenshot})"
                 f"{utils.VERIFIED}\n "
                 f"┣ `Video` [Link]({record.video})\n┃\n"
             )

@@ -1,3 +1,4 @@
+import logging
 import typing
 
 import asyncpg
@@ -31,6 +32,7 @@ class Database:
     """Handles all database transactions."""
 
     def __init__(self, conn: asyncpg.Pool):
+        self.logger: logging.Logger | None = None
         self.pool = conn
 
     async def get(
@@ -51,6 +53,9 @@ class Database:
         """
         if self.pool is None:
             raise utils.DatabaseConnectionError()
+
+        self.logger.debug(query)
+        self.logger.debug(args)
 
         async with self.pool.acquire() as conn:
             async with conn.transaction():

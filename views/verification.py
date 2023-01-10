@@ -81,17 +81,19 @@ class VerificationView(discord.ui.View):
                 search.message_id,
                 search.channel_id,
             )
-            await itx.client.database.set(
-                """
-                INSERT INTO map_level_ratings (map_code, level, user_id, rating) 
-                VALUES($1, $2, $3, $4)
-                ON CONFLICT (map_code, level, user_id) DO UPDATE SET rating=$4;
-                """,
-                search.map_code,
-                search.level_name,
-                search.user_id,
-                search.rating,
-            )
+
+            if search.rating:
+                await itx.client.database.set(
+                    """
+                    INSERT INTO map_level_ratings (map_code, level, user_id, rating) 
+                    VALUES($1, $2, $3, $4)
+                    ON CONFLICT (map_code, level, user_id) DO UPDATE SET rating=$4;
+                    """,
+                    search.map_code,
+                    search.level_name,
+                    search.user_id,
+                    search.rating,
+                )
         else:
             data = self.rejected(itx, search, rejection)
         await original_message.edit(content=data["edit"])
