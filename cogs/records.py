@@ -160,7 +160,7 @@ class Records(commands.Cog):
             level_name: Name of level
             verified: Only show fully verified video submissions.
         """
-        await itx.response.defer(ephemeral=False)
+        await itx.response.defer(ephemeral=True)
         if map_code not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
 
