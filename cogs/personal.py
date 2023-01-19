@@ -23,6 +23,29 @@ class Personal(commands.Cog):
     async def cog_check(self, ctx: commands.Context[core.Doom]) -> bool:
         return ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239  # Spam-friendly
 
+    @app_commands.command()
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    async def alerts(
+            self,
+            itx: core.Interaction[core.Doom],
+            value: bool,
+    ):
+        """
+        Turn off Doombot alerts.
+
+        Args:
+            itx: Interaction
+            value: Allow alerts
+        """
+
+        await itx.client.database.set(
+            "UPDATE users SET alertable=$1 WHERE user_id=$2",
+            value,
+            itx.user.id,
+        )
+        await itx.response.send_message(f"Alerts set to {value}.", ephemeral=True)
+
+
     @app_commands.command(name="name")
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def nickname_change(

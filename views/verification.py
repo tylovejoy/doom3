@@ -184,8 +184,8 @@ class VerificationView(discord.ui.View):
 
 
 ALERT = (
-    # "Don't like these alerts? "
-    # "Turn it off by using the command `/alerts false`.\n"
+    "Don't like these alerts? "
+    "Turn it off by using the command `/alerts false`.\n"
     "You can change your display name "
     "for records in the bot with the command `/name`!"
 )
