@@ -69,7 +69,7 @@ class VerificationView(discord.ui.View):
                 """
                 INSERT INTO records (map_code, user_id, level_name, record, screenshot, video, verified, message_id, channel_id) 
                 VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                ON CONFLICT (map_code, user_id, level_name) DO UPDATE SET record=$4;
+                ON CONFLICT (map_code, user_id, level_name) DO UPDATE SET record=$4, screenshot=$5, video=$6, message_id=$8, channel_id=$9;
                 """,
                 search.map_code,
                 search.user_id,
