@@ -109,6 +109,19 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         if map_maker not in itx.user.roles:
             await itx.user.add_roles(map_maker)
 
+        reminder = (
+            "**Friendly Reminder**\n\n"
+            "You have access to a few commands to edit the map once it has been submitted.\n\n"
+            "Do you have multiple creators on this map? Add them or remove them with these commands:\n"
+            "`/map-maker creator add`\n"
+            "`/map-maker creator remove`\n\n"
+            "Do you want to edit a level name in the bot? Use one of these:\n"
+            "`/map-maker level add`\n"
+            "`/map-maker level remove`\n"
+            "`/map-maker level edit`\n"
+        )
+        await itx.user.send(reminder)
+
 
 class MapTypeSelect(discord.ui.Select):
     def __init__(self, options) -> None:
