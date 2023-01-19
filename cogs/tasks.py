@@ -25,6 +25,24 @@ class Tasks(commands.Cog):
         self.cache_keep_alives.start()
         self.cache_auto_join.start()
 
+    @commands.command()
+    @commands.is_owner()
+    async def refresh_cache(
+            self,
+            ctx: commands.Context[core.Doom],
+    ):
+        self.cache_all_users.restart()
+        self.cache_map_code_choices.restart()
+        self.cache_map_names.restart()
+        self.cache_map_types.restart()
+        self.cache_map_data.restart()
+        self.cache_exercise_names.restart()
+        self.cache_exercise_names_search.restart()
+        self.cache_tags.restart()
+        self.cache_keep_alives.restart()
+        self.cache_auto_join.restart()
+        await ctx.message.delete()
+
     @tasks.loop(hours=24, count=1)
     async def cache_map_code_choices(self):
         self.bot.logger.debug("Caching map codes...")
