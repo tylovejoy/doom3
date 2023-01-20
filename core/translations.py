@@ -1,39 +1,117 @@
 import discord
 from discord import app_commands
+from core import translations2
 
 
-class MyCustomTranslator(app_commands.Translator):
-    # async def load(self):
-    #     # this gets called when the translator first gets loaded!
-    #     ...
-    #
-    # async def unload(self):
-    #     # in case you need to switch translators, this gets called when being removed
-    #     ...
+class DoomTranslator(app_commands.Translator):
 
-    async def translate(self, string: app_commands.locale_str, locale: discord.Locale,
-                        context: app_commands.TranslationContext) -> str | None:
-        """
-        `locale_str` is the string that is requesting to be translated
-        `locale` is the target language to translate to
-        `context` is the origin of this string, eg TranslationContext.command_name, etc
-        This function must return a string (that's been translated), or `None` to signal no available translation available, and will default to the original.
-        """
-        message_str = string.message
-
-        # if message_str == "testing123" and locale == discord.Locale.german:
-        #     return "tuesady"
-
-        if locale == discord.Locale.british_english:
-            british = {
-                "submit-map": "subby-ey-mappa",
-                "Submit your map to the database.": "OI, submib ya maappaaa.",
-                "Overwatch share code": "Oivawatch share coyde",
-                "Overwatch map": "Mappa name for Oivawatch",
-            }
-            return british.get(message_str, None)
-
+    async def translate(
+        self,
+        string: app_commands.locale_str,
+        locale: discord.Locale,
+        context: app_commands.TranslationContext,
+    ) -> str | None:
+        locales = translations.get(string.message, None)
+        if locales:
+            return locales.get(locale.value)
         return None
 
 
-
+translations = {
+    "Overwatch share code": None,
+    "User name": None,
+    "Creator name": None,
+    "Overwatch map": None,
+    "Type of parkour map": None,
+    "add": None,
+    "remove": None,
+    "User display name (within bot commands only)": None,
+    "Record in HH:MM:SS.ss format": None,
+    "map_code": None,
+    "creator": None,
+    "new_level_name": None,
+    "level_name": None,
+    "map_name": None,
+    "user": None,
+    "name": None,
+    "nickname": None,
+    "map-maker": None,
+    "Map maker only commands": None,
+    "level": None,
+    "Edit levels": None,
+    "Edit creators": None,
+    "Remove a creator from your map": None,
+    "Add a creator to your map": None,
+    "Level name": None,
+    "New level name": None,
+    "Add a level name to your map": None,
+    "Remove a level name from your map": None,
+    "rename": None,
+    "Rename a level in your map": None,
+    "submit-map": None,
+    "Submit your map to the database": None,
+    "map-search": None,
+    "Search for maps based on various filters": None,
+    "map_type": None,
+    "guide": None,
+    "View guide(s) for a specific map": None,
+    "add-guide": None,
+    "Add a guide for a specific map": None,
+    "url": None,
+    "Valid URL to guide (YouTube, Streamable, etc)": None,
+    "mod": None,
+    "Mod only commands": None,
+    "keep-alive": None,
+    "Keep threads alive": None,
+    "Add a keep-alive to a thread": None,
+    "Remove a keep-alive from a thread": None,
+    "thread": None,
+    "Thread": None,
+    "remove-record": None,
+    "Remove a record from a user": None,
+    "change-name": None,
+    "Change a user's display name": None,
+    "alerts": None,
+    "Toggle Doombot verification alerts on/off": None,
+    "value": None,
+    "Alerts on/off": None,
+    "Change your display name in bot commands": None,
+    "brug-mode": None,
+    "Emojify text": None,
+    "uwu": None,
+    "UwUfy text": None,
+    "text": None,
+    "Text": None,
+    "blarg": None,
+    "BLARG": None,
+    "u": None,
+    "Insult someone": None,
+    "increase": None,
+    "Increase! Beware the knife...": None,
+    "decrease": None,
+    "Decrease! Beware the growth pills...": None,
+    "personal-records": None,
+    "world-records": None,
+    "submit-record": None,
+    "Submit a record to the database. Video proof is required for full verification!": None,
+    "record": None,
+    "screenshot": None,
+    "Screenshot of completion": None,
+    "video": None,
+    "Video of play through. REQUIRED FOR FULL VERIFICATION!": None,
+    "rating": None,
+    "What would you rate the quality of this level?": None,
+    "leaderboard": None,
+    "View leaderboard of any map in the database.": None,
+    "verified": None,
+    "Only show fully verified video submissions": None,
+    "View your (by default) personal records or another users": None,
+    "wr_only": None,
+    "Only show world records, if any": None,
+    "tag": None,
+    "view": None,
+    "View a tag": None,
+    "Name of the tag": None,
+    "create": None,
+    "Create a tag": None,
+}
