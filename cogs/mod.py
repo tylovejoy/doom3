@@ -23,28 +23,20 @@ class ModCommands(commands.Cog):
         # return bool(ctx.author.get_role(utils.STAFF))
 
     mod = app_commands.Group(
-        name="mod",
+        **utils.mod_,
         guild_ids=[utils.GUILD_ID],
-        description="Mod only commands",
     )
     keep_alive = app_commands.Group(
-        name="keep-alive",
+        **utils.keep_alive_,
         guild_ids=[utils.GUILD_ID],
-        description="Keep Threads Alive",
         parent=mod,
     )
 
-    @keep_alive.command(name="add")
+    @keep_alive.command(**utils.add_keep_alive)
+    @app_commands.describe(**utils.keep_alive_args)
     async def add_keep_alive(
         self, itx: core.Interaction[core.Doom], thread: discord.Thread
     ) -> None:
-        """
-        Add a keep thread alive.
-
-        Args:
-            itx: Interaction
-            thread: Thread to keep alive
-        """
         if thread.id in self.bot.keep_alives:
             await itx.response.send_message(
                 f"{thread.mention} already in keep alive list.",
@@ -62,17 +54,12 @@ class ModCommands(commands.Cog):
             ephemeral=True,
         )
 
-    @keep_alive.command(name="remove")
+    @keep_alive.command(**utils.remove_keep_alive)
+    @app_commands.describe(**utils.keep_alive_args)
     async def remove_keep_alive(
         self, itx: core.Interaction[core.Doom], thread: discord.Thread
     ) -> None:
-        """
-        Remove a keep alive thread.
 
-        Args:
-            itx: Interaction
-            thread: Thread to remove from keep alive list
-        """
         if thread.id not in self.bot.keep_alives:
             await itx.response.send_message(
                 f"{thread.mention} is not currently in the keep alive list.",
@@ -90,14 +77,15 @@ class ModCommands(commands.Cog):
             ephemeral=True,
         )
 
-    @mod.command(name="remove-record")
+    @mod.command(**utils.remove_record)
+    @app_commands.describe(**utils.remove_record_args)
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete, level_name=cogs.map_levels_autocomplete
     )
     async def remove_record(
         self,
         itx: core.Interaction[core.Doom],
-        member: discord.Member,
+        user: discord.Member,
         map_code: app_commands.Transform[str, utils.MapCodeRecordsTransformer],
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
     ):
@@ -108,7 +96,7 @@ class ModCommands(commands.Cog):
                 "SELECT * FROM records r "
                 "LEFT JOIN users u on r.user_id = u.user_id "
                 "WHERE r.user_id=$1 AND map_code=$2 AND level_name=$1",
-                member.id,
+                user.id,
                 map_code,
                 level_name,
             )
@@ -136,26 +124,27 @@ class ModCommands(commands.Cog):
 
         await self.bot.database.set(
             "DELETE FROM records WHERE user_id=$1 AND map_code=$2 AND level_name=$1",
-            member.id,
+            user.id,
             map_code,
             level_name,
         )
 
-    @mod.command(name="change-name")
-    @app_commands.autocomplete(member=cogs.users_autocomplete)
+    @mod.command(**utils.change_name)
+    @app_commands.describe(**utils.change_name_args)
+    @app_commands.autocomplete(user=cogs.users_autocomplete)
     async def change_name(
         self,
         itx: core.Interaction[core.Doom],
-        member: app_commands.Transform[int, utils.UserTransformer],
+        user: app_commands.Transform[int, utils.UserTransformer],
         nickname: app_commands.Range[str, 1, 25],
     ):
-        old = self.bot.all_users[member]["nickname"]
-        self.bot.all_users[member]["nickname"] = nickname
+        old = self.bot.all_users[user]["nickname"]
+        self.bot.all_users[user]["nickname"] = nickname
         await self.bot.database.set(
-            "UPDATE users SET nickname=$1 WHERE user_id=$2", nickname, member
+            "UPDATE users SET nickname=$1 WHERE user_id=$2", nickname, user
         )
         await itx.response.send_message(
-            f"Changing {old} ({member}) nickname to {nickname}"
+            f"Changing {old} ({user}) nickname to {nickname}"
         )
 
 
