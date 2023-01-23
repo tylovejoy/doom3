@@ -59,7 +59,10 @@ class Tags(discord.ext.commands.GroupCog, group_name=utils.tags["name"]):
 
     @app_commands.command(**utils.create_tag)
     async def create(self, itx: core.Interaction[core.Doom]):
-        if itx.guild.get_role(959433020664868907) not in itx.user.roles:
+        if (
+            itx.guild.get_role(959433020664868907) not in itx.user.roles
+            and itx.guild.get_role(utils.STAFF) not in itx.user.roles
+        ):
             raise utils.NoPermissionsError
         modal = views.TagCreate()
         await itx.response.send_modal(modal)
