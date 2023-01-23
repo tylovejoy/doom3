@@ -225,6 +225,7 @@ class Records(commands.Cog):
                          r.user_id,
                          level_name,
                          record,
+                         screenshot,
                          video,
                          verified,
                          r.map_code,
