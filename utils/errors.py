@@ -109,7 +109,7 @@ class InvalidInteger(BaseParkourException):
     """Choice must be a valid integer."""
 
 
-class UserNotFoundError(BaseParkourException):
+class UserNotFoundError(BaseParkourException, app_commands.errors.AppCommandError):
     """User does not exist."""
 
 
