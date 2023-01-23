@@ -1,0 +1,547 @@
+{
+  "Overwatch Workshop Code": {
+    "tr": "Overwatch paylaşım kodu",
+    "ko": "워크샵 공유 코드",
+    "de": "Overwatch Workshop Code",
+    "no": "Overwatch verksted kode"
+  },
+  "User name": {
+    "tr": "Kullanıcı adı",
+    "ko": "유저",
+    "de": "Benutzername",
+    "no": "Brukernavn",
+    "zh-CN": "使用者名称"
+  },
+  "Creator name": {
+    "tr": "Yaratıcı adı",
+    "ko": "제작자명",
+    "de": "Name des Erstellers",
+    "no": "Skaperens navn",
+    "zh-CN": "创造者名称"
+  },
+  "Overwatch map": {
+    "tr": "Overwatch haritası",
+    "ko": "배경 맵",
+    "de": "Overwatch Karte",
+    "no": "Overwatch kart",
+    "zh-CN": "Overwatch(守望先锋） 地图"
+  },
+  "Type of parkour map": {
+    "tr": "Parkur haritasının tipi",
+    "ko": "맵의 분류",
+    "de": "Parkour Kartentyp",
+    "no": "Type parkour kart",
+    "zh-CN": "跑酷地图类"
+  },
+  "add": {
+    "tr": "ekle",
+    "ko": "추가",
+    "de": "hinzufügen",
+    "no": "legg-til"
+  },
+  "remove": {
+    "tr": "sil",
+    "ko": "삭제",
+    "de": "entfernen",
+    "no": "fjern"
+  },
+  "User display name (within bot commands only)": {
+    "tr": "Kullanıcı takma adı (sadece bot komuları için geçerli)",
+    "ko": "디스플레이명 (봇상에서 쓰일 이름)",
+    "de": "Spitzname (nur in Bot Befehlen)",
+    "no": "Brukers visnings navn(bare innenfor bot-kommandoer)",
+    "zh-CN": "使用者显示的名称"
+  },
+  "Record in HH:MM:SS.ss format": {
+    "tr": "Rekor HH:MM:SS.ss formatındadır",
+    "ko": " 시시:분분:초초.00 형식으로 기록하시오",
+    "de": "Rekord im HH:MM:SS.ss Format",
+    "no": "Rekord i TT:MM:SS format",
+    "zh-CN": "利用  小时:分钟:几秒.毫秒   的格式记录与上传"
+  },
+  "map_code": {
+    "tr": "harita_kodu",
+    "ko": "맵-코드",
+    "de": "kartencode",
+    "no": "kartets_kode",
+    "zh-CN": "分享地图代号"
+  },
+  "creator": {
+    "tr": "yaratıcı",
+    "ko": "제작자",
+    "de": "ersteller",
+    "no": "skaper",
+    "zh-CN": "创造者"
+  },
+  "new_level_name": {
+    "tr": "yeni_level_adı",
+    "ko": "수정된레벨이름",
+    "de": "neuer_level_name",
+    "no": "levelets_nye_navn"
+  },
+  "level_name": {
+    "tr": "level_adı",
+    "ko": "레벨이름",
+    "de": "level_name",
+    "no": "levelets_navn"
+  },
+  "map_name": {
+    "tr": "harita_adı",
+    "ko": "맵_이름",
+    "de": "kartenname",
+    "no": "kartets_navn"
+  },
+  "user": {
+    "tr": "kullanıcı",
+    "ko": "개인-기록",
+    "de": "benutzer",
+    "no": "bruker"
+  },
+  "name": {
+    "tr": "ad",
+    "ko": "이름",
+    "no": "navn"
+  },
+  "nickname": {
+    "tr": "takma-ad",
+    "ko": "이름",
+    "de": "spitzname",
+    "no": "kallenavn"
+  },
+  "map-maker": {
+    "tr": "map-yaratıcısı",
+    "ko": "맵-제작자",
+    "de": "kartenersteller",
+    "no": "skaper-av-kart"
+  },
+  "Map maker only commands": {
+    "tr": "Harita yaratıcısına özel komutlar",
+    "ko": "맵 제작자 전용 커맨드 목록",
+    "de": "Befehle für Kartenersteller",
+    "no": "Kommandoer for kart skaper"
+  },
+  "level": {
+    "ko": "레벨"
+  },
+  "Edit levels": {
+    "tr": "Levelları düzenle",
+    "ko": "레벨 수정",
+    "de": "Level ändern",
+    "no": "Rediger levler"
+  },
+  "Edit creators": {
+    "tr": "Yaratıcıları düzenle",
+    "ko": "제작자 명단 수정",
+    "de": "Ersteller ändern",
+    "no": "Rediger skapere"
+  },
+  "Remove a creator from your map": {
+    "tr": "Haritandan bir yaratıcı sil",
+    "ko": "제작자 명단에서 인원 제거",
+    "de": "Entferne einen Ersteller von deiner Karte",
+    "no": "Fjern en skaper fra ditt kart"
+  },
+  "Add a creator to your map": {
+    "tr": "Haritana bir yaratıcı ekle",
+    "ko": "제작자 명단에서 인원 추가",
+    "de": "Füge einen Ersteller zu deiner Karte hinzu",
+    "no": "legg til en skaper til ditt kart"
+  },
+  "Level name": {
+    "tr": "Level adı",
+    "ko": "레벨 이름",
+    "de": "Levelname",
+    "no": "Levelet's navn"
+  },
+  "New level name": {
+    "tr": "Yeni level adı",
+    "ko": "신규 레벨명",
+    "de": "Neuer Levelname",
+    "no": "Levelet's nye navn"
+  },
+  "Add a level name to your map": {
+    "tr": "Haritana level adı ekle",
+    "ko": "맵에 새 레벨 추가",
+    "de": "Füge einen Levelnamen zu deiner Karte hinzu",
+    "no": "Legg til et navn til ditt kart"
+  },
+  "Remove a level name from your map": {
+    "tr": "Haritandan level adı sil",
+    "ko": "맵에서 기존 레벨 제거",
+    "de": "Entferne einen Levelnamen von deiner Karte",
+    "no": "Fjern et level navn fra ditt kart"
+  },
+  "rename": {
+    "tr": "yeniden-adlandır",
+    "ko": "레벨명-수정",
+    "de": "umbenennen",
+    "no": "endre-navn"
+  },
+  "Rename a level in your map": {
+    "tr": "Haritandaki bir levelı yeniden adlandır",
+    "ko": "기존 레벨명 수정",
+    "de": "Benenne ein Level in deiner Karte um",
+    "no": "Endre et level navn i ditt kart"
+  },
+  "submit-map": {
+    "tr": "harita-gönder",
+    "ko": "맵-추가",
+    "de": "karte-einreichen",
+    "no": "send-inn-kart"
+  },
+  "Submit your map to the database": {
+    "tr": "Haritanı veritabanına gönder",
+    "ko": "데이터베이스에 맵 추가",
+    "de": "Reiche deine Karte in die Datenbank ein",
+    "no": "Send inn kartet ditt til databasen"
+  },
+  "map-search": {
+    "tr": "harita-arama",
+    "ko": "맵-검색",
+    "de": "kartensuche",
+    "no": "søk-etter-kart"
+  },
+  "Search for maps based on various filters": {
+    "tr": "Çeşitli filtrelere dayanarak haritaları ara",
+    "ko": "필터로 특정 맵 검색",
+    "de": "Suche nach Karten mit verschiedenen Filtern",
+    "no": "Søk etter kart basert på varierte filtere"
+  },
+  "map_type": {
+    "tr": "harita_tipi",
+    "ko": "맵-분류",
+    "de": "kartentyp",
+    "no": "kartests_type"
+  },
+  "guide": {
+    "tr": "rehber",
+    "ko": "공략",
+    "de": "anleitung"
+  },
+  "View guide(s) for a specific map": {
+    "tr": "Belirli bir haritanın rehberlerini görüntüle",
+    "ko": "맵의 공략(들) 검색",
+    "de": "Anleitungen für eine Karte ansehen",
+    "no": "Se guide(r) for et spesifikt kart"
+  },
+  "add-guide": {
+    "tr": "rehber-ekle",
+    "ko": "공략-추가",
+    "de": "anleitung-hinzufügen",
+    "no": "legg-til-guide"
+  },
+  "Add a guide for a specific map": {
+    "tr": "Belirli bir harita için rehber ekle",
+    "ko": "특정 맵에 공략 영상 추가",
+    "de": "Füge eine Anleitung für eine Karte hinzu",
+    "no": "Legg til en guide for et spesifikt kart"
+  },
+  "url": {
+  },
+  "Valid URL to guide (YouTube, Streamable, etc)": {
+    "tr": "Rehber için geçerli URL (Youtube, Streamable vs.)",
+    "ko": "공략 영상의 url (Youtube, Streamable 등) 추가",
+    "de": "Gültige URL zur Anleitung (Youtube, Streamable, etc)",
+    "no": "Gyldig URL  til guide (Youtube, Streamer, etc)"
+  },
+  "mod": {
+    "ko": "관리자"
+  },
+  "Mod only commands": {
+    "tr": "Sadece modlar için geçerli komutlar",
+    "ko": "관리자 전용 커맨드",
+    "de": "Befehle für Moderatoren",
+    "no": "Kommandoer for moderatorer"
+  },
+  "keep-alive": {
+    "tr": "canlı-tutma",
+    "de": "am-leben-halten"
+  },
+  "Keep threads alive": {
+    "tr": "Alt başlıkları canlı tut",
+    "ko": "스레드를 keep-alive 처리",
+    "de": "Threads am Leben halten"
+  },
+  "Add a keep-alive to a thread": {
+    "tr": "Bir alt başlığa canlı-tutma ekle",
+    "ko": "스레드에 keep-alive 추가",
+    "de": "Einen Thread am Leben halten"
+  },
+  "Remove a keep-alive from a thread": {
+    "tr": "Bir alt başlıktan canlı-tutma sil",
+    "ko": "스레드에서 keep-alive 제거",
+    "de": "Einen Thread nicht mehr am Leben halten"
+  },
+  "thread": {
+    "tr": "alt-başlık",
+    "ko": "스레드",
+    "de": "thread",
+    "no": "tråd"
+  },
+  "Thread": {
+    "tr": "Alt başlık",
+    "ko": "스레드",
+    "de": "Thread",
+    "no": "Tråd"
+  },
+  "remove-record": {
+    "tr": "rekor-sil",
+    "ko": "기록-제거",
+    "de": "rekord-entfernen",
+    "no": "fjern-rekord"
+  },
+  "Remove a record from a user": {
+    "tr": "Bir kullanıcıdan rekor sil",
+    "ko": "사용자의 기록 삭제",
+    "de": "Einen Rekord eines Benutzers entfernen",
+    "no": "Legg til en rekord fra en bruker"
+  },
+  "change-name": {
+    "tr": "ad-değiş",
+    "ko": "이름-변경",
+    "de": "namen-ändern",
+    "no": "endre-navn"
+  },
+  "Change a user's display name": {
+    "tr": "Bir kullanıcının takma adını değiştir",
+    "ko": "사용자의 표시 이름 변경",
+    "de": "Spitzname eines Benutzers ändern",
+    "no": "Endre en brukers visning's navn"
+  },
+  "alerts": {
+    "tr": "alarmlar",
+    "ko": "알림",
+    "de": "benachrichtigungen",
+    "no": "varslinger"
+  },
+  "Toggle Doombot verification alerts on/off": {
+    "tr": "Doombot onaylanma alarmlarını aç/kapat",
+    "ko": "Doombot의 인증 알림 켬/끔",
+    "de": "Schalte Doombot Verifikationsbenachrichtigungen an/aus",
+    "no": "Veksle Doombot verifiserings varslinger på/av"
+  },
+  "value": {
+    "tr": "değer",
+    "ko": "값",
+    "de": "wert",
+    "no": "verdi"
+  },
+  "Alerts on/off": {
+    "tr": "Alarmları aç/kapat",
+    "ko": "알림 켬/끔",
+    "de": "Benachrichtigungen an/aus",
+    "no": "Varslinger på/av"
+  },
+  "Change your display name in bot commands": {
+    "tr": "Takma adını bot komutlarından değiştir",
+    "ko": "봇 명령어에서 표시되는 이름 변경",
+    "de": "Ändere deinen Spitznamen in Bot Befehlen",
+    "no": "Endre visnings navnet ditt i bot kommandoer"
+  },
+  "brug-mode": {
+    "ko": "브러그-모드",
+    "de": "brug-modus"
+  },
+  "Emojify text": {
+    "tr": "Metni Emojileştir",
+    "ko": "텍스트의 Emoji화",
+    "de": "Text emojifizieren",
+    "no": "Emojifiser tekst"
+  },
+  "uwu": {
+    "ko": "웅앵웅-모드"
+  },
+  "UwUfy text": {
+    "tr": "Metni UwUlaştır",
+    "ko": "텍스트의 웅앵웅화",
+    "de": "Text UwUifizieren",
+    "no": "UwUfy tekst"
+  },
+  "text": {
+    "tr": "metin",
+    "ko": "텍스트",
+    "de": "text",
+    "no": "tekst"
+  },
+  "Text": {
+    "tr": "Metin",
+    "ko": "텍스트",
+    "de": "Text",
+    "no": "Tekst"
+  },
+  "blarg": {
+  },
+  "BLARG": {
+  },
+  "u": {
+    "ko": "응너",
+    "de": "du"
+  },
+  "Insult someone": {
+    "tr": "Birine hakaret et",
+    "ko": "상대방에게 모욕감 전달",
+    "de": "Jemanden beleidigen",
+    "no": "Fornærm noen"
+  },
+  "increase": {
+    "ko": "팽창",
+    "de": "verlängern",
+    "no": "øk"
+  },
+  "Increase! Beware the knife...": {
+    "ko": "커져라! 작두를 조심하시오...",
+    "de": "Verlängern! Vorsicht vor dem Messer...",
+    "no": "øk! Pass på kniven..."
+  },
+  "decrease": {
+    "ko": "수축",
+    "de": "verkürzen",
+    "no": "avta"
+  },
+  "Decrease! Beware the growth pills...": {
+    "ko": "작아져라! 실데나필을 조심하시오...",
+    "de": "Verkürzen! Vorsicht vor den Wachstumspillen...",
+    "no": "Avta! Pass på vekstpillene"
+  },
+  "personal-records": {
+    "tr": "kişisel-rekorlar",
+    "ko": "개인-기록-모음",
+    "de": "persönliche-rekorde",
+    "no": "personlige-rekorder"
+  },
+  "world-records": {
+    "tr": "dünya-rekorları",
+    "ko": "세계-기록-모음",
+    "de": "weltrekorde",
+    "no": "verdens-rekorder"
+  },
+  "submit-record": {
+    "tr": "rekor-gönder",
+    "ko": "기록-추가",
+    "de": "rekord-einreichen",
+    "no": "send-inn-rekord"
+  },
+  "Submit a record to the database. Video proof is required for full verification!": {
+    "tr": "Veritabanına bir rekor gönder. Tam onaylama için video kanıtı gereklidir!",
+    "ko": "데이터베이스에 기록 추가 (영상 증거를 추가해야 완전 인증이 가능합니다!)",
+    "de": "Reiche einen Rekord ein. Ein Videobeweis ist für vollständige Verifikation notwendig!",
+    "no": "send inn en rekord til databasen. Video bevis er nødvendig for full verifisering!"
+  },
+  "record": {
+    "tr": "rekor",
+    "ko": "기록",
+    "de": "rekord",
+    "no": "rekord"
+  },
+  "screenshot": {
+    "tr": "ekran-görüntüsü",
+    "ko": "스크린샷",
+    "de": "screenshot",
+    "no": "skjermbilde"
+  },
+  "Screenshot of completion": {
+    "tr": "Tamamlamanın ekran görüntüsü",
+    "ko": "완주 스크린샷",
+    "de": "Screenshot der Absolvierung",
+    "no": "Skjermbilde av fullføring"
+  },
+  "video": {
+    "ko": "영상"
+  },
+  "Video of play through. REQUIRED FOR FULL VERIFICATION!": {
+    "tr": "Oynama videosu. TAM ONAYLAMA İÇİN GEREKLİDİR!",
+    "ko": "완주 기록의 영상 (첨부해야 완전 인증 가능!!)",
+    "de": "Video vom Durchlauf. NOTWENDIG FÜR VOLLE VERIFIKATION!",
+    "no": "Video av gjennomspilling. NØDVENDIG FOR FULL VERIFISERING!"
+  },
+  "rating": {
+    "tr": "değerlendirme",
+    "ko": "평점",
+    "de": "bewertung",
+    "no": "vurdering"
+  },
+  "What would you rate the quality of this level?": {
+    "tr": "Bu levelın kalitesini nasıl değerlendirirdiniz?",
+    "ko": "이 레벨의 완성도를 어떻게 생각하나요?",
+    "de": "Wie würdest du die Qualität dieses Level bewerten?",
+    "no": "Hvordan ville du vurdert kvaliteten av dette levelet?"
+  },
+  "leaderboard": {
+    "tr": "skor-tahtası",
+    "ko": "순위표",
+    "de": "bestenliste",
+    "no": "ledertavle"
+  },
+  "View leaderboard of any map in the database.": {
+    "tr": "Herhangi bir haritanın skor tahtasını görüntüle",
+    "ko": "데이터베이스상 있는 맵들의 순위표 확인",
+    "de": "Bestenliste einer Karte in der Datenbank ansehen",
+    "no": "Se ledertavlen til hvilket kart som helst i databasen."
+  },
+  "verified": {
+    "tr": "onaylanmış",
+    "ko": "인증-완료",
+    "de": "verifiziert",
+    "no": "verifisert"
+  },
+  "Only show fully verified video submissions": {
+    "tr": "Sadece tamamen onaylanmış video gönderilerini göster",
+    "ko": "인증 완료된 영상 기록들만 확인",
+    "de": "Zeige nur vollständig verifizierte Video-Einreichungen an",
+    "no": "Vis bare full verifiserte video innleveringer"
+  },
+  "View your (by default) personal records or another users": {
+    "tr": "Kendinin (varsayılan) ya da başkasının rekorlarını görüntüle",
+    "ko": "자신이나 다른 유저의 개인 기록 확인",
+    "de": "Zeige deine (standardmäßig) persönlichen Rekorde oder die eines anderen Benutzers",
+    "no": "Se på dine (som standard) personlige rekorder eller andre's rekorder"
+  },
+  "wr_only": {
+    "tr": "sadece-dr",
+    "ko": "세계-기록",
+    "de": "nur_weltrekorde",
+    "no": "kun_wr"
+  },
+  "Only show world records, if any": {
+    "tr": "Eğer varsa, sadece dünya rekorlarını göster",
+    "ko": "(가능하다면) 세계 기록 확인",
+    "de": "Zeige nur Weltrekorde, falls es welche gibt",
+    "no": "Vis bare verdens rekorder, hvis det er noen"
+  },
+  "tag": {
+    "tr": "etiket",
+    "ko": "태그",
+    "de": "schlüsselwort",
+    "no": "stikkord"
+  },
+  "view": {
+    "tr": "görüntüle",
+    "ko": "정보",
+    "de": "anzeigen",
+    "no": "se"
+  },
+  "View a tag": {
+    "tr": "Bir etiketi görüntüle",
+    "ko": "태그 확인",
+    "de": "Informationen eines Schlüsselwort anzeigen",
+    "no": "Se et stikkord"
+  },
+  "Name of the tag": {
+    "tr": "Etiketin adı",
+    "ko": "이름",
+    "de": "Das Schlüsselwort",
+    "no": "Navnet på stikkordet"
+  },
+  "create": {
+    "tr": "oluştur",
+    "ko": "생성",
+    "de": "erstellen",
+    "no": "lag"
+  },
+  "Create a tag": {
+    "tr": "Bir etiket oluştur",
+    "ko": "태그 생성",
+    "de": "Neues Schlüsselwort erstellen",
+    "no": "Lag et stikkord"
+  }
+}
