@@ -20,16 +20,19 @@ with open("assets/emoji-data.json", "r", encoding="utf8") as f:
 
 class Personal(commands.Cog):
     length = 0
+
     async def cog_check(self, ctx: commands.Context[core.Doom]) -> bool:
-        return ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239  # Spam-friendly
+        return (
+            ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239
+        )  # Spam-friendly
 
     @app_commands.command(**utils.alerts)
     @app_commands.describe(**utils.alerts_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def alerts(
-            self,
-            itx: core.Interaction[core.Doom],
-            value: typing.Literal["On", "Off"],
+        self,
+        itx: core.Interaction[core.Doom],
+        value: typing.Literal["On", "Off"],
     ):
         value_bool = value == "On"
         await itx.client.database.set(
@@ -59,18 +62,24 @@ class Personal(commands.Cog):
 
     @app_commands.command(**utils.brug_mode)
     @app_commands.describe(**utils.fun_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
+    )
     async def brug_mode(self, itx: core.Interaction[core.Doom], text: str):
         await itx.response.send_message(utils.emojify(text)[:2000])
 
     @app_commands.command(**utils.uwufier)
     @app_commands.describe(**utils.fun_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
+    )
     async def uwufier(self, itx: core.Interaction[core.Doom], text: str):
         await itx.response.send_message(utils.uwuify(text)[:2000])
 
     @app_commands.command(**utils.blarg)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
+    )
     async def blarg(self, itx: core.Interaction[core.Doom]):
         await itx.response.send_message("BLARG")
 
@@ -89,7 +98,7 @@ class Personal(commands.Cog):
             " capitulated, then died.",
             " has swampy marsupial hind legs",
             " is the third plac e winner of the 2018 dumbass contest for all idiots",
-            " is Cock Broken..."
+            " is Cock Broken...",
         ]
 
         insult = random.choice(insults)

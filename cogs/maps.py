@@ -42,9 +42,7 @@ class Maps(commands.Cog):
     @_creator.command(
         **utils.remove_creator,
     )
-    @app_commands.describe(
-        **utils.creator_args
-    )
+    @app_commands.describe(**utils.creator_args)
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete,
         creator=cogs.users_autocomplete,
@@ -63,8 +61,7 @@ class Maps(commands.Cog):
             raise utils.CreatorDoesntExist
 
         await itx.client.database.set(
-            "DELETE FROM map_creators WHERE "
-            "map_code = $1 AND user_id = $2;",
+            "DELETE FROM map_creators WHERE " "map_code = $1 AND user_id = $2;",
             map_code,
             creator,
         )
@@ -186,7 +183,8 @@ class Maps(commands.Cog):
         itx.client.map_cache[map_code]["levels"].remove(level_name)
         itx.client.map_cache[map_code]["choices"] = list(
             filter(
-                lambda x: x.name != level_name, itx.client.map_cache[map_code]["choices"]
+                lambda x: x.name != level_name,
+                itx.client.map_cache[map_code]["choices"],
             )
         )
 

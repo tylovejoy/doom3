@@ -91,7 +91,9 @@ class Test(commands.Cog):
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     # @app_commands.describe(user=_T("The user to bonk."))
     async def bonk(self, interaction: discord.Interaction, user: discord.User):
-        await interaction.response.send_message(f":hammer: {user.mention}", ephemeral=True)
+        await interaction.response.send_message(
+            f":hammer: {user.mention}", ephemeral=True
+        )
 
 
 async def setup(bot: core.Doom):
