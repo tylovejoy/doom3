@@ -293,11 +293,11 @@ class Maps(commands.Cog):
                                JOIN map_creators mc on maps.map_code = mc.map_code
                                JOIN users u on u.user_id = mc.user_id
                                LEFT JOIN map_level_ratings mlr on maps.map_code = mlr.map_code
-                      WHERE ($1 IS NULL OR $1 = ANY (map_type))
-                        AND ($2 IS NULL OR map_name = $2)
-                        AND ($3 IS NULL OR maps.map_code = $3)
+                      WHERE ($1::text IS NULL OR $1 = ANY (map_type))
+                        AND ($2::text IS NULL OR map_name = $2)
+                        AND ($3::text IS NULL OR maps.map_code = $3)
                       GROUP BY map_type, mc.map_code, map_name, "desc", official, rating
-                      HAVING ($4 IS NULL OR string_agg(distinct (nickname), ', ') ILIKE $4)
+                      HAVING ($4::text IS NULL OR string_agg(distinct (nickname), ', ') ILIKE $4)
                       ORDER BY map_code) layer0
                 GROUP BY map_code, map_type, map_name, "desc", official, creators
                 ORDER BY map_code;
