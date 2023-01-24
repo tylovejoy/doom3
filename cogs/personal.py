@@ -42,7 +42,6 @@ class Personal(commands.Cog):
         )
         await itx.response.send_message(f"Alerts set to {value}.", ephemeral=True)
 
-
     @app_commands.command(**utils.name)
     @app_commands.describe(**utils.name_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))

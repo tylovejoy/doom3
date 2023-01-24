@@ -67,3 +67,11 @@ NUMBER_EMOJI = {
     9: "9️⃣",
     10: "🔟",
 }
+
+
+def split_nth_conditional(cur_i: int, n: int, collection: typing.Sequence) -> bool:
+    return (
+        (cur_i != 0 and cur_i % n == 0)
+        or (cur_i == 0 and len(collection) == 1)
+        or cur_i == len(collection) - 1
+    )

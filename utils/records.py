@@ -183,11 +183,7 @@ def all_levels_records_embed(
             value=description,
             inline=False,
         )
-        if (
-            (i != 0 and i % 10 == 0)
-            or (i == 0 and len(records) == 1)
-            or i == len(records) - 1
-        ):
+        if utils.split_nth_conditional(i, 10, records):
             embed = utils.set_embed_thumbnail_maps(record.map_name, embed)
             embed_list.append(embed)
             embed = utils.DoomEmbed(title=title)
@@ -204,13 +200,7 @@ def pr_records_embed(
     cur_code = f"{records[0].map_name} by {records[0].creators} ({records[0].map_code})"
     for i, record in enumerate(records):
         if cur_code != f"{record.map_name} by {record.creators} ({record.map_code})":
-            embed.add_field(
-                name=f"{cur_code}",
-                value="┗".join(description[:-3].rsplit("┣", 1)),
-                inline=False,
-            )
-            description = ""
-            cur_code = f"{record.map_name} by {record.creators} ({record.map_code})"
+            cur_code, description = _add_pr_field(cur_code, description, embed, record)
         if not record.video:
             description += (
                 f"┣ `Level` ***{record.level_name}***\n"
@@ -226,21 +216,22 @@ def pr_records_embed(
                 f"{utils.VERIFIED}\n "
                 f"┣ `Video` [Link]({record.video})\n┃\n"
             )
-        if (
-            (i != 0 and i % 10 == 0)
-            or (i == 0 and len(records) == 1)
-            or i == len(records) - 1
-        ):
-            embed.add_field(
-                name=f"{cur_code}",
-                value="┗".join(description[:-3].rsplit("┣", 1)),
-                inline=False,
-            )
-            description = ""
-            cur_code = f"{record.map_name} by {record.creators} ({record.map_code})"
+        if utils.split_nth_conditional(i, 10, records):
+            cur_code, description = _add_pr_field(cur_code, description, embed, record)
             embed_list.append(embed)
             embed = utils.DoomEmbed(title=title)
     return embed_list
+
+
+def _add_pr_field(cur_code, description, embed, record):
+    embed.add_field(
+        name=f"{cur_code}",
+        value="┗".join(description[:-3].rsplit("┣", 1)),
+        inline=False,
+    )
+    description = ""
+    cur_code = f"{record.map_name} by {record.creators} ({record.map_code})"
+    return cur_code, description
 
 
 def make_ordinal(n: int) -> str:

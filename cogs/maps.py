@@ -57,7 +57,7 @@ class Maps(commands.Cog):
             raise utils.CreatorDoesntExist
 
         await itx.client.database.set(
-            "DELETE FROM map_creators WHERE " "map_code = $1 AND user_id = $2;",
+            "DELETE FROM map_creators WHERE map_code = $1 AND user_id = $2;",
             map_code,
             creator,
         )
@@ -107,17 +107,8 @@ class Maps(commands.Cog):
         map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         new_level_name: str,
     ) -> None:
-        await itx.response.defer(ephemeral=True)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
+        view = await self._check_creator_code(itx, map_code, new_level_name)
 
-        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.NoPermissionsError
-
-        if new_level_name in itx.client.map_cache[map_code]["levels"]:
-            raise utils.LevelExistsError
-
-        view = views.Confirm(itx, ephemeral=True)
         await itx.edit_original_response(
             content="Is this correct?\n" f"Adding level name: {new_level_name}\n",
             view=view,
@@ -155,7 +146,7 @@ class Maps(commands.Cog):
         """
         view = await self._check_creator_code(itx, map_code)
         await itx.edit_original_response(
-            content="Is this correct?\n"Deleting level name: {map_level}\n",
+            content="Is this correct?\nDeleting level name: {map_level}\n",
             view=view,
         )
         await view.wait()
@@ -175,15 +166,19 @@ class Maps(commands.Cog):
             )
         )
 
-
-    async def _check_creator_code(self, itx, map_code):
+    @staticmethod
+    async def _check_creator_code(itx, map_code, new_level_name=None):
         await itx.response.defer(ephemeral=True)
         if map_code not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
         if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
             raise utils.NoPermissionsError
-        view = views.Confirm(itx, ephemeral=True)
-        return view
+        if (
+            new_level_name
+            and new_level_name in itx.client.map_cache[map_code]["levels"]
+        ):
+            raise utils.LevelExistsError
+        return views.Confirm(itx, ephemeral=True)
 
     @_level.command(**utils.edit_level)
     @app_commands.describe(**utils.edit_level_args)
@@ -341,11 +336,7 @@ class Maps(commands.Cog):
                     f"┗ `Description` {_map.desc}"
                 ),
             )
-            if (
-                (i != 0 and i % 10 == 0)
-                or (i == 0 and len(maps) == 1)
-                or i == len(maps) - 1
-            ):
+            if utils.split_nth_conditional(i, 10, maps):
                 embed_list.append(embed)
                 embed = utils.DoomEmbed(title="Map Search")
         return embed_list

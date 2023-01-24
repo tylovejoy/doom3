@@ -123,15 +123,7 @@ async def on_app_command_error(
     exception = getattr(error, "original", error)
     if isinstance(exception, utils.BaseParkourException):
         embed = utils.ErrorEmbed(description=str(exception))
-        if itx.response.is_done():
-            await itx.edit_original_response(
-                embed=embed,
-            )
-        else:
-            await itx.response.send_message(
-                embed=embed,
-                ephemeral=True,
-            )
+        await _respond(embed, itx)
     elif isinstance(exception, app_commands.CommandOnCooldown):
         now = discord.utils.utcnow()
         seconds = float(re.search(r"(\d+\.\d{2})s", str(exception)).group(1))
@@ -141,15 +133,7 @@ async def on_app_command_error(
                 f"Command is on cooldown. Cooldown ends {discord.utils.format_dt(end, style='R')}.\nThis message will be deleted at the same time."
             )
         )
-        if itx.response.is_done():
-            await itx.edit_original_response(
-                embed=embed,
-            )
-        else:
-            await itx.response.send_message(
-                embed=embed,
-                ephemeral=True,
-            )
+        await _respond(embed, itx)
         await utils.delete_interaction(itx, minutes=seconds / 60)
     else:
         edit = (
@@ -201,3 +185,15 @@ async def on_app_command_error(
                 ),
             )
     await utils.delete_interaction(itx, minutes=15)
+
+
+async def _respond(embed, itx):
+    if itx.response.is_done():
+        await itx.edit_original_response(
+            embed=embed,
+        )
+    else:
+        await itx.response.send_message(
+            embed=embed,
+            ephemeral=True,
+        )
