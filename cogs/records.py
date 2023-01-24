@@ -159,19 +159,14 @@ class Records(commands.Cog):
             LEFT JOIN users u on r.user_id = u.user_id
             LEFT JOIN maps m on m.map_code = r.map_code
         ) as ranks
-        WHERE map_code=$1 AND
-        ($1 IS FALSE OR verified=TRUE) AND
-        ($2 IS NOT NULL OR rank_num=1) AND
-        ($2 IS NULL OR level_name=$2)
+        WHERE map_code = $1 AND
+            ($4::boolean IS FALSE OR verified = TRUE) AND
+            ($2::boolean IS NOT NULL OR rank_num = 1) AND
+            ($3::text IS NULL OR level_name = $3)
         ORDER BY substr(level_name, 1, 5) <> 'Level', level_name;
         """
-        args = [map_code]
-        if level_name:
-            if level_name not in itx.client.map_cache[map_code]["levels"]:
-                raise utils.InvalidMapLevelError
-            args.append(level_name)
 
-        records = [x async for x in itx.client.database.get(query, *args)]
+        records = [x async for x in itx.client.database.get(query, map_code,  bool(level_name), level_name, verified)]
         if not records:
             raise utils.NoRecordsFoundError
 
