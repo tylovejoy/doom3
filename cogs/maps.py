@@ -130,7 +130,7 @@ class Maps(commands.Cog):
 
         view = views.Confirm(itx, ephemeral=True)
         await itx.edit_original_response(
-            content=("Is this correct?\n" f"Adding level name: {new_level_name}\n"),
+            content="Is this correct?\n" f"Adding level name: {new_level_name}\n",
             view=view,
         )
         await view.wait()
@@ -159,16 +159,18 @@ class Maps(commands.Cog):
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
     ) -> None:
-        await itx.response.defer(ephemeral=True)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
 
-        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.NoPermissionsError
+        """
+        Delete a level from your map.
 
-        view = views.Confirm(itx, ephemeral=True)
+        Args:
+            itx: Interaction obj
+            map_code: Overwatch share code
+            map_level: Name of level
+        """
+        view = await self._check_creator_code(itx, map_code)
         await itx.edit_original_response(
-            content=("Is this correct?\n" f"Deleting level name: {level_name}\n"),
+            content="Is this correct?\n"Deleting level name: {map_level}\n",
             view=view,
         )
         await view.wait()
@@ -188,6 +190,16 @@ class Maps(commands.Cog):
             )
         )
 
+
+    async def _check_creator_code(self, itx, map_code):
+        await itx.response.defer(ephemeral=True)
+        if map_code not in itx.client.map_cache.keys():
+            raise utils.InvalidMapCodeError
+        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
+            raise utils.NoPermissionsError
+        view = views.Confirm(itx, ephemeral=True)
+        return view
+
     @_level.command(**utils.edit_level)
     @app_commands.describe(**utils.edit_level_args)
     @app_commands.autocomplete(
@@ -201,14 +213,18 @@ class Maps(commands.Cog):
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
         new_level_name: str,
     ) -> None:
-        await itx.response.defer(ephemeral=True)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
 
-        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.NoPermissionsError
+        """
+        Rename a level in your map.
 
-        view = views.Confirm(itx, ephemeral=True)
+        Args:
+            itx: Interaction
+            map_code: Overwatch share code
+            map_level: Name of level
+            new_level_name: New name of level
+        """
+        view = await self._check_creator_code(itx, map_code)
+
         await itx.edit_original_response(
             content=(
                 "Is this correct?\n"
@@ -280,61 +296,46 @@ class Maps(commands.Cog):
         embed.set_thumbnail(url=None)
         maps = []
 
-        where_clause = []
-        outer_where = ""
-        args = []
-        tracking_number = 1
         if not any([map_type, map_name, creator, map_code]):
             raise utils.InvalidFiltersError
 
-        if map_type:
-            if map_type not in itx.client.map_types:
-                raise utils.InvalidMapTypeError
-            where_clause.append(f"${tracking_number} = ANY(map_type)")
-            args.append(map_type)
-            tracking_number += 1
-
-        if map_name:
-            if map_name not in itx.client.map_names:
-                raise utils.InvalidMapNameError
-
-            where_clause.append(f"map_name = ${tracking_number}")
-            args.append(map_name)
-            tracking_number += 1
-
-        if map_code:
-            where_clause.append(f"maps.map_code = ${tracking_number}")
-            args.append(map_code)
-            tracking_number += 1
-
-        if creator:
-            creator = "%" + creator + "%"
-            outer_where = f" WHERE creators ILIKE ${tracking_number}"
-            args.append(creator)
-            tracking_number += 1
-
         async for _map in itx.client.database.get(
             textwrap.dedent(
-                f"""SELECT map_code, map_type, map_name, "desc", official, creators, avg(rating) as rating
-            FROM (SELECT mc.map_code,
-                         array_to_string((map_type), ', ')     as map_type,
-                         map_name,
-                         "desc",
-                         official,
-                         string_agg(distinct (nickname), ', ') as creators,
-                         AVG(COALESCE(rating, 0))              as rating
-                  FROM maps
-                           JOIN map_creators mc on maps.map_code = mc.map_code
-                           JOIN users u on u.user_id = mc.user_id
-                           LEFT JOIN map_level_ratings mlr on maps.map_code = mlr.map_code
-            
-                  {(" WHERE " + ' AND '.join(where_clause)) if where_clause else ""}
-                  GROUP BY map_type, mc.map_code, map_name, "desc", official, rating) layer0
-            {outer_where}
-            GROUP BY map_code, map_type, map_name, "desc", official, creators ORDER BY map_code"""
+                f"""
+                SELECT map_code,
+                       map_type,
+                       map_name,
+                       "desc",
+                       official,
+                       creators,
+                       avg(rating) as rating
+                FROM (SELECT mc.map_code,
+                             array_to_string((map_type), ', ')     as map_type,
+                             map_name,
+                             "desc",
+                             official,
+                             string_agg(distinct (nickname), ', ') as creators,
+                             AVG(COALESCE(rating, 0))              as rating
+                      FROM maps
+                               JOIN map_creators mc on maps.map_code = mc.map_code
+                               JOIN users u on u.user_id = mc.user_id
+                               LEFT JOIN map_level_ratings mlr on maps.map_code = mlr.map_code
+                      WHERE ($1 IS NULL OR $1 = ANY (map_type))
+                        AND ($2 IS NULL OR map_name = $2)
+                        AND ($3 IS NULL OR maps.map_code = $3)
+                      GROUP BY map_type, mc.map_code, map_name, "desc", official, rating
+                      HAVING ($4 IS NULL OR string_agg(distinct (nickname), ', ') ILIKE $4)
+                      ORDER BY map_code) layer0
+                GROUP BY map_code, map_type, map_name, "desc", official, creators
+                ORDER BY map_code;
+                """
             ),
-            *args,
+            map_type,
+            map_name,
+            map_code,
+            "%" + creator + "%" if creator else None,
         ):
+            _map: database.DotRecord
             maps.append(_map)
         if not maps:
             raise utils.NoMapsFoundError
@@ -401,18 +402,7 @@ class Maps(commands.Cog):
         itx: core.Interaction[core.Doom],
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
     ):
-        await itx.response.defer(ephemeral=False)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
-
-        guides = [
-            x
-            async for x in itx.client.database.get(
-                "SELECT url FROM guides WHERE map_code=$1",
-                map_code,
-            )
-        ]
-        guides = [x.url for x in guides]
+        guides = await self._check_guides(itx, map_code)
         if not guides:
             raise utils.NoGuidesExistError
 
@@ -429,18 +419,7 @@ class Maps(commands.Cog):
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
         url: app_commands.Transform[str, utils.URLTransformer],
     ):
-        await itx.response.defer(ephemeral=True)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
-
-        guides = [
-            x
-            async for x in itx.client.database.get(
-                "SELECT url FROM guides WHERE map_code=$1",
-                map_code,
-            )
-        ]
-        guides = [x.url for x in guides]
+        guides = await self._check_guides(itx, map_code)
 
         if url in guides:
             raise utils.GuideExistsError
@@ -460,6 +439,23 @@ class Maps(commands.Cog):
             map_code,
             url,
         )
+
+    @staticmethod
+    async def _check_guides(
+        itx: core.Interaction[core.Doom], map_code: str
+    ) -> list[str]:
+        await itx.response.defer(ephemeral=True)
+        if map_code not in itx.client.map_cache.keys():
+            raise utils.InvalidMapCodeError
+        guides = [
+            x
+            async for x in itx.client.database.get(
+                "SELECT url FROM guides WHERE map_code=$1",
+                map_code,
+            )
+        ]
+        guides = [x.url for x in guides]
+        return guides
 
 
 async def setup(bot):

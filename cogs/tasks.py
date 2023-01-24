@@ -25,6 +25,8 @@ class Tasks(commands.Cog):
         self.cache_keep_alives.start()
         self.cache_auto_join.start()
 
+
+
     @commands.command()
     @commands.is_owner()
     async def refresh_cache(

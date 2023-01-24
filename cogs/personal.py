@@ -42,6 +42,7 @@ class Personal(commands.Cog):
         )
         await itx.response.send_message(f"Alerts set to {value}.", ephemeral=True)
 
+
     @app_commands.command(**utils.name)
     @app_commands.describe(**utils.name_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
@@ -51,7 +52,8 @@ class Personal(commands.Cog):
         nickname: app_commands.Range[str, 1, 25],
     ) -> None:
         await itx.response.send_message(
-            f"Changing your nick name from {itx.client.all_users[itx.user.id]['nickname']} to {nickname}"
+            f"Changing your nick name from {itx.client.all_users[itx.user.id]['nickname']} to {nickname}",
+            ephemeral=True,
         )
         await itx.client.database.set(
             "UPDATE users SET nickname=$2 WHERE user_id=$1",

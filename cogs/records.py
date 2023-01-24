@@ -165,10 +165,10 @@ class Records(commands.Cog):
             LEFT JOIN users u on r.user_id = u.user_id
             LEFT JOIN maps m on m.map_code = r.map_code
         ) as ranks
-        WHERE map_code=$1 
-        {"AND verified=TRUE" if verified else ""} 
-        {"AND rank_num=1" if not level_name else ""} 
-        {"AND level_name=$2" if level_name else ""}
+        WHERE map_code=$1 AND
+        ($1 IS FALSE OR verified=TRUE) AND
+        ($2 IS NOT NULL OR rank_num=1) AND
+        ($2 IS NULL OR level_name=$2)
         ORDER BY substr(level_name, 1, 5) <> 'Level', level_name;
         """
         args = [map_code]
@@ -219,39 +219,40 @@ class Records(commands.Cog):
         await itx.response.defer(ephemeral=True)
         if not user:
             user = itx.user
-        query = f"""
-            SELECT *
-            FROM (SELECT u.nickname,
-                         r.user_id,
-                         level_name,
-                         record,
-                         screenshot,
-                         video,
-                         verified,
-                         r.map_code,
-                         r.channel_id,
-                         r.message_id,
-                         m.map_name,
-                         m.creators,
-                         RANK() OVER (
-                             PARTITION BY level_name
-                             ORDER BY record
-                             ) rank_num
-                  FROM records r
-                           LEFT JOIN users u on r.user_id = u.user_id
-                           LEFT JOIN (SELECT m.map_code,
-                                             m.map_name,
-                                             string_agg(distinct (nickname), ', ') as creators
-                                      FROM maps m
-                                               LEFT JOIN map_creators mc on m.map_code = mc.map_code
-                                               LEFT JOIN users u on mc.user_id = u.user_id
-                                      GROUP BY m.map_code, m.map_name) m
-                                     on m.map_code = r.map_code) as ranks
-            WHERE user_id = $1
-              {'AND rank_num = 1' if wr_only else ''}
-            ORDER BY map_code, substr(level_name, 1, 5) <> 'Level', level_name;       
+
+        query = """
+        SELECT *
+        FROM (SELECT u.nickname,
+                     r.user_id,
+                     level_name,
+                     record,
+                     screenshot,
+                     video,
+                     verified,
+                     r.map_code,
+                     r.channel_id,
+                     r.message_id,
+                     m.map_name,
+                     m.creators,
+                     RANK() OVER (
+                         PARTITION BY level_name
+                         ORDER BY record
+                         ) rank_num
+              FROM records r
+                       LEFT JOIN users u on r.user_id = u.user_id
+                       LEFT JOIN (SELECT m.map_code,
+                                         m.map_name,
+                                         string_agg(distinct (nickname), ', ') as creators
+                                  FROM maps m
+                                           LEFT JOIN map_creators mc on m.map_code = mc.map_code
+                                           LEFT JOIN users u on mc.user_id = u.user_id
+                                  GROUP BY m.map_code, m.map_name) m
+                                 on m.map_code = r.map_code) as ranks
+        WHERE user_id = $1 AND ($2 IS FALSE OR rank_num = 1)
+        ORDER BY map_code, substr(level_name, 1, 5) <> 'Level', level_name;
+
         """
-        records = [x async for x in itx.client.database.get(query, user.id)]
+        records = [x async for x in itx.client.database.get(query, user.id, wr_only)]
         if not records:
             raise utils.NoRecordsFoundError
         embeds = utils.pr_records_embed(
