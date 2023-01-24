@@ -19,8 +19,6 @@ class ExerciseTransformer(app_commands.Transformer):
         return value
 
     async def autocomplete(
-        self,
-        itx: core.Interaction[core.Doom],
-        value: int | float | str
+        self, itx: core.Interaction[core.Doom], value: int | float | str
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(value, itx.client.exercise_names)

@@ -34,9 +34,7 @@ class MapCodeTransformer(app_commands.Transformer):
 
 class MapCodeAutoTransformer(MapCodeTransformer):
     async def autocomplete(
-        self,
-        itx: core.Interaction[core.Doom],
-        value: str
+        self, itx: core.Interaction[core.Doom], value: str
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(value, itx.client.map_codes_choices)
 
@@ -61,13 +59,13 @@ class MapLevelTransformer(app_commands.Transformer):
         return value
 
     async def autocomplete(
-        self,
-        itx: core.Interaction[core.Doom],
-        value: str
+        self, itx: core.Interaction[core.Doom], value: str
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(
             value,
-            (itx.client.map_cache.get(itx.namespace.map_code, None)).get("choices", None),
+            (itx.client.map_cache.get(itx.namespace.map_code, None)).get(
+                "choices", None
+            ),
         )
 
 
