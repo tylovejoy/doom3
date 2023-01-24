@@ -25,11 +25,13 @@ class Tasks(commands.Cog):
         self.cache_keep_alives.start()
         self.cache_auto_join.start()
 
+
+
     @commands.command()
     @commands.is_owner()
     async def refresh_cache(
-            self,
-            ctx: commands.Context[core.Doom],
+        self,
+        ctx: commands.Context[core.Doom],
     ):
         self.cache_all_users.restart()
         self.cache_map_code_choices.restart()

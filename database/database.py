@@ -66,6 +66,22 @@ class Database:
                 ):
                     yield record
 
+    async def _set(
+        self,
+        query: str,
+        *args: typing.Any,
+        _type: typing.Literal["one", "many"],
+    ):
+        if self.pool is None:
+            raise utils.DatabaseConnectionError()
+
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                if _type == "one":
+                    await conn.execute(query, *args)
+                elif _type == "many":
+                    await conn.executemany(query, *args)
+
     async def set(
         self,
         query: str,
@@ -80,12 +96,7 @@ class Database:
             query (str) Store the query string
             *args (Any) Pass any additional arguments to the query
         """
-        if self.pool is None:
-            raise utils.DatabaseConnectionError()
-
-        async with self.pool.acquire() as conn:
-            async with conn.transaction():
-                await conn.execute(query, *args)
+        await self._set(query, *args, _type="one")
 
     async def set_many(
         self,
@@ -101,9 +112,4 @@ class Database:
             query (str) Store the query string
             *args (Any) Pass any additional arguments to the query
         """
-        if self.pool is None:
-            raise utils.DatabaseConnectionError()
-
-        async with self.pool.acquire() as conn:
-            async with conn.transaction():
-                await conn.executemany(query, *args)
+        await self._set(query, *args, _type="many")

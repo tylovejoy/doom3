@@ -61,8 +61,7 @@ class Maps(commands.Cog):
             raise utils.CreatorDoesntExist
 
         await itx.client.database.set(
-            "DELETE FROM map_creators WHERE "
-            "map_code = $1 AND user_id = $2;",
+            "DELETE FROM map_creators WHERE " "map_code = $1 AND user_id = $2;",
             map_code,
             creator,
         )
@@ -174,14 +173,7 @@ class Maps(commands.Cog):
             map_code: Overwatch share code
             map_level: Name of level
         """
-        await itx.response.defer(ephemeral=True)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
-
-        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.NoPermissionsError
-
-        view = views.Confirm(itx, ephemeral=True)
+        view = await self._check_creator_code(itx, map_code)
         await itx.edit_original_response(
             content="Is this correct?\n" f"Deleting level name: {map_level}\n",
             view=view,
@@ -201,6 +193,15 @@ class Maps(commands.Cog):
                 lambda x: x.name != map_level, itx.client.map_cache[map_code]["choices"]
             )
         )
+
+    async def _check_creator_code(self, itx, map_code):
+        await itx.response.defer(ephemeral=True)
+        if map_code not in itx.client.map_cache.keys():
+            raise utils.InvalidMapCodeError
+        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
+            raise utils.NoPermissionsError
+        view = views.Confirm(itx, ephemeral=True)
+        return view
 
     @_level.command(name="edit")
     @app_commands.autocomplete(
@@ -223,14 +224,7 @@ class Maps(commands.Cog):
             map_level: Name of level
             new_level_name: New name of level
         """
-        await itx.response.defer(ephemeral=True)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
-
-        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.NoPermissionsError
-
-        view = views.Confirm(itx, ephemeral=True)
+        view = await self._check_creator_code(itx, map_code)
         await itx.edit_original_response(
             content=(
                 "Is this correct?\n"
@@ -322,7 +316,6 @@ class Maps(commands.Cog):
             raise utils.InvalidFiltersError
 
         async for _map in itx.client.database.get(
-
             textwrap.dedent(
                 f"""
                 SELECT map_code,
@@ -424,18 +417,7 @@ class Maps(commands.Cog):
         itx: core.Interaction[core.Doom],
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
     ):
-        await itx.response.defer(ephemeral=False)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
-
-        guides = [
-            x
-            async for x in itx.client.database.get(
-                "SELECT url FROM guides WHERE map_code=$1",
-                map_code,
-            )
-        ]
-        guides = [x.url for x in guides]
+        guides = await self._check_guides(itx, map_code)
         if not guides:
             raise utils.NoGuidesExistError
 
@@ -451,18 +433,7 @@ class Maps(commands.Cog):
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
         url: app_commands.Transform[str, utils.URLTransformer],
     ):
-        await itx.response.defer(ephemeral=True)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
-
-        guides = [
-            x
-            async for x in itx.client.database.get(
-                "SELECT url FROM guides WHERE map_code=$1",
-                map_code,
-            )
-        ]
-        guides = [x.url for x in guides]
+        guides = await self._check_guides(itx, map_code)
 
         if url in guides:
             raise utils.GuideExistsError
@@ -482,6 +453,23 @@ class Maps(commands.Cog):
             map_code,
             url,
         )
+
+    @staticmethod
+    async def _check_guides(
+        itx: core.Interaction[core.Doom], map_code: str
+    ) -> list[str]:
+        await itx.response.defer(ephemeral=True)
+        if map_code not in itx.client.map_cache.keys():
+            raise utils.InvalidMapCodeError
+        guides = [
+            x
+            async for x in itx.client.database.get(
+                "SELECT url FROM guides WHERE map_code=$1",
+                map_code,
+            )
+        ]
+        guides = [x.url for x in guides]
+        return guides
 
 
 async def setup(bot):
