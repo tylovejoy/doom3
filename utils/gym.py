@@ -4,6 +4,7 @@ import typing
 
 from discord import app_commands
 
+import cogs
 import utils
 
 if typing.TYPE_CHECKING:
@@ -16,3 +17,10 @@ class ExerciseTransformer(app_commands.Transformer):
         if value not in names:
             value = utils.fuzz_(value, names)
         return value
+
+    async def autocomplete(
+        self,
+        itx: core.Interaction[core.Doom],
+        value: int | float | str
+    ) -> list[app_commands.Choice[str]]:
+        return await cogs.autocomplete(value, itx.client.exercise_names)
