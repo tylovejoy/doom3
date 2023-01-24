@@ -8,6 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import cogs
+from core.translations import DoomTranslator
 from utils import MapCacheData, UserCacheData
 
 if typing.TYPE_CHECKING:
@@ -63,7 +64,7 @@ class Doom(commands.Bot):
         Returns:
             None
         """
-
+        await self.tree.set_translator(DoomTranslator())
         for ext in cogs.EXTENSIONS + ["jishaku", "core.events"]:
             self.logger.info(f"Loading {ext}...")
             await self.load_extension(ext)

@@ -21,20 +21,21 @@ class Records(commands.Cog):
         self.bot = bot
         self.bot.tree.add_command(
             app_commands.ContextMenu(
-                name="personal-records",
+                **utils.personal_records_c,
                 callback=self.pr_context_callback,
                 guild_ids=[utils.GUILD_ID],
             )
         )
         self.bot.tree.add_command(
             app_commands.ContextMenu(
-                name="world-records",
+                **utils.world_records_c,
                 callback=self.wr_context_callback,
                 guild_ids=[utils.GUILD_ID],
             )
         )
 
-    @app_commands.command(name="submit-record")
+    @app_commands.command(**utils.submit_record)
+    @app_commands.describe(**utils.submit_record_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete, level_name=cogs.map_levels_autocomplete
@@ -50,18 +51,6 @@ class Records(commands.Cog):
         video: app_commands.Transform[str, utils.URLTransformer] | None,
         rating: int | None,
     ) -> None:
-        """
-        Submit a record to the database. Video proof is required for full verification!
-
-        Args:
-            itx: Interaction
-            map_code: Overwatch share code
-            level_name: Map level name
-            record: Record in HH:MM:SS.ss format
-            screenshot: Screenshot of completion
-            video: Video of play through. REQUIRED FOR FULL VERIFICATION!
-            rating: What would you rate the quality of this level?
-        """
         await itx.response.defer(ephemeral=False)
         if map_code not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
@@ -139,7 +128,8 @@ class Records(commands.Cog):
             rating,
         )
 
-    @app_commands.command(name="leaderboard")
+    @app_commands.command(**utils.leaderboard)
+    @app_commands.describe(**utils.leaderboard_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete, level_name=cogs.map_levels_autocomplete
@@ -151,15 +141,6 @@ class Records(commands.Cog):
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
         verified: bool | None = False,
     ) -> None:
-        """
-        View leaderboard of any map in the database.
-
-        Args:
-            itx: Interaction
-            map_code: Overwatch share code
-            level_name: Name of level
-            verified: Only show fully verified video submissions.
-        """
         await itx.response.defer(ephemeral=True)
         if map_code not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
@@ -212,7 +193,8 @@ class Records(commands.Cog):
         view = views.Paginator(embeds, itx.user)
         await view.start(itx)
 
-    @app_commands.command(name="personal-records")
+    @app_commands.command(**utils.personal_records)
+    @app_commands.describe(**utils.personal_records_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def personal_records_slash(
         self,
@@ -243,6 +225,7 @@ class Records(commands.Cog):
                          r.user_id,
                          level_name,
                          record,
+                         screenshot,
                          video,
                          verified,
                          r.map_code,

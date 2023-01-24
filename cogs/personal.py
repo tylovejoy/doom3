@@ -20,44 +20,36 @@ with open("assets/emoji-data.json", "r", encoding="utf8") as f:
 
 class Personal(commands.Cog):
     length = 0
-    async def cog_check(self, ctx: commands.Context[core.Doom]) -> bool:
-        return ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239  # Spam-friendly
 
-    @app_commands.command()
+    async def cog_check(self, ctx: commands.Context[core.Doom]) -> bool:
+        return (
+            ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239
+        )  # Spam-friendly
+
+    @app_commands.command(**utils.alerts)
+    @app_commands.describe(**utils.alerts_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def alerts(
-            self,
-            itx: core.Interaction[core.Doom],
-            value: bool,
+        self,
+        itx: core.Interaction[core.Doom],
+        value: typing.Literal["On", "Off"],
     ):
-        """
-        Turn off Doombot alerts.
-
-        Args:
-            itx: Interaction
-            value: Allow alerts
-        """
-
+        value_bool = value == "On"
         await itx.client.database.set(
             "UPDATE users SET alertable=$1 WHERE user_id=$2",
-            value,
+            value_bool,
             itx.user.id,
         )
         await itx.response.send_message(f"Alerts set to {value}.", ephemeral=True)
 
-
-    @app_commands.command(name="name")
+    @app_commands.command(**utils.name)
+    @app_commands.describe(**utils.name_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def nickname_change(
-        self, itx: core.Interaction[core.Doom], nickname: app_commands.Range[str, 1, 25]
+        self,
+        itx: core.Interaction[core.Doom],
+        nickname: app_commands.Range[str, 1, 25],
     ) -> None:
-        """
-        Change your display name in bot commands.
-
-        Args:
-            itx: Interaction
-            nickname: New nickname
-        """
         await itx.response.send_message(
             f"Changing your nick name from {itx.client.all_users[itx.user.id]['nickname']} to {nickname}"
         )
@@ -68,22 +60,31 @@ class Personal(commands.Cog):
         )
         itx.client.all_users[itx.user.id]["nickname"] = nickname
 
-    @app_commands.command(name="brug-mode")
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    @app_commands.command(**utils.brug_mode)
+    @app_commands.describe(**utils.fun_args)
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
+    )
     async def brug_mode(self, itx: core.Interaction[core.Doom], text: str):
         await itx.response.send_message(utils.emojify(text)[:2000])
 
-    @app_commands.command(name="uwu")
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    @app_commands.command(**utils.uwufier)
+    @app_commands.describe(**utils.fun_args)
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
+    )
     async def uwufier(self, itx: core.Interaction[core.Doom], text: str):
         await itx.response.send_message(utils.uwuify(text)[:2000])
 
-    @app_commands.command(name="blarg")
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    @app_commands.command(**utils.blarg)
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
+    )
     async def blarg(self, itx: core.Interaction[core.Doom]):
         await itx.response.send_message("BLARG")
 
-    @app_commands.command(name="u")
+    @app_commands.command(**utils.u)
+    @app_commands.describe(**utils.u_args)
     @app_commands.guilds(discord.Object(id=968553235239559239))
     async def _u(self, itx: core.Interaction[core.Doom], user: discord.Member):
         insults = [
@@ -97,14 +98,14 @@ class Personal(commands.Cog):
             " capitulated, then died.",
             " has swampy marsupial hind legs",
             " is the third plac e winner of the 2018 dumbass contest for all idiots",
-            " is Cock Broken..."
+            " is Cock Broken...",
         ]
 
         insult = random.choice(insults)
 
         await itx.response.send_message(f"{user.display_name}{insult}")
 
-    @app_commands.command()
+    @app_commands.command(**utils.increase)
     @app_commands.guilds(discord.Object(id=968553235239559239))
     async def increase(self, itx: core.Interaction[core.Doom]):
         self.length += 1
@@ -114,7 +115,7 @@ class Personal(commands.Cog):
             await itx.edit_original_response(content=f"DICK CHOPPED...")
             self.length = 0
 
-    @app_commands.command()
+    @app_commands.command(**utils.decrease)
     @app_commands.guilds(discord.Object(id=968553235239559239))
     async def decrease(self, itx: core.Interaction[core.Doom]):
         if self.length > 0:
@@ -124,7 +125,6 @@ class Personal(commands.Cog):
             await asyncio.sleep(2)
             await itx.edit_original_response(content=f"DICK VIAGRA TIME...")
             self.length = 50
-
 
 
 async def setup(bot: core.Doom):
