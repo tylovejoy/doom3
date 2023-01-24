@@ -175,7 +175,7 @@ class GymUtils(commands.Cog):
         )
 
     @app_commands.command(name="show-pr")
-    @app_commands.autocomplete(exercise=cogs.exercise_name_autocomplete)
+    # @app_commands.autocomplete(exercise=cogs.exercise_name_autocomplete)
     @app_commands.guilds(discord.Object(id=689587520496730129))
     async def show_prs(
         self,
@@ -308,27 +308,25 @@ class GymUtils(commands.Cog):
             # TODO: Random.
             return
 
-        where = []
-
-        if location:
-            where.append(f"location='{location}'")
-        if equipment:
-            where.append(f"equipment='{equipment}'")
-        if exercise_name:
-            where.append(f"name='{exercise_name}'")
-
-        where_clause = "WHERE " + " AND ".join(where) + ";"
-
         search = [
             x
             async for x in itx.client.database.get(
-                "SELECT * FROM exercises " + where_clause,
+                """
+                SELECT * FROM exercises 
+                WHERE 
+                    ($1 IS NULL OR location = $1) AND
+                    ($2 IS NULL OR equipment = $2) AND
+                    ($3 IS NULL OR name = $3)
+                ORDER BY name;
+                """,
+                location,
+                equipment,
+                exercise_name,
             )
         ]
 
         if not search:
-            # TODO:
-            return
+            raise utils.NoExercisesFound
         embed = utils.DoomEmbed(title="Exercises")
         view = views.ExerciseView(itx, search)
         await itx.edit_original_response(embed=embed, view=view)

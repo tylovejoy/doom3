@@ -113,6 +113,10 @@ class UserNotFoundError(BaseParkourException, app_commands.errors.AppCommandErro
     """User does not exist."""
 
 
+class NoExercisesFound(BaseParkourException, app_commands.errors.AppCommandError):
+    """No exercises match the given filters."""
+
+
 async def on_app_command_error(
     itx: Interaction[Doom], error: app_commands.errors.CommandInvokeError
 ):

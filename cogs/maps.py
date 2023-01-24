@@ -43,14 +43,10 @@ class Maps(commands.Cog):
         **utils.remove_creator,
     )
     @app_commands.describe(**utils.creator_args)
-    @app_commands.autocomplete(
-        map_code=cogs.map_codes_autocomplete,
-        creator=cogs.users_autocomplete,
-    )
     async def remove_creator(
         self,
         itx: core.Interaction[core.Doom],
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
+        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         creator: app_commands.Transform[int, utils.UserTransformer],
     ) -> None:
         await itx.response.defer(ephemeral=True)
@@ -76,14 +72,10 @@ class Maps(commands.Cog):
 
     @_creator.command(**utils.add_creator)
     @app_commands.describe(**utils.creator_args)
-    @app_commands.autocomplete(
-        map_code=cogs.map_codes_autocomplete,
-        creator=cogs.users_autocomplete,
-    )
     async def add_creator(
         self,
         itx: core.Interaction[core.Doom],
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
+        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         creator: app_commands.Transform[int, utils.UserTransformer],
     ) -> None:
         await itx.response.defer(ephemeral=True)
@@ -109,13 +101,10 @@ class Maps(commands.Cog):
 
     @_level.command(**utils.add_level)
     @app_commands.describe(**utils.add_level_args)
-    @app_commands.autocomplete(
-        map_code=cogs.map_codes_autocomplete,
-    )
     async def add_level_name(
         self,
         itx: core.Interaction[core.Doom],
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
+        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         new_level_name: str,
     ) -> None:
         await itx.response.defer(ephemeral=True)
@@ -149,14 +138,10 @@ class Maps(commands.Cog):
 
     @_level.command(**utils.remove_level)
     @app_commands.describe(**utils.remove_level_args)
-    @app_commands.autocomplete(
-        map_code=cogs.map_codes_autocomplete,
-        level_name=cogs.map_levels_autocomplete,
-    )
     async def delete_level_names(
         self,
         itx: core.Interaction[core.Doom],
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
+        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
     ) -> None:
 
@@ -202,14 +187,10 @@ class Maps(commands.Cog):
 
     @_level.command(**utils.edit_level)
     @app_commands.describe(**utils.edit_level_args)
-    @app_commands.autocomplete(
-        map_code=cogs.map_codes_autocomplete,
-        level_name=cogs.map_levels_autocomplete,
-    )
     async def edit_level_names(
         self,
         itx: core.Interaction[core.Doom],
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
+        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
         new_level_name: str,
     ) -> None:
@@ -262,7 +243,6 @@ class Maps(commands.Cog):
     @app_commands.command(**utils.submit_map)
     @app_commands.describe(**utils.submit_map_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
-    @app_commands.autocomplete(map_name=cogs.map_name_autocomplete)
     async def submit_map(
         self,
         itx: core.Interaction[core.Doom],
@@ -279,17 +259,15 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.map_search)
     @app_commands.describe(**utils.map_search_args)
-    @app_commands.autocomplete(
-        map_name=cogs.map_name_autocomplete, map_type=cogs.map_type_autocomplete
-    )
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def map_search(
         self,
         itx: core.Interaction[core.Doom],
-        map_type: str | None = None,
+        map_type: app_commands.Transform[str, utils.MapTypeTransformer] | None = None,
         map_name: app_commands.Transform[str, utils.MapNameTransformer] | None = None,
-        creator: str | None = None,
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer] | None = None,
+        creator: app_commands.Transform[int, utils.UserTransformer] | None = None,
+        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer]
+        | None = None,
     ) -> None:
         await itx.response.defer(ephemeral=True)
         embed = utils.DoomEmbed(title="Map Search")
@@ -395,12 +373,11 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.view_guide)
     @app_commands.describe(**utils.view_guide_args)
-    @app_commands.autocomplete(map_code=cogs.map_codes_autocomplete)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def view_guide(
         self,
         itx: core.Interaction[core.Doom],
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
+        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
     ):
         guides = await self._check_guides(itx, map_code)
         if not guides:
@@ -411,12 +388,11 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.add_guide)
     @app_commands.describe(**utils.add_guide_args)
-    @app_commands.autocomplete(map_code=cogs.map_codes_autocomplete)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def add_guide(
         self,
         itx: core.Interaction[core.Doom],
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
+        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         url: app_commands.Transform[str, utils.URLTransformer],
     ):
         guides = await self._check_guides(itx, map_code)

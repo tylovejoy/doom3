@@ -37,9 +37,6 @@ class Records(commands.Cog):
     @app_commands.command(**utils.submit_record)
     @app_commands.describe(**utils.submit_record_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
-    @app_commands.autocomplete(
-        map_code=cogs.map_codes_autocomplete, level_name=cogs.map_levels_autocomplete
-    )
     @app_commands.choices(rating=utils.ALL_STARS_CHOICES)
     async def submit_record(
         self,
@@ -131,9 +128,6 @@ class Records(commands.Cog):
     @app_commands.command(**utils.leaderboard)
     @app_commands.describe(**utils.leaderboard_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
-    @app_commands.autocomplete(
-        map_code=cogs.map_codes_autocomplete, level_name=cogs.map_levels_autocomplete
-    )
     async def view_records(
         self,
         itx: core.Interaction[core.Doom],

@@ -7,6 +7,7 @@ import typing
 
 from discord import Embed, app_commands
 
+import cogs
 import database
 import utils
 from utils import DoomEmbed
@@ -31,7 +32,14 @@ class MapCodeTransformer(app_commands.Transformer):
         return value
 
 
-class MapCodeRecordsTransformer(app_commands.Transformer):
+class MapCodeAutoTransformer(MapCodeTransformer):
+    async def autocomplete(
+        self, itx: core.Interaction[core.Doom], value: str
+    ) -> list[app_commands.Choice[str]]:
+        return await cogs.autocomplete(value, itx.client.map_codes_choices)
+
+
+class MapCodeRecordsTransformer(MapCodeAutoTransformer):
     async def transform(self, itx: core.Interaction[core.Doom], value: str) -> str:
         value = value.upper().replace("O", "0").lstrip().rstrip()
 
@@ -50,12 +58,27 @@ class MapLevelTransformer(app_commands.Transformer):
             value = utils.fuzz_(value, itx.client.map_names)
         return value
 
+    async def autocomplete(
+        self, itx: core.Interaction[core.Doom], value: str
+    ) -> list[app_commands.Choice[str]]:
+        return await cogs.autocomplete(
+            value,
+            (itx.client.map_cache.get(itx.namespace.map_code, None)).get(
+                "choices", None
+            ),
+        )
+
 
 class UserTransformer(app_commands.Transformer):
     async def transform(self, itx: core.Interaction[core.Doom], value: str) -> int:
         if value not in map(str, itx.client.all_users.keys()):
             raise utils.UserNotFoundError
         return int(value)
+
+    async def autocomplete(
+        self, itx: core.Interaction[core.Doom], value: str
+    ) -> list[app_commands.Choice[str]]:
+        return await cogs.autocomplete(value, itx.client.users_choices)
 
 
 class RecordTransformer(app_commands.Transformer):
