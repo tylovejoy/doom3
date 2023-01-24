@@ -184,10 +184,10 @@ class Records(commands.Cog):
             LEFT JOIN users u on r.user_id = u.user_id
             LEFT JOIN maps m on m.map_code = r.map_code
         ) as ranks
-        WHERE map_code=$1 
-        {"AND verified=TRUE" if verified else ""} 
-        {"AND rank_num=1" if not level_name else ""} 
-        {"AND level_name=$2" if level_name else ""}
+        WHERE map_code=$1 AND
+        ($1 IS FALSE OR verified=TRUE) AND
+        ($2 IS NOT NULL OR rank_num=1) AND
+        ($2 IS NULL OR level_name=$2)
         ORDER BY substr(level_name, 1, 5) <> 'Level', level_name;
         """
         args = [map_code]
