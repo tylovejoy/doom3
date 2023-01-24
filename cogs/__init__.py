@@ -40,19 +40,19 @@ async def _autocomplete(
     return response
 
 
-async def map_codes_autocomplete(
-    itx: core.Interaction[core.Doom], current: str
-) -> list[app_commands.Choice[str]]:
-    return await _autocomplete(current, itx.client.map_codes_choices)
+# async def map_codes_autocomplete(
+#     itx: core.Interaction[core.Doom], current: str
+# ) -> list[app_commands.Choice[str]]:
+#     return await _autocomplete(current, itx.client.map_codes_choices)
 
 
-async def map_levels_autocomplete(
-    itx: core.Interaction[core.Doom], current: str
-) -> list[app_commands.Choice[str]]:
-    return await _autocomplete(
-        current,
-        (itx.client.map_cache.get(itx.namespace.map_code, None)).get("choices", None),
-    )
+# async def map_levels_autocomplete(
+#     itx: core.Interaction[core.Doom], current: str
+# ) -> list[app_commands.Choice[str]]:
+#     return await _autocomplete(
+#         current,
+#         (itx.client.map_cache.get(itx.namespace.map_code, None)).get("choices", None),
+#     )
 
 
 async def map_name_autocomplete(
@@ -79,10 +79,10 @@ async def tags_autocomplete(
     return await _autocomplete(current, itx.client.tag_choices)
 
 
-async def users_autocomplete(
-    itx: core.Interaction[core.Doom], current: str
-) -> list[app_commands.Choice[str]]:
-    return await _autocomplete(current, itx.client.users_choices)
+# async def users_autocomplete(
+#     itx: core.Interaction[core.Doom], current: str
+# ) -> list[app_commands.Choice[str]]:
+#     return await _autocomplete(current, itx.client.users_choices)
 
 
 async def exercise_name_search_autocomplete(

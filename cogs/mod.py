@@ -79,9 +79,6 @@ class ModCommands(commands.Cog):
 
     @mod.command(**utils.remove_record)
     @app_commands.describe(**utils.remove_record_args)
-    @app_commands.autocomplete(
-        map_code=cogs.map_codes_autocomplete, level_name=cogs.map_levels_autocomplete
-    )
     async def remove_record(
         self,
         itx: core.Interaction[core.Doom],
@@ -131,7 +128,6 @@ class ModCommands(commands.Cog):
 
     @mod.command(**utils.change_name)
     @app_commands.describe(**utils.change_name_args)
-    @app_commands.autocomplete(user=cogs.users_autocomplete)
     async def change_name(
         self,
         itx: core.Interaction[core.Doom],
