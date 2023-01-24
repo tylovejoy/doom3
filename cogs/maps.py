@@ -23,26 +23,26 @@ class Maps(commands.Cog):
         self.bot = bot
 
     _map_maker = app_commands.Group(
-        name="map-maker",
+        **utils.map_maker_,
         guild_ids=[utils.GUILD_ID],
-        description="Map maker only commands",
     )
 
     _level = app_commands.Group(
-        name="level",
+        **utils.map_maker_level,
         guild_ids=[utils.GUILD_ID],
-        description="Edit levels",
         parent=_map_maker,
     )
 
     _creator = app_commands.Group(
-        name="creator",
+        **utils.map_maker_creator,
         guild_ids=[utils.GUILD_ID],
-        description="Edit creators",
         parent=_map_maker,
     )
 
-    @_creator.command(name="remove")
+    @_creator.command(
+        **utils.remove_creator,
+    )
+    @app_commands.describe(**utils.creator_args)
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete,
         creator=cogs.users_autocomplete,
@@ -74,7 +74,8 @@ class Maps(commands.Cog):
             )
         )
 
-    @_creator.command(name="add")
+    @_creator.command(**utils.add_creator)
+    @app_commands.describe(**utils.creator_args)
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete,
         creator=cogs.users_autocomplete,
@@ -106,7 +107,8 @@ class Maps(commands.Cog):
             )
         )
 
-    @_level.command(name="add")
+    @_level.command(**utils.add_level)
+    @app_commands.describe(**utils.add_level_args)
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete,
     )
@@ -116,15 +118,6 @@ class Maps(commands.Cog):
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
         new_level_name: str,
     ) -> None:
-        """
-        Add a level name to your map.
-
-        Args:
-            itx: Interaction obj
-            map_code: Overwatch share code
-            new_level_name: Name of new level
-        """
-
         await itx.response.defer(ephemeral=True)
         if map_code not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
@@ -154,17 +147,19 @@ class Maps(commands.Cog):
             app_commands.Choice(name=new_level_name, value=new_level_name)
         )
 
-    @_level.command(name="remove")
+    @_level.command(**utils.remove_level)
+    @app_commands.describe(**utils.remove_level_args)
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete,
-        map_level=cogs.map_levels_autocomplete,
+        level_name=cogs.map_levels_autocomplete,
     )
     async def delete_level_names(
         self,
         itx: core.Interaction[core.Doom],
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
-        map_level: app_commands.Transform[str, utils.MapLevelTransformer],
+        level_name: app_commands.Transform[str, utils.MapLevelTransformer],
     ) -> None:
+
         """
         Delete a level from your map.
 
@@ -175,7 +170,7 @@ class Maps(commands.Cog):
         """
         view = await self._check_creator_code(itx, map_code)
         await itx.edit_original_response(
-            content="Is this correct?\n" f"Deleting level name: {map_level}\n",
+            content="Is this correct?\n"Deleting level name: {map_level}\n",
             view=view,
         )
         await view.wait()
@@ -185,14 +180,16 @@ class Maps(commands.Cog):
         await itx.client.database.set(
             "DELETE FROM map_levels WHERE map_code=$1 AND level=$2",
             map_code,
-            map_level,
+            level_name,
         )
-        itx.client.map_cache[map_code]["levels"].remove(map_level)
+        itx.client.map_cache[map_code]["levels"].remove(level_name)
         itx.client.map_cache[map_code]["choices"] = list(
             filter(
-                lambda x: x.name != map_level, itx.client.map_cache[map_code]["choices"]
+                lambda x: x.name != level_name,
+                itx.client.map_cache[map_code]["choices"],
             )
         )
+
 
     async def _check_creator_code(self, itx, map_code):
         await itx.response.defer(ephemeral=True)
@@ -203,18 +200,20 @@ class Maps(commands.Cog):
         view = views.Confirm(itx, ephemeral=True)
         return view
 
-    @_level.command(name="edit")
+    @_level.command(**utils.edit_level)
+    @app_commands.describe(**utils.edit_level_args)
     @app_commands.autocomplete(
         map_code=cogs.map_codes_autocomplete,
-        map_level=cogs.map_levels_autocomplete,
+        level_name=cogs.map_levels_autocomplete,
     )
     async def edit_level_names(
         self,
         itx: core.Interaction[core.Doom],
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
-        map_level: app_commands.Transform[str, utils.MapLevelTransformer],
+        level_name: app_commands.Transform[str, utils.MapLevelTransformer],
         new_level_name: str,
     ) -> None:
+
         """
         Rename a level in your map.
 
@@ -225,10 +224,11 @@ class Maps(commands.Cog):
             new_level_name: New name of level
         """
         view = await self._check_creator_code(itx, map_code)
+
         await itx.edit_original_response(
             content=(
                 "Is this correct?\n"
-                f"Original level name: {map_level}\n"
+                f"Original level name: {level_name}\n"
                 f"Updated level name: {new_level_name}\n"
             ),
             view=view,
@@ -240,26 +240,27 @@ class Maps(commands.Cog):
         await itx.client.database.set(
             "UPDATE map_levels SET level=$3 WHERE map_code=$1 AND level=$2",
             map_code,
-            map_level,
+            level_name,
             new_level_name,
         )
 
         itx.client.map_cache[map_code]["levels"] = list(
             map(
-                lambda x: new_level_name if x == map_level else x,
+                lambda x: new_level_name if x == level_name else x,
                 itx.client.map_cache[map_code]["levels"],
             )
         )
         itx.client.map_cache[map_code]["choices"] = list(
             map(
                 lambda x: app_commands.Choice(name=new_level_name, value=new_level_name)
-                if x.name == map_level
+                if x.name == level_name
                 else x,
                 itx.client.map_cache[map_code]["choices"],
             )
         )
 
-    @app_commands.command(name="submit-map")
+    @app_commands.command(**utils.submit_map)
+    @app_commands.describe(**utils.submit_map_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     @app_commands.autocomplete(map_name=cogs.map_name_autocomplete)
     async def submit_map(
@@ -268,14 +269,6 @@ class Maps(commands.Cog):
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
         map_name: app_commands.Transform[str, utils.MapNameTransformer],
     ) -> None:
-        """
-        Submit your map to the database.
-
-        Args:
-            itx: Interaction
-            map_code: Overwatch share code
-            map_name: Overwatch map
-        """
         modal = views.MapSubmit()
         modal.data = {
             "map_code": map_code,
@@ -284,7 +277,8 @@ class Maps(commands.Cog):
         }
         await itx.response.send_modal(modal)
 
-    @app_commands.command(name="map-search")
+    @app_commands.command(**utils.map_search)
+    @app_commands.describe(**utils.map_search_args)
     @app_commands.autocomplete(
         map_name=cogs.map_name_autocomplete, map_type=cogs.map_type_autocomplete
     )
@@ -297,16 +291,6 @@ class Maps(commands.Cog):
         creator: str | None = None,
         map_code: app_commands.Transform[str, utils.MapCodeTransformer] | None = None,
     ) -> None:
-        """
-        Search for maps based on various filters.
-
-        Args:
-            itx: Interaction
-            map_type: Type of parkour map
-            map_name: Overwatch map
-            creator: Creator name
-            map_code: Specific map code
-        """
         await itx.response.defer(ephemeral=True)
         embed = utils.DoomEmbed(title="Map Search")
         embed.set_thumbnail(url=None)
@@ -409,7 +393,8 @@ class Maps(commands.Cog):
             else ""
         )
 
-    @app_commands.command(name="guide")
+    @app_commands.command(**utils.view_guide)
+    @app_commands.describe(**utils.view_guide_args)
     @app_commands.autocomplete(map_code=cogs.map_codes_autocomplete)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def view_guide(
@@ -424,7 +409,8 @@ class Maps(commands.Cog):
         view = views.Paginator(guides, itx.user)
         await view.start(itx)
 
-    @app_commands.command(name="add-guide")
+    @app_commands.command(**utils.add_guide)
+    @app_commands.describe(**utils.add_guide_args)
     @app_commands.autocomplete(map_code=cogs.map_codes_autocomplete)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def add_guide(

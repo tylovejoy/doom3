@@ -1,4 +1,5 @@
 from utils.constants import *
+from utils.translations import *
 from utils.embeds import *
 from utils.emojify import emojify, uwuify
 from utils.errors import *

@@ -14,10 +14,11 @@ if typing.TYPE_CHECKING:
     import core
 
 
-class Tags(discord.ext.commands.GroupCog, group_name="tag"):
+class Tags(discord.ext.commands.GroupCog, group_name=utils.tags["name"]):
     """Tags"""
 
-    @app_commands.command()
+    @app_commands.command(**utils.view_tag)
+    @app_commands.describe(**utils.view_tag_args)
     @app_commands.autocomplete(name=cogs.tags_autocomplete)
     @app_commands.checks.cooldown(3, 30, key=lambda i: (i.guild_id, i.user.id))
     async def view(
@@ -56,9 +57,12 @@ class Tags(discord.ext.commands.GroupCog, group_name="tag"):
             content=discord.utils.escape_mentions(f"**{tag.name}**\n\n{tag.value}")
         )
 
-    @app_commands.command()
+    @app_commands.command(**utils.create_tag)
     async def create(self, itx: core.Interaction[core.Doom]):
-        if itx.guild.get_role(959433020664868907) not in itx.user.roles:
+        if (
+            itx.guild.get_role(959433020664868907) not in itx.user.roles
+            and itx.guild.get_role(utils.STAFF) not in itx.user.roles
+        ):
             raise utils.NoPermissionsError
         modal = views.TagCreate()
         await itx.response.send_modal(modal)

@@ -6,6 +6,7 @@ import typing
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord.app_commands import locale_str as _T
 
 import utils
 
@@ -85,6 +86,14 @@ class Test(commands.Cog):
     ):
         ctx.bot.logger.setLevel(level.upper())
         await ctx.message.delete()
+
+    @app_commands.command(name=_T("testing123"))
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    # @app_commands.describe(user=_T("The user to bonk."))
+    async def bonk(self, interaction: discord.Interaction, user: discord.User):
+        await interaction.response.send_message(
+            f":hammer: {user.mention}", ephemeral=True
+        )
 
 
 async def setup(bot: core.Doom):
