@@ -6,12 +6,12 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import cogs
 import utils
 import views
 
 if typing.TYPE_CHECKING:
     import core
+    from core import DoomItx
 
 
 class Records(commands.Cog):
@@ -40,7 +40,7 @@ class Records(commands.Cog):
     @app_commands.choices(rating=utils.ALL_STARS_CHOICES)
     async def submit_record(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeRecordsTransformer],
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
         record: app_commands.Transform[float, utils.RecordTransformer],
@@ -130,7 +130,7 @@ class Records(commands.Cog):
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def view_records(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeRecordsTransformer],
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
         verified: bool | None = False,
@@ -192,19 +192,19 @@ class Records(commands.Cog):
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def personal_records_slash(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         user: discord.Member | discord.User | None = None,
         wr_only: bool | None = None,
     ):
         await self._personal_records(itx, user, wr_only)
 
     async def pr_context_callback(
-        self, itx: core.Interaction[core.Doom], user: discord.Member
+        self, itx: DoomItx, user: discord.Member
     ):
         await self._personal_records(itx, user, False)
 
     async def wr_context_callback(
-        self, itx: core.Interaction[core.Doom], user: discord.Member
+        self, itx: DoomItx, user: discord.Member
     ):
         await self._personal_records(itx, user, True)
 

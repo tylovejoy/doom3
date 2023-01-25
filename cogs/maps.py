@@ -7,13 +7,13 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import cogs
 import database
 import utils
 import views
 
 if typing.TYPE_CHECKING:
     import core
+    from core import DoomItx
 
 
 class Maps(commands.Cog):
@@ -45,7 +45,7 @@ class Maps(commands.Cog):
     @app_commands.describe(**utils.creator_args)
     async def remove_creator(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         creator: app_commands.Transform[int, utils.UserTransformer],
     ) -> None:
@@ -74,7 +74,7 @@ class Maps(commands.Cog):
     @app_commands.describe(**utils.creator_args)
     async def add_creator(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         creator: app_commands.Transform[int, utils.UserTransformer],
     ) -> None:
@@ -103,7 +103,7 @@ class Maps(commands.Cog):
     @app_commands.describe(**utils.add_level_args)
     async def add_level_name(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         new_level_name: str,
     ) -> None:
@@ -131,19 +131,10 @@ class Maps(commands.Cog):
     @app_commands.describe(**utils.remove_level_args)
     async def delete_level_names(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
     ) -> None:
-
-        """
-        Delete a level from your map.
-
-        Args:
-            itx: Interaction obj
-            map_code: Overwatch share code
-            map_level: Name of level
-        """
         view = await self._check_creator_code(itx, map_code)
         await itx.edit_original_response(
             content="Is this correct?\nDeleting level name: {map_level}\n",
@@ -184,21 +175,11 @@ class Maps(commands.Cog):
     @app_commands.describe(**utils.edit_level_args)
     async def edit_level_names(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
         new_level_name: str,
     ) -> None:
-
-        """
-        Rename a level in your map.
-
-        Args:
-            itx: Interaction
-            map_code: Overwatch share code
-            map_level: Name of level
-            new_level_name: New name of level
-        """
         view = await self._check_creator_code(itx, map_code)
 
         await itx.edit_original_response(
@@ -240,7 +221,7 @@ class Maps(commands.Cog):
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def submit_map(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
         map_name: app_commands.Transform[str, utils.MapNameTransformer],
     ) -> None:
@@ -257,7 +238,7 @@ class Maps(commands.Cog):
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def map_search(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_type: app_commands.Transform[str, utils.MapTypeTransformer] | None = None,
         map_name: app_commands.Transform[str, utils.MapNameTransformer] | None = None,
         creator: app_commands.Transform[int, utils.UserTransformer] | None = None,
@@ -306,7 +287,7 @@ class Maps(commands.Cog):
             map_type,
             map_name,
             map_code,
-            "%" + creator + "%" if creator else None,
+            "%" + creator + "%" if creator else None, # TODO: use IDs??
         ):
             _map: database.DotRecord
             maps.append(_map)
@@ -367,7 +348,7 @@ class Maps(commands.Cog):
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def view_guide(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
     ):
         guides = await self._check_guides(itx, map_code)
@@ -382,7 +363,7 @@ class Maps(commands.Cog):
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def add_guide(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
         url: app_commands.Transform[str, utils.URLTransformer],
     ):
@@ -409,7 +390,7 @@ class Maps(commands.Cog):
 
     @staticmethod
     async def _check_guides(
-        itx: core.Interaction[core.Doom], map_code: str
+        itx: DoomItx, map_code: str
     ) -> list[str]:
         await itx.response.defer(ephemeral=True)
         if map_code not in itx.client.map_cache.keys():

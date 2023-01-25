@@ -10,7 +10,7 @@ import utils.utils
 import views
 
 if TYPE_CHECKING:
-    import core
+    from core import DoomItx
 
 
 class MapSubmit(discord.ui.Modal, title="MapSubmit"):
@@ -29,10 +29,10 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
     )
     data: dict[str, str] | None = None
 
-    async def on_submit(self, itx: core.Interaction[core.Doom]):
+    async def on_submit(self, itx: DoomItx):
         view = views.Confirm(
             itx,
-            preceeding_items={
+            preceding_items={
                 "map_type": views.MapTypeSelect(
                     [
                         discord.SelectOption(label=x.name, value=x.name)
@@ -131,7 +131,7 @@ class MapTypeSelect(discord.ui.Select):
             max_values=len(options),
         )
 
-    async def callback(self, itx: core.Interaction[core.Doom]):
+    async def callback(self, itx: DoomItx):
         await itx.response.defer(ephemeral=True)
         for x in self.options:
             x.default = x.value in self.values

@@ -10,12 +10,13 @@ from discord import app_commands
 from thefuzz import fuzz
 
 if typing.TYPE_CHECKING:
-    import core
+    from core import DoomItx
+
 
 CODE_VERIFICATION = re.compile(r"^[A-Z0-9]{4,6}$")
 
 
-async def delete_interaction(itx: core.Interaction[core.Doom], *, minutes: int | float):
+async def delete_interaction(itx: DoomItx, *, minutes: int | float):
     """Delete an itx message after x minutes. Fails silently.
     Args:
         itx (discord.Interaction): Interaction to find original message.

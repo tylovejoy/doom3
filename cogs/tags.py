@@ -12,6 +12,7 @@ import views
 
 if typing.TYPE_CHECKING:
     import core
+    from core import DoomItx
 
 
 class Tags(discord.ext.commands.GroupCog, group_name=utils.tags["name"]):
@@ -23,7 +24,7 @@ class Tags(discord.ext.commands.GroupCog, group_name=utils.tags["name"]):
     @app_commands.checks.cooldown(3, 30, key=lambda i: (i.guild_id, i.user.id))
     async def view(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         name: str,
     ) -> None:
         await itx.response.defer()
@@ -58,7 +59,7 @@ class Tags(discord.ext.commands.GroupCog, group_name=utils.tags["name"]):
         )
 
     @app_commands.command(**utils.create_tag)
-    async def create(self, itx: core.Interaction[core.Doom]):
+    async def create(self, itx: DoomItx):
         if (
             itx.guild.get_role(959433020664868907) not in itx.user.roles
             and itx.guild.get_role(utils.STAFF) not in itx.user.roles

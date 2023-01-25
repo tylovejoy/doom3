@@ -8,17 +8,17 @@ import cogs
 import utils
 
 if typing.TYPE_CHECKING:
-    import core
+    from core import DoomItx
 
 
 class ExerciseTransformer(app_commands.Transformer):
-    async def transform(self, itx: core.Interaction[core.Doom], value: str) -> str:
+    async def transform(self, itx: DoomItx, value: str) -> str:
         names = list(map(lambda x: x.name, itx.client.exercise_names))
         if value not in names:
             value = utils.fuzz_(value, names)
         return value
 
     async def autocomplete(
-        self, itx: core.Interaction[core.Doom], value: int | float | str
+        self, itx: DoomItx, value: int | float | str
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(value, itx.client.exercise_names)

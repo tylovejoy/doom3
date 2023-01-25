@@ -6,19 +6,19 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import cogs
 import utils
 import views
 
 if typing.TYPE_CHECKING:
     import core
+    from core import DoomItx, DoomCtx
 
 
 class ModCommands(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
 
-    async def cog_check(self, ctx: commands.Context[core.Doom]) -> bool:
+    async def cog_check(self, ctx: DoomCtx) -> bool:
         return True
         # return bool(ctx.author.get_role(utils.STAFF))
 
@@ -35,7 +35,7 @@ class ModCommands(commands.Cog):
     @keep_alive.command(**utils.add_keep_alive)
     @app_commands.describe(**utils.keep_alive_args)
     async def add_keep_alive(
-        self, itx: core.Interaction[core.Doom], thread: discord.Thread
+        self, itx: DoomItx, thread: discord.Thread
     ) -> None:
         if thread.id in self.bot.keep_alives:
             await itx.response.send_message(
@@ -57,7 +57,7 @@ class ModCommands(commands.Cog):
     @keep_alive.command(**utils.remove_keep_alive)
     @app_commands.describe(**utils.keep_alive_args)
     async def remove_keep_alive(
-        self, itx: core.Interaction[core.Doom], thread: discord.Thread
+        self, itx: DoomItx, thread: discord.Thread
     ) -> None:
 
         if thread.id not in self.bot.keep_alives:
@@ -81,7 +81,7 @@ class ModCommands(commands.Cog):
     @app_commands.describe(**utils.remove_record_args)
     async def remove_record(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         user: discord.Member,
         map_code: app_commands.Transform[str, utils.MapCodeRecordsTransformer],
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
@@ -130,7 +130,7 @@ class ModCommands(commands.Cog):
     @app_commands.describe(**utils.change_name_args)
     async def change_name(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         user: app_commands.Transform[int, utils.UserTransformer],
         nickname: app_commands.Range[str, 1, 25],
     ):

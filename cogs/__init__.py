@@ -6,7 +6,7 @@ import typing
 from discord import app_commands
 
 if typing.TYPE_CHECKING:
-    import core
+    from core import DoomItx
 
 EXTENSIONS = [
     module.name for module in pkgutil.iter_modules(__path__, f"{__package__}.")
@@ -41,18 +41,18 @@ async def autocomplete(
 
 
 async def exercise_name_autocomplete(
-    itx: core.Interaction[core.Doom], current: str
+    itx: DoomItx, current: str
 ) -> list[app_commands.Choice[str]]:
     return await autocomplete(current, itx.client.exercise_names)
 
 
 async def tags_autocomplete(
-    itx: core.Interaction[core.Doom], current: str
+    itx: DoomItx, current: str
 ) -> list[app_commands.Choice[str]]:
     return await autocomplete(current, itx.client.tag_choices)
 
 
 async def exercise_name_search_autocomplete(
-    itx: core.Interaction[core.Doom], current: str
+    itx: DoomItx, current: str
 ) -> list[app_commands.Choice[str]]:
     return await autocomplete(current, itx.client.exercise_names_search)

@@ -7,10 +7,10 @@ import discord
 import database
 
 if typing.TYPE_CHECKING:
-    import core
+    from core import DoomItx
 
 
-async def add_remove_roles(itx: core.Interaction[core.Doom], role):
+async def add_remove_roles(itx: DoomItx, role):
     if role in itx.user.roles:
         await itx.user.remove_roles(role)
         # await itx.edit_original_response(
@@ -38,7 +38,7 @@ class ColorSelect(discord.ui.Select):
                 label=option.label, value=str(option.role_id), emoji=option.emoji
             )
 
-    async def callback(self, itx: core.Interaction[core.Doom]):
+    async def callback(self, itx: DoomItx):
         await itx.response.defer()
         all_roles = [
             itx.guild.get_role(int(role.value))
@@ -76,7 +76,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="announcements",
     )
     async def announcements(
-        self, itx: core.Interaction[core.Doom], button: discord.Button
+        self, itx: DoomItx, button: discord.Button
     ):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(802259719229800488)
@@ -88,7 +88,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="eu_sleep_ping",
         row=1,
     )
-    async def eu_ping(self, itx: core.Interaction[core.Doom], button: discord.Button):
+    async def eu_ping(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(805542050060828682)
         await add_remove_roles(itx, role)
@@ -99,7 +99,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="na_sleep_ping",
         row=1,
     )
-    async def na_ping(self, itx: core.Interaction[core.Doom], button: discord.Button):
+    async def na_ping(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(808478386825330718)
         await add_remove_roles(itx, role)
@@ -110,7 +110,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="asia_sleep_ping",
         row=1,
     )
-    async def asia_ping(self, itx: core.Interaction[core.Doom], button: discord.Button):
+    async def asia_ping(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(874438907763228743)
         await add_remove_roles(itx, role)
@@ -121,7 +121,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="oce_sleep_ping",
         row=1,
     )
-    async def oce_ping(self, itx: core.Interaction[core.Doom], button: discord.Button):
+    async def oce_ping(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(937726966080094229)
         await add_remove_roles(itx, role)
@@ -133,7 +133,7 @@ class ServerRelatedPings(discord.ui.View):
         row=2,
     )
     async def movie_night(
-        self, itx: core.Interaction[core.Doom], button: discord.Button
+        self, itx: DoomItx, button: discord.Button
     ):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(903667495922180167)
@@ -146,7 +146,7 @@ class ServerRelatedPings(discord.ui.View):
         row=2,
     )
     async def game_night(
-        self, itx: core.Interaction[core.Doom], button: discord.Button
+        self, itx: DoomItx, button: discord.Button
     ):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(903667578549968896)
@@ -164,7 +164,7 @@ class PronounRoles(discord.ui.View):
         style=discord.ButtonStyle.grey,
         custom_id="they_pronoun",
     )
-    async def they(self, itx: core.Interaction[core.Doom], button: discord.Button):
+    async def they(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(884346785949167616)
         await add_remove_roles(itx, role)
@@ -174,7 +174,7 @@ class PronounRoles(discord.ui.View):
         style=discord.ButtonStyle.grey,
         custom_id="she_pronoun",
     )
-    async def she(self, itx: core.Interaction[core.Doom], button: discord.Button):
+    async def she(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(884346748334653481)
         await add_remove_roles(itx, role)
@@ -184,7 +184,7 @@ class PronounRoles(discord.ui.View):
         style=discord.ButtonStyle.grey,
         custom_id="he_pronoun",
     )
-    async def he(self, itx: core.Interaction[core.Doom], button: discord.Button):
+    async def he(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(884346610652446720)
         await add_remove_roles(itx, role)
@@ -202,7 +202,7 @@ class TherapyRole(discord.ui.View):
         custom_id="therapy",
     )
     async def therapy_access(
-        self, itx: core.Interaction[core.Doom], button: discord.Button
+        self, itx: DoomItx, button: discord.Button
     ):
         return
         await itx.response.defer(ephemeral=True)
