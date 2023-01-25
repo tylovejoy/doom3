@@ -83,7 +83,7 @@ def set_embed_thumbnail_maps(
     return embed
 
 
-def record_embed(data: dict[str, typing.Any]):
+def record_embed(data: dict[str, typing.Any]) -> DoomEmbed:
     if not data.get("video", None):
         description = (
             f"┣ `   Code ` {data['map_code']}\n"

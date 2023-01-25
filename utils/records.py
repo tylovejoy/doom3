@@ -5,6 +5,7 @@ import decimal
 import re
 import typing
 
+import discord
 from discord import Embed, app_commands
 
 import cogs
@@ -223,7 +224,7 @@ def pr_records_embed(
     return embed_list
 
 
-def _add_pr_field(cur_code, description, embed, record):
+def _add_pr_field(cur_code: str, description: str, embed: discord.Embed | DoomEmbed, record: database.DotRecord) -> tuple[str, str]:
     embed.add_field(
         name=f"{cur_code}",
         value="┗".join(description[:-3].rsplit("┣", 1)),

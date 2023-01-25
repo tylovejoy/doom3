@@ -323,7 +323,7 @@ class Maps(commands.Cog):
         return embed_list
 
     @staticmethod
-    def display_official(official: bool):
+    def display_official(official: bool) -> str:
         return (
             (
                 "┃<:_:998055526468423700>"
