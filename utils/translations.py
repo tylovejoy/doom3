@@ -90,7 +90,7 @@ remove_keep_alive = _Desc(
 keep_alive_args = {"thread": _T("Thread")}
 
 remove_record = _Desc(
-    name=_T("remove-record"), description=_T("Remove a record from a user")
+    name=_T("remove-record"), description=_T("Remove a user's record")
 )
 remove_record_args = {
     _user_a: _user,
@@ -159,7 +159,7 @@ leaderboard_args = {
 
 personal_records = _Desc(
     name=_T("personal-records"),
-    description=_T("View your (by default) personal records or another users)"),
+    description=_T("View your personal records (by default) or another users"),
 )
 personal_records_args = {
     _user_a: _user,
