@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import csv
 import typing
 
 import discord
@@ -12,6 +11,7 @@ import utils
 
 if typing.TYPE_CHECKING:
     import core
+    from core import DoomCtx, DoomItx
 
 
 class Test(commands.Cog):
@@ -20,7 +20,7 @@ class Test(commands.Cog):
     @commands.is_owner()
     async def sync(
         self,
-        ctx: commands.Context,
+        ctx: DoomCtx,
         guilds: commands.Greedy[discord.Object],
         spec: typing.Literal["~", "*", "^"] | None = None,
     ) -> None:
@@ -69,7 +69,7 @@ class Test(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def xx(self, ctx: commands.Context[core.Doom]):
+    async def xx(self, ctx: DoomCtx):
         members = [(member.id, member.name[:25]) for member in ctx.guild.members]
         await ctx.bot.database.set_many(
             "INSERT INTO users (user_id, nickname, alertable) VALUES ($1, $2, true)",
@@ -81,7 +81,7 @@ class Test(commands.Cog):
     @commands.is_owner()
     async def log(
         self,
-        ctx: commands.Context[core.Doom],
+        ctx: DoomCtx,
         level: typing.Literal["debug", "info", "DEBUG", "INFO"],
     ):
         ctx.bot.logger.setLevel(level.upper())
@@ -90,7 +90,7 @@ class Test(commands.Cog):
     @app_commands.command(name=_T("testing123"))
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     # @app_commands.describe(user=_T("The user to bonk."))
-    async def bonk(self, interaction: discord.Interaction, user: discord.User):
+    async def bonk(self, interaction: DoomItx, user: discord.User):
         await interaction.response.send_message(
             f":hammer: {user.mention}", ephemeral=True
         )

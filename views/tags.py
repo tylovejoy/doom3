@@ -9,11 +9,11 @@ import views
 from utils import NUMBER_EMOJI
 
 if typing.TYPE_CHECKING:
-    import core
+    from core import DoomItx
 
 
 class TagFuzzView(discord.ui.View):
-    def __init__(self, itx: core.Interaction[core.Doom], options: list[str]):
+    def __init__(self, itx: DoomItx, options: list[str]):
         super().__init__(timeout=None)
         self.itx = itx
         self.matches.options = [
@@ -23,7 +23,7 @@ class TagFuzzView(discord.ui.View):
 
     @discord.ui.select()
     async def matches(
-        self, itx: core.Interaction[core.Doom], select: discord.SelectMenu
+        self, itx: DoomItx, select: discord.SelectMenu
     ):
         await itx.response.defer()
         tag = [
@@ -43,7 +43,7 @@ class TagCreate(discord.ui.Modal, title="Create Tag"):
     name = discord.ui.TextInput(label="Name")
     value = discord.ui.TextInput(label="Value", style=discord.TextStyle.paragraph)
 
-    async def on_submit(self, itx: core.Interaction[core.Doom]):
+    async def on_submit(self, itx: DoomItx):
 
         view = views.Confirm(itx)
         await itx.response.send_message(

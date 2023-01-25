@@ -12,10 +12,9 @@ import utils
 import views
 
 if typing.TYPE_CHECKING:
-    import core
+    from core import DoomItx, DoomCtx
 
-    DoomInteraction = core.Interaction[core.Doom]
-    DoomContext = commands.Context[core.Doom]
+
 Units = typing.Literal["kg", "lb"]
 
 
@@ -85,7 +84,7 @@ class GymUtils(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
 
-    async def cog_check(self, ctx: DoomContext) -> bool:
+    async def cog_check(self, ctx: DoomCtx) -> bool:
         return ctx.message.channel.id == 999000079283273911
 
     @staticmethod
@@ -97,7 +96,7 @@ class GymUtils(commands.Cog):
         return round(2.2 * round(value, 2), 2)
 
     @commands.command()
-    async def convert(self, ctx: DoomContext, value: float, unit: str = None):
+    async def convert(self, ctx: DoomCtx, value: float, unit: str = None):
         kg = self._convert_lb_to_kg(value)
         lb = self._convert_kg_to_lb(value)
         if not unit:
@@ -123,7 +122,7 @@ class GymUtils(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def add_exercise(self, ctx: DoomContext, *, name: str):
+    async def add_exercise(self, ctx: DoomCtx, *, name: str):
         await ctx.bot.database.set(
             "INSERT INTO all_exercises (name) VALUES ($1)",
             name,
@@ -137,7 +136,7 @@ class GymUtils(commands.Cog):
     @app_commands.guilds(discord.Object(id=689587520496730129))
     async def add_gym_pr(
         self,
-        itx: DoomInteraction,
+        itx: DoomItx,
         exercise: str,
         weight: float,
         unit: Units,
@@ -179,7 +178,7 @@ class GymUtils(commands.Cog):
     @app_commands.guilds(discord.Object(id=689587520496730129))
     async def show_prs(
         self,
-        itx: DoomInteraction,
+        itx: DoomItx,
         exercise: app_commands.Transform[str, utils.ExerciseTransformer],
     ):
         """
@@ -217,7 +216,7 @@ class GymUtils(commands.Cog):
     @app_commands.guilds(discord.Object(id=689587520496730129))
     async def one_rep_max(
         self,
-        interaction: DoomInteraction,
+        interaction: DoomItx,
         weight: float,
         unit: Units,
         reps: int,
@@ -298,7 +297,7 @@ class GymUtils(commands.Cog):
     @app_commands.autocomplete(exercise_name=cogs.exercise_name_search_autocomplete)
     async def exercise_search(
         self,
-        itx: DoomInteraction,
+        itx: DoomItx,
         location: BODY_PARTS | None,
         equipment: EQUIPMENT | None,
         exercise_name: str | None,

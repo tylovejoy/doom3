@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import discord
 
 if TYPE_CHECKING:
-    import core
+    from core import DoomItx
 
 import database
 import utils
@@ -14,7 +14,7 @@ import utils
 class RejectReasonModal(discord.ui.Modal, title="Rejection Reason"):
     reason = discord.ui.TextInput(label="Reason", style=discord.TextStyle.long)
 
-    async def on_submit(self, itx: core.Interaction[core.Doom]):
+    async def on_submit(self, itx: DoomItx):
         await itx.response.send_message("Sending reason to user.", ephemeral=True)
 
 
@@ -27,7 +27,7 @@ class VerificationView(discord.ui.View):
         style=discord.ButtonStyle.green,
         custom_id="persistent_view:accept",
     )
-    async def green(self, itx: core.Interaction[core.Doom], button: discord.ui.Button):
+    async def green(self, itx: DoomItx, button: discord.ui.Button):
         await self.verification(itx, True)
 
     @discord.ui.button(
@@ -35,7 +35,7 @@ class VerificationView(discord.ui.View):
         style=discord.ButtonStyle.red,
         custom_id="persistent_view:reject",
     )
-    async def red(self, itx: core.Interaction[core.Doom], button: discord.ui.Button):
+    async def red(self, itx: DoomItx, button: discord.ui.Button):
         modal = RejectReasonModal()
         await itx.response.send_modal(modal)
         await modal.wait()
@@ -43,7 +43,7 @@ class VerificationView(discord.ui.View):
 
     async def verification(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         verified: bool,
         rejection: str | None = None,
     ):
@@ -114,7 +114,7 @@ class VerificationView(discord.ui.View):
                 itx.client.logger.info(e)
         await self.stop_view(itx)
 
-    async def stop_view(self, itx: core.Interaction[core.Doom]):
+    async def stop_view(self, itx: DoomItx):
         self.stop()
         await itx.message.delete()
         await itx.client.database.set(
@@ -124,7 +124,7 @@ class VerificationView(discord.ui.View):
 
     @staticmethod
     async def find_original_message(
-        itx: core.Interaction[core.Doom], channel_id: int, message_id: int
+        itx: DoomItx, channel_id: int, message_id: int
     ) -> discord.Message | None:
         """Try to fetch message from either Records channel."""
         try:
@@ -135,7 +135,7 @@ class VerificationView(discord.ui.View):
 
     @staticmethod
     def accepted(
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         search: database.DotRecord,
     ) -> dict[str, str]:
         """Data for verified records."""
@@ -163,7 +163,7 @@ class VerificationView(discord.ui.View):
 
     @staticmethod
     def rejected(
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         search: database.DotRecord,
         rejection: str,
     ) -> dict[str, str]:

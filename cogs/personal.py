@@ -13,6 +13,7 @@ import utils
 
 if typing.TYPE_CHECKING:
     import core
+    from core import DoomItx, DoomCtx
 
 with open("assets/emoji-data.json", "r", encoding="utf8") as f:
     mapping = json.load(f)
@@ -21,7 +22,7 @@ with open("assets/emoji-data.json", "r", encoding="utf8") as f:
 class Personal(commands.Cog):
     length = 0
 
-    async def cog_check(self, ctx: commands.Context[core.Doom]) -> bool:
+    async def cog_check(self, ctx: DoomCtx) -> bool:
         return (
             ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239
         )  # Spam-friendly
@@ -31,7 +32,7 @@ class Personal(commands.Cog):
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def alerts(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         value: typing.Literal["On", "Off"],
     ):
         value_bool = value == "On"
@@ -40,14 +41,16 @@ class Personal(commands.Cog):
             value_bool,
             itx.user.id,
         )
+
         await itx.response.send_message(f"Alerts set to {value}.", ephemeral=True)
+        await itx.followup.send(await itx.translate("Testing123"), ephemeral=True)
 
     @app_commands.command(**utils.name)
     @app_commands.describe(**utils.name_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def nickname_change(
         self,
-        itx: core.Interaction[core.Doom],
+        itx: DoomItx,
         nickname: app_commands.Range[str, 1, 25],
     ) -> None:
         await itx.response.send_message(
@@ -66,7 +69,7 @@ class Personal(commands.Cog):
     @app_commands.guilds(
         discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
     )
-    async def brug_mode(self, itx: core.Interaction[core.Doom], text: str):
+    async def brug_mode(self, itx: DoomItx, text: str):
         await itx.response.send_message(utils.emojify(text)[:2000])
 
     @app_commands.command(**utils.uwufier)
@@ -74,20 +77,20 @@ class Personal(commands.Cog):
     @app_commands.guilds(
         discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
     )
-    async def uwufier(self, itx: core.Interaction[core.Doom], text: str):
+    async def uwufier(self, itx: DoomItx, text: str):
         await itx.response.send_message(utils.uwuify(text)[:2000])
 
     @app_commands.command(**utils.blarg)
     @app_commands.guilds(
         discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
     )
-    async def blarg(self, itx: core.Interaction[core.Doom]):
+    async def blarg(self, itx: DoomItx):
         await itx.response.send_message("BLARG")
 
     @app_commands.command(**utils.u)
     @app_commands.describe(**utils.u_args)
     @app_commands.guilds(discord.Object(id=968553235239559239))
-    async def _u(self, itx: core.Interaction[core.Doom], user: discord.Member):
+    async def _u(self, itx: DoomItx, user: discord.Member):
         insults = [
             " is the guy of all ass",
             " is a littel shit bitch asshole",
@@ -108,7 +111,7 @@ class Personal(commands.Cog):
 
     @app_commands.command(**utils.increase)
     @app_commands.guilds(discord.Object(id=968553235239559239))
-    async def increase(self, itx: core.Interaction[core.Doom]):
+    async def increase(self, itx: DoomItx):
         self.length += 1
         await itx.response.send_message(f"8{'=' * self.length}D")
         if random.random() > 0.80:
@@ -118,7 +121,7 @@ class Personal(commands.Cog):
 
     @app_commands.command(**utils.decrease)
     @app_commands.guilds(discord.Object(id=968553235239559239))
-    async def decrease(self, itx: core.Interaction[core.Doom]):
+    async def decrease(self, itx: DoomItx):
         if self.length > 0:
             self.length -= 1
         await itx.response.send_message(f"8{'=' * self.length}D")

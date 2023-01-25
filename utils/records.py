@@ -5,6 +5,7 @@ import decimal
 import re
 import typing
 
+import discord
 from discord import Embed, app_commands
 
 import cogs
@@ -13,7 +14,7 @@ import utils
 from utils import DoomEmbed
 
 if typing.TYPE_CHECKING:
-    import core
+    from core import DoomItx
 
 
 URL_REGEX = re.compile(
@@ -25,7 +26,7 @@ URL_REGEX = re.compile(
 
 
 class MapCodeTransformer(app_commands.Transformer):
-    async def transform(self, itx: core.Interaction[core.Doom], value: str) -> str:
+    async def transform(self, itx: DoomItx, value: str) -> str:
         value = value.upper().replace("O", "0").lstrip().rstrip()
         if not re.match(utils.CODE_VERIFICATION, value):
             raise utils.IncorrectCodeFormatError
@@ -34,13 +35,13 @@ class MapCodeTransformer(app_commands.Transformer):
 
 class MapCodeAutoTransformer(MapCodeTransformer):
     async def autocomplete(
-        self, itx: core.Interaction[core.Doom], value: str
+        self, itx: DoomItx, value: str
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(value, itx.client.map_codes_choices)
 
 
 class MapCodeRecordsTransformer(MapCodeAutoTransformer):
-    async def transform(self, itx: core.Interaction[core.Doom], value: str) -> str:
+    async def transform(self, itx: DoomItx, value: str) -> str:
         value = value.upper().replace("O", "0").lstrip().rstrip()
 
         if value not in itx.client.map_cache.keys():
@@ -53,13 +54,13 @@ class MapCodeRecordsTransformer(MapCodeAutoTransformer):
 
 
 class MapLevelTransformer(app_commands.Transformer):
-    async def transform(self, itx: core.Interaction[core.Doom], value: str) -> str:
+    async def transform(self, itx: DoomItx, value: str) -> str:
         if value not in itx.client.map_cache[itx.namespace.map_code]["levels"]:
             value = utils.fuzz_(value, itx.client.map_names)
         return value
 
     async def autocomplete(
-        self, itx: core.Interaction[core.Doom], value: str
+        self, itx: DoomItx, value: str
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(
             value,
@@ -70,19 +71,19 @@ class MapLevelTransformer(app_commands.Transformer):
 
 
 class UserTransformer(app_commands.Transformer):
-    async def transform(self, itx: core.Interaction[core.Doom], value: str) -> int:
+    async def transform(self, itx: DoomItx, value: str) -> int:
         if value not in map(str, itx.client.all_users.keys()):
             raise utils.UserNotFoundError
         return int(value)
 
     async def autocomplete(
-        self, itx: core.Interaction[core.Doom], value: str
+        self, itx: DoomItx, value: str
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(value, itx.client.users_choices)
 
 
 class RecordTransformer(app_commands.Transformer):
-    async def transform(self, itx: core.Interaction[core.Doom], value: str) -> float:
+    async def transform(self, itx: DoomItx, value: str) -> float:
         try:
             value = utils.time_convert(value)
         except ValueError:
@@ -91,7 +92,7 @@ class RecordTransformer(app_commands.Transformer):
 
 
 class URLTransformer(app_commands.Transformer):
-    async def transform(self, itx: core.Interaction[core.Doom], value: str) -> str:
+    async def transform(self, itx: DoomItx, value: str) -> str:
         value = value.strip()
         if not value.startswith("https://") and not value.startswith("http://"):
             value = "https://" + value
@@ -223,7 +224,7 @@ def pr_records_embed(
     return embed_list
 
 
-def _add_pr_field(cur_code, description, embed, record):
+def _add_pr_field(cur_code: str, description: str, embed: discord.Embed | DoomEmbed, record: database.DotRecord) -> tuple[str, str]:
     embed.add_field(
         name=f"{cur_code}",
         value="┗".join(description[:-3].rsplit("┣", 1)),

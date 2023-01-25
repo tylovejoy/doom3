@@ -8,20 +8,18 @@ import database
 import utils
 
 if typing.TYPE_CHECKING:
-    import core
-
-    DoomInteraction = core.Interaction[core.Doom]
+    from core import DoomItx
 
 
 class PageNumModal(discord.ui.Modal, title="Enter Page Number"):
     number = discord.ui.TextInput(label="Number")
 
-    async def on_submit(self, itx: DoomInteraction):
+    async def on_submit(self, itx: DoomItx):
         await itx.response.defer(ephemeral=True)
 
 
 class ExerciseView(discord.ui.View):
-    def __init__(self, itx: DoomInteraction, all_exercises: list[database.DotRecord]):
+    def __init__(self, itx: DoomItx, all_exercises: list[database.DotRecord]):
         super().__init__()
         self.itx = itx
         self.all = all_exercises
@@ -33,7 +31,7 @@ class ExerciseView(discord.ui.View):
         placeholder="Select an exercise.",
         options=[discord.SelectOption(label="Loading...", value="0")],
     )
-    async def exercises(self, itx: DoomInteraction, select: discord.SelectMenu):
+    async def exercises(self, itx: DoomItx, select: discord.SelectMenu):
         await itx.response.defer(ephemeral=True)
         selected = self.cur_page[int(self.exercises.values[0])]
         embed = utils.DoomEmbed(
@@ -48,7 +46,7 @@ class ExerciseView(discord.ui.View):
         await self.itx.edit_original_response(embed=embed)
 
     @discord.ui.button(emoji="⬅")
-    async def prev_page(self, itx: DoomInteraction, button: discord.Button):
+    async def prev_page(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         self.page_num -= 1
         if self.page_num < 0:
@@ -57,7 +55,7 @@ class ExerciseView(discord.ui.View):
         await self._set_options()
 
     @discord.ui.button(label="...")
-    async def page_num_button(self, itx: DoomInteraction, button: discord.Button):
+    async def page_num_button(self, itx: DoomItx, button: discord.Button):
         modal = PageNumModal()
         await itx.response.send_modal(modal)
         await modal.wait()
@@ -75,7 +73,7 @@ class ExerciseView(discord.ui.View):
         await self._set_options()
 
     @discord.ui.button(emoji="➡")
-    async def next_page(self, itx: DoomInteraction, button: discord.Button):
+    async def next_page(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         self.page_num += 1
         if self.page_num > self.max_page - 1:

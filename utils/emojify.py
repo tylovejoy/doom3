@@ -50,9 +50,9 @@ def emojify(text: str) -> str:
     return res
 
 
-def uwuify(s):
+def uwuify(string: str) -> str:
     res = ""
-    for ch in s:
+    for ch in string:
         if ch in "lr":
             ch = "w"
         elif ch in "LR":

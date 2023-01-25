@@ -12,7 +12,7 @@ from discord import app_commands
 import utils
 
 if typing.TYPE_CHECKING:
-    from core import Doom, Interaction
+    from core import DoomItx
 
 
 class BaseParkourException(Exception):
@@ -118,7 +118,7 @@ class NoExercisesFound(BaseParkourException, app_commands.errors.AppCommandError
 
 
 async def on_app_command_error(
-    itx: Interaction[Doom], error: app_commands.errors.CommandInvokeError
+    itx: DoomItx, error: app_commands.errors.CommandInvokeError
 ):
     exception = getattr(error, "original", error)
     if isinstance(exception, utils.BaseParkourException):
@@ -130,7 +130,9 @@ async def on_app_command_error(
         end = now + datetime.timedelta(seconds=seconds)
         embed = utils.ErrorEmbed(
             description=(
-                f"Command is on cooldown. Cooldown ends {discord.utils.format_dt(end, style='R')}.\nThis message will be deleted at the same time."
+                "Command is on cooldown. Cooldown ends "
+                f"{discord.utils.format_dt(end, style='R')}.\n"
+                "This message will be deleted at the same time."
             )
         )
         await _respond(embed, itx)
@@ -141,6 +143,7 @@ async def on_app_command_error(
             if itx.response.is_done()
             else itx.response.send_message
         )
+
         embed = utils.ErrorEmbed(
             description=(
                 "Unknown.\n"
@@ -187,7 +190,7 @@ async def on_app_command_error(
     await utils.delete_interaction(itx, minutes=15)
 
 
-async def _respond(embed, itx):
+async def _respond(embed: discord.Embed | utils.DoomEmbed | utils.ErrorEmbed, itx: DoomItx):
     if itx.response.is_done():
         await itx.edit_original_response(
             embed=embed,

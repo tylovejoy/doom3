@@ -1,4 +1,7 @@
 {
+  "Testing123": {
+    "en-GB": "Testing321"
+  },
   "Overwatch Workshop Code": {
     "tr": "Overwatch paylaşım kodu",
     "ko": "워크샵 공유 코드",
@@ -382,7 +385,7 @@
     "fi": "poista-aika",
     "fr": "retirer-record"
   },
-  "Remove a record from a user": {
+  "Remove a user's record": {
     "tr": "Bir kullanıcıdan rekor sil",
     "ko": "사용자의 기록 삭제",
     "de": "Einen Rekord eines Benutzers entfernen",
@@ -643,7 +646,7 @@
     "fi": "Näytä vain verifikoidut ajat",
     "fr": "Seulement montrer les vidéos vérifiés complètement"
   },
-  "View your (by default) personal records or another users": {
+  "View your personal records (by default) or another users": {
     "tr": "Kendinin (varsayılan) ya da başkasının rekorlarını görüntüle",
     "ko": "자신이나 다른 유저의 개인 기록 확인",
     "de": "Zeige deine (standardmäßig) persönlichen Rekorde oder die eines anderen Benutzers",

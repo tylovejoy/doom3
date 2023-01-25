@@ -9,6 +9,7 @@ import utils.utils
 
 if typing.TYPE_CHECKING:
     import core
+    from core import DoomCtx
 
 
 class Tasks(commands.Cog):
@@ -29,7 +30,7 @@ class Tasks(commands.Cog):
     @commands.is_owner()
     async def refresh_cache(
         self,
-        ctx: commands.Context[core.Doom],
+        ctx: DoomCtx,
     ):
         self.cache_all_users.restart()
         self.cache_map_code_choices.restart()

@@ -8,7 +8,7 @@ import discord
 import utils
 
 if TYPE_CHECKING:
-    import core
+    from core import DoomItx
 
 
 class ConfirmButton(discord.ui.Button):
@@ -20,7 +20,7 @@ class ConfirmButton(discord.ui.Button):
             disabled=disabled,
         )
 
-    async def callback(self, itx: core.Interaction[core.Doom]):
+    async def callback(self, itx: DoomItx):
         """Confirmation button callback."""
         if self.view.original_itx.user != itx.user:
             await itx.response.send_message(
@@ -44,7 +44,7 @@ class RejectButton(discord.ui.Button):
             style=discord.ButtonStyle.red,
         )
 
-    async def callback(self, itx: core.Interaction[core.Doom]):
+    async def callback(self, itx: DoomItx):
         """Rejection button callback."""
         await itx.response.defer(ephemeral=True)
         if self.view.original_itx.user != itx.user:
@@ -71,9 +71,9 @@ class RejectButton(discord.ui.Button):
 class Confirm(discord.ui.View):
     def __init__(
         self,
-        original_itx: core.Interaction[core.Doom],
+        original_itx: DoomItx,
         confirm_msg="Confirmed.",
-        preceeding_items: dict[str, discord.ui.Item] | None = None,
+        preceding_items: dict[str, discord.ui.Item] | None = None,
         ephemeral=False,
     ):
         super().__init__()
@@ -82,12 +82,12 @@ class Confirm(discord.ui.View):
         self.value = None
         self.ephemeral = ephemeral
 
-        if preceeding_items:
-            for attr, item in preceeding_items.items():
+        if preceding_items:
+            for attr, item in preceding_items.items():
                 setattr(self, attr, item)
                 self.add_item(getattr(self, attr))
 
-        self.confirm = ConfirmButton(disabled=bool(preceeding_items))
+        self.confirm = ConfirmButton(disabled=bool(preceding_items))
         self.reject = RejectButton()
         self.add_item(self.confirm)
         self.add_item(self.reject)
