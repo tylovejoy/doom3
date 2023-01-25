@@ -262,6 +262,7 @@ class Maps(commands.Cog):
                        "desc",
                        official,
                        creators,
+                       creators_ids,
                        avg(rating) as rating
                 FROM (SELECT mc.map_code,
                              array_to_string((map_type), ', ')     as map_type,
@@ -269,6 +270,7 @@ class Maps(commands.Cog):
                              "desc",
                              official,
                              string_agg(distinct (nickname), ', ') as creators,
+                             array_agg(distinct mc.user_id)        as creators_ids,
                              AVG(COALESCE(rating, 0))              as rating
                       FROM maps
                                JOIN map_creators mc on maps.map_code = mc.map_code
@@ -278,16 +280,16 @@ class Maps(commands.Cog):
                         AND ($2::text IS NULL OR map_name = $2)
                         AND ($3::text IS NULL OR maps.map_code = $3)
                       GROUP BY map_type, mc.map_code, map_name, "desc", official, rating
-                      HAVING ($4::text IS NULL OR string_agg(distinct (nickname), ', ') ILIKE $4)
+                      HAVING ($4::bigint IS NULL OR $4 = ANY(array_agg(distinct (mc.user_id))))
                       ORDER BY map_code) layer0
-                GROUP BY map_code, map_type, map_name, "desc", official, creators
+                GROUP BY map_code, map_type, map_name, "desc", official, creators, creators_ids
                 ORDER BY map_code;
                 """
             ),
             map_type,
             map_name,
             map_code,
-            "%" + creator + "%" if creator else None, # TODO: use IDs??
+            creator,
         ):
             _map: database.DotRecord
             maps.append(_map)
