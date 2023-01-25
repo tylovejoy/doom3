@@ -166,7 +166,12 @@ class Records(commands.Cog):
         ORDER BY substr(level_name, 1, 5) <> 'Level', level_name;
         """
 
-        records = [x async for x in itx.client.database.get(query, map_code,  bool(level_name), level_name, verified)]
+        records = [
+            x
+            async for x in itx.client.database.get(
+                query, map_code, bool(level_name), level_name, verified
+            )
+        ]
         if not records:
             raise utils.NoRecordsFoundError
 
