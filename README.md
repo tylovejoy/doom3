@@ -8,6 +8,7 @@ A Discord bot for the [Doomfist Parkour community server](https://discord.gg/doo
 - Time Records
     - Easy to use leaderboard function
     - View a user's personal records or world records for a particular map and level
+    - Verification process
 - Moderation commands
 - Gym utilities (fun)
      
