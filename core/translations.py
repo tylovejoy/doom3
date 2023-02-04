@@ -10,7 +10,7 @@ if typing.TYPE_CHECKING:
     from core import DoomItx
 
 
-with open("assets/translations.json") as f:
+with open("assets/translations.json", encoding="utf8") as f:
     translations = json.load(f)
 
 
