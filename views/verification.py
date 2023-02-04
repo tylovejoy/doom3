@@ -65,6 +65,7 @@ class VerificationView(discord.ui.View):
 
         if verified:
             data = self.accepted(itx, search)
+            await self.increment_verification_count(itx)
             await itx.client.database.set(
                 """
                 INSERT INTO records (map_code, user_id, level_name, record, screenshot, video, verified, message_id, channel_id) 
@@ -120,6 +121,18 @@ class VerificationView(discord.ui.View):
         await itx.client.database.set(
             "DELETE FROM records_queue WHERE hidden_id=$1",
             itx.message.id,
+        )
+
+    @staticmethod
+    async def increment_verification_count(itx: DoomItx):
+        await itx.client.database.set(
+            """
+            INSERT INTO verification_counts (user_id, amount)
+            VALUES ($1, 1)
+            ON CONFLICT (user_id)
+                DO UPDATE SET amount = EXCLUDED.amount + 1;
+            """,
+            itx.user.id,
         )
 
     @staticmethod

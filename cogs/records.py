@@ -256,6 +256,46 @@ class Records(commands.Cog):
         view = views.Paginator(embeds, itx.user)
         await view.start(itx)
 
+    @app_commands.command(name="verification-stats")
+    @app_commands.describe(**utils.u_args)
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    async def verification_stats(
+        self,
+        itx: DoomItx,
+        user: app_commands.Transform[int, utils.UserTransformer] | None = None,
+    ):
+        await itx.response.defer(ephemeral=True)
+        if user:
+            res = await itx.client.database.get_one(
+                """
+                SELECT v.user_id, amount, nickname
+                FROM verification_counts v
+                         LEFT JOIN users u on v.user_id = u.user_id
+                WHERE v.user_id = $1;
+                """,
+                user,
+            )
+            await itx.edit_original_response(content=f"{res.nickname} has **{res.amount}** verifications!")
+        else:
+            res = [x async for x in itx.client.database.get(
+                """
+                SELECT v.user_id,
+                       amount,
+                       nickname,
+                       RANK() OVER (
+                           ORDER BY amount DESC
+                           ) rank
+                FROM verification_counts v
+                         LEFT JOIN users u on v.user_id = u.user_id
+                ORDER BY amount DESC;
+                """,
+            )]
+            leaderboard = ""
+            for placement, record in enumerate(res):
+                leaderboard += f"`{utils.make_ordinal(record.rank):^6}` `{record.amount:^6}` `{record.nickname}`\n"
+
+            await itx.edit_original_response(content=leaderboard)
+
 
 async def setup(bot):
     """Add Cog to Discord bot."""
