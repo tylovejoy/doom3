@@ -66,6 +66,18 @@ class Database:
                 ):
                     yield record
 
+    async def get_one(
+        self,
+        query: str,
+        *args: typing.Any,
+    ) -> DotRecord | None:
+        res = None
+        async for x in self.get(query, *args):
+            res = x
+            break
+        return res
+
+
     async def _set(
         self,
         query: str,
