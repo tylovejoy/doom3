@@ -130,7 +130,7 @@ class VerificationView(discord.ui.View):
             INSERT INTO verification_counts (user_id, amount)
             VALUES ($1, 1)
             ON CONFLICT (user_id)
-                DO UPDATE SET amount = EXCLUDED.amount + 1;
+                DO UPDATE SET amount = verification_counts.amount + 1;
             """,
             itx.user.id,
         )
