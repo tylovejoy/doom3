@@ -48,6 +48,8 @@ class Doom(commands.Bot):
         self.keep_alives: list[int] | None = None
         self.auto_join_threads: list[tuple[int, int]] | None = None
 
+        self.insults: list[str] | None = None
+
         self.persistent_views_added = False
 
     async def setup_hook(self) -> None:

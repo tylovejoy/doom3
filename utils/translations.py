@@ -123,6 +123,9 @@ blarg = _Desc(name=_T("blarg"), description=_T("BLARG"))
 u = _Desc(name=_T("u"), description=_T("Insult someone"))
 u_args = {_user_a: _user}
 
+u_add = _Desc(name=_T("u-add"), description=_T("Add insults, don't fuck up"))
+u_add_args = {"insult": "insult"}
+
 increase = _Desc(name=_T("increase"), description=_T("Increase! Beware the knife..."))
 decrease = _Desc(
     name=_T("decrease"), description=_T("Decrease! Beware the growth pills...")

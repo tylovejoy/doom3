@@ -25,6 +25,7 @@ class Tasks(commands.Cog):
         self.cache_tags.start()
         self.cache_keep_alives.start()
         self.cache_auto_join.start()
+        self.cache_insults.start()
 
     @commands.command()
     @commands.is_owner()
@@ -42,6 +43,7 @@ class Tasks(commands.Cog):
         self.cache_tags.restart()
         self.cache_keep_alives.restart()
         self.cache_auto_join.restart()
+        self.cache_insults.restart()
         await ctx.message.delete()
 
     @tasks.loop(hours=24, count=1)
@@ -146,6 +148,12 @@ class Tasks(commands.Cog):
         self.bot.auto_join_threads = []
         async for x in self.bot.database.get("SELECT * FROM auto_join_thread;"):
             self.bot.auto_join_threads.append((x.channel_id, x.thread_id))
+
+    @tasks.loop(hours=24, count=1)
+    async def cache_insults(self):
+        self.bot.insults = []
+        async for x in self.bot.database.get("SELECT * FROM insults;"):
+            self.bot.insults.append(x.value)
 
 
 async def setup(bot: core.Doom):

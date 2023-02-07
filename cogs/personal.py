@@ -10,6 +10,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import utils
+import views
 
 if typing.TYPE_CHECKING:
     import core
@@ -90,24 +91,34 @@ class Personal(commands.Cog):
     @app_commands.command(**utils.u)
     @app_commands.describe(**utils.u_args)
     @app_commands.guilds(discord.Object(id=968553235239559239))
+    @app_commands.checks.cooldown(1, 5.0, key=lambda i: i.user.id)
     async def _u(self, itx: DoomItx, user: discord.Member):
-        insults = [
-            " is the guy of all ass",
-            " is a littel shit bitch asshole",
-            ", you are one of the people of all time",
-            " is a Mictocellular pancake bastard",
-            " is a fucing dumbass",
-            ": The Holied King of All Rodents",
-            " doesn't go joe mode. . .",
-            " capitulated, then died.",
-            " has swampy marsupial hind legs",
-            " is the third plac e winner of the 2018 dumbass contest for all idiots",
-            " is Cock Broken...",
-        ]
-
-        insult = random.choice(insults)
-
+        insult = random.choice(itx.client.insults)
         await itx.response.send_message(f"{user.display_name}{insult}")
+
+    @app_commands.command(**utils.u_add)
+    @app_commands.describe(**utils.u_add_args)
+    @app_commands.guilds(discord.Object(id=968553235239559239))
+    async def _u_add(self, itx: DoomItx, insult: str):
+        if itx.user.id != 703279496538619907:
+            await itx.response.send_message(
+                "Stop, you can't use this command noob",
+                ephemeral=True,
+            )
+            return
+        view = views.Confirm(itx)
+        await itx.response.send_message(
+            f"**Is this correct?**\n"
+            f"**Preview:**\n\n"
+            f"{itx.user.display_name}{insult}",
+            ephemeral=True,
+            view=view,
+        )
+        await view.wait()
+        if not view.value:
+            return
+        await itx.client.database.set("INSERT INTO insults (value) VALUES ($1)", insult)
+        itx.client.insults.append(insult)
 
     @app_commands.command(**utils.increase)
     @app_commands.guilds(discord.Object(id=968553235239559239))
