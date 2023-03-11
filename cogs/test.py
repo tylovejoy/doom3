@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import typing
 
 import discord
@@ -8,6 +9,7 @@ from discord.ext import commands
 from discord.app_commands import locale_str as _T
 
 import utils
+from views import MAP_DATA
 
 if typing.TYPE_CHECKING:
     import core
@@ -70,12 +72,26 @@ class Test(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def xx(self, ctx: DoomCtx):
-        members = [(member.id, member.name[:25]) for member in ctx.guild.members]
-        await ctx.bot.database.set_many(
-            "INSERT INTO users (user_id, nickname, alertable) VALUES ($1, $2, true)",
-            [(_id, nick) for _id, nick in members],
+        # msg = await ctx.send("starting")
+        # thread = await ctx.channel.create_thread(name="Test", message=msg)
+        map_name="Petra"
+        print(MAP_DATA)
+        print(MAP_DATA["Petra"])
+        print(MAP_DATA["Petra"].IMAGE_URL)
+        embed = utils.DoomEmbed(
+            title="Map Submission - Confirmation",
+            description=(
+                f">>> ` Code ` FAKEST\n"
+                f"`  Map ` {map_name}\n"
+                f"` Type ` Multilevel, Hardcore\n"
+            ),
+            color=MAP_DATA.get(map_name, discord.Color.from_str("#000000")).COLOR,
+            image=MAP_DATA.get(map_name, None).IMAGE_URL,
+            thumbnail=ctx.bot.user.display_avatar.url,
         )
-        await ctx.send("done")
+        print(embed.to_dict())
+        await ctx.send(embed=embed)
+        # await asyncio.sleep(1)
 
     @commands.command()
     @commands.is_owner()

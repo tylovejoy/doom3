@@ -107,7 +107,68 @@ class BotEvents(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        ...
+        if payload.user_id == self.bot.user.id:
+            return
+        if payload.channel_id not in [utils.SPR_RECORDS, utils.RECORDS] and payload.emoji != discord.PartialEmoji.from_str("<:upper:1082790562740047932>"):
+            return
+
+        query = """SELECT * FROM records WHERE message_id = $1;"""
+        is_record = bool(await self.bot.database.get_one(query, payload.message_id))
+
+        query = """SELECT * FROM records_queue WHERE message_id = $1;"""
+        is_record_queue = bool(await self.bot.database.get_one(query, payload.message_id))
+
+        if not (is_record or is_record_queue):
+            return
+
+        query = """
+            INSERT INTO top_records (user_id, original_message_id, channel_id) 
+            VALUES ($1, $2, $3)
+            ON CONFLICT (user_id, original_message_id, channel_id)
+            DO NOTHING;
+            """
+
+        await self.bot.database.set(query, payload.user_id, payload.message_id, payload.channel_id)
+
+        query = """
+            SELECT COUNT(*) as count, top_record_id
+            FROM top_records
+            WHERE original_message_id = $1
+              AND channel_id = $2
+            GROUP BY original_message_id, channel_id, top_record_id
+        """
+
+        row = await self.bot.database.get_one(query, payload.message_id, payload.channel_id)
+
+        if row.count < 5:
+            return
+
+        content = f"{row.count} {self.upper_emoji_converter(row.count)} <#{payload.channel_id}>"
+        top_record_channel = self.bot.get_channel(utils.TOP_RECORDS)
+        if not row.top_record_id:
+            original_msg = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+            if not original_msg.embeds:
+                return
+            embed = original_msg.embeds[0]
+            embed.add_field(name="Original", value=f"[Jump!]({original_msg.jump_url})")
+            embed.colour = discord.Color.gold()
+
+            top_record_msg = await top_record_channel.send(content, embed=embed)
+            query = """UPDATE top_records SET top_record_id = $1 WHERE original_message_id = $2 AND channel_id = $3;"""
+            await self.bot.database.set(query, top_record_msg.id, payload.message_id, payload.channel_id)
+        else:
+            await top_record_channel.get_partial_message(payload.message_id).edit(content=content)
+    @staticmethod
+    def upper_emoji_converter(stars: int) -> str:
+        if 5 > stars >= 0:
+            return "<:upper:929871697555914752>"
+        elif 10 > stars >= 15:
+            return "<:ds2:873791529876082758>"
+        elif 15 > stars >= 10:
+            return "<:ds3:873791529926414336>"
+        else:
+            return "<:ds4:873791530018701312>"
+
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
