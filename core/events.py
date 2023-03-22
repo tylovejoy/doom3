@@ -109,7 +109,11 @@ class BotEvents(commands.Cog):
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.user_id == self.bot.user.id:
             return
-        if payload.channel_id not in [utils.SPR_RECORDS, utils.RECORDS] and payload.emoji != discord.PartialEmoji.from_str("<:upper:1082790562740047932>"):
+
+        if payload.channel_id not in [utils.SPR_RECORDS, utils.RECORDS]:
+            return
+
+        if payload.emoji != discord.PartialEmoji.from_str("<:upper:787788134620332063>"):
             return
 
         query = """SELECT * FROM records WHERE message_id = $1;"""
@@ -122,13 +126,19 @@ class BotEvents(commands.Cog):
             return
 
         query = """
-            INSERT INTO top_records (user_id, original_message_id, channel_id) 
-            VALUES ($1, $2, $3)
-            ON CONFLICT (user_id, original_message_id, channel_id)
-            DO NOTHING;
-            """
+            SELECT user_id
+            FROM top_records
+            WHERE original_message_id = $1
+              AND channel_id = $2
+              AND user_id = $3
+            LIMIT 1;
+        """
 
-        await self.bot.database.set(query, payload.user_id, payload.message_id, payload.channel_id)
+        row = await self.bot.database.get_one(query, payload.message_id, payload.channel_id, payload.user_id)
+
+        if row:
+            print("already voted")
+            return
 
         query = """
             SELECT COUNT(*) as count, top_record_id
@@ -138,14 +148,34 @@ class BotEvents(commands.Cog):
             GROUP BY original_message_id, channel_id, top_record_id
         """
 
-        row = await self.bot.database.get_one(query, payload.message_id, payload.channel_id)
+        top_record_id = None
+        count = 0
+        async for row in self.bot.database.get(query, payload.message_id, payload.channel_id):
+            count += row.count
+            if not top_record_id and row.top_record_id:
+                top_record_id = row.top_record_id
 
-        if row.count < 5:
+        query = """
+            INSERT INTO top_records (user_id, original_message_id, channel_id, top_record_id) 
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (user_id, original_message_id, channel_id)
+            DO NOTHING;
+        """
+
+        await self.bot.database.set(query, payload.user_id, payload.message_id, payload.channel_id, top_record_id)
+
+        count += 1
+
+        if count < 5:
             return
 
-        content = f"{row.count} {self.upper_emoji_converter(row.count)} <#{payload.channel_id}>"
+        print("on raw react ->", top_record_id)
+
+
+        content = f"{count} {self.upper_emoji_converter(count)} <#{payload.channel_id}>"
         top_record_channel = self.bot.get_channel(utils.TOP_RECORDS)
-        if not row.top_record_id:
+        if not top_record_id:
+            print("not top record id")
             original_msg = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
             if not original_msg.embeds:
                 return
@@ -157,7 +187,9 @@ class BotEvents(commands.Cog):
             query = """UPDATE top_records SET top_record_id = $1 WHERE original_message_id = $2 AND channel_id = $3;"""
             await self.bot.database.set(query, top_record_msg.id, payload.message_id, payload.channel_id)
         else:
-            await top_record_channel.get_partial_message(payload.message_id).edit(content=content)
+            print("yes top record id")
+            await top_record_channel.get_partial_message(top_record_id).edit(content=content)
+
     @staticmethod
     def upper_emoji_converter(stars: int) -> str:
         if 5 > stars >= 0:
