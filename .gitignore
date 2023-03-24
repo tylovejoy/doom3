@@ -3,3 +3,5 @@ venv
 /venv
 /venv/
 .idea
+.venv
+/.vscode/tasks.json

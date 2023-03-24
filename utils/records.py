@@ -64,7 +64,7 @@ class MapLevelTransformer(app_commands.Transformer):
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(
             value,
-            (itx.client.map_cache.get(itx.namespace.map_code, None)).get(
+            (itx.client.map_cache.get(itx.namespace.map_code, {})).get(
                 "choices", None
             ),
         )
