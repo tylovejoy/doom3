@@ -130,6 +130,9 @@ class BotEvents(commands.Cog):
 
         await self.bot.database.set(query, payload.user_id, payload.message_id, payload.channel_id)
 
+        if not is_record:
+            return
+
         query = """
             SELECT COUNT(*) as count, top_record_id
             FROM top_records
@@ -157,7 +160,9 @@ class BotEvents(commands.Cog):
             query = """UPDATE top_records SET top_record_id = $1 WHERE original_message_id = $2 AND channel_id = $3;"""
             await self.bot.database.set(query, top_record_msg.id, payload.message_id, payload.channel_id)
         else:
-            await top_record_channel.get_partial_message(payload.message_id).edit(content=content)
+            await top_record_channel.get_partial_message(row.top_record_id).edit(content=content)
+            query = """UPDATE top_records SET top_record_id = $1 WHERE original_message_id = $2 AND channel_id = $3;"""
+            await self.bot.database.set(query, row.top_record_id, payload.message_id, payload.channel_id)
     @staticmethod
     def upper_emoji_converter(stars: int) -> str:
         if 5 > stars >= 0:
