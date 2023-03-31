@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import operator
 import re
 import typing
 
 import discord
 from discord import app_commands
+
+from discord.ext import tasks
 from thefuzz import fuzz
+
+from cogs.tournament.utils.data import TournamentData
+from cogs.tournament.utils.utils import ANNOUNCEMENTS
 
 if typing.TYPE_CHECKING:
     from core import DoomItx
@@ -76,3 +82,57 @@ def split_nth_conditional(cur_i: int, n: int, collection: typing.Sequence) -> bo
         or (cur_i == 0 and len(collection) == 1)
         or cur_i == len(collection) - 1
     )
+
+
+async def tournament_task(
+    data: TournamentData,
+    start: bool,
+    func: typing.Callable[[TournamentData], typing.Awaitable[None]],
+):
+    time = "start" if start else "end"
+    if datetime.datetime.today().date() != getattr(data, time).date():
+        return
+
+    await func(data)
+
+
+@tasks.loop()
+async def start_tournament_task(data: TournamentData):
+    await tournament_task(data, True, start_tournament)
+
+
+@tasks.loop()
+async def end_tournament_task(data: TournamentData):
+    await tournament_task(data, False, end_tournament)
+
+
+async def start_tournament(data: TournamentData):
+    # Post announcement
+    mentions = [
+        data.client.get_guild(195387617972322306)
+        .get_role(_id)
+        .mention  # TODO: Guild id
+        for _id in data.mention_ids
+    ]
+
+    await data.client.get_guild(195387617972322306).get_channel(
+        ANNOUNCEMENTS
+    ).send(  # TODO: Guild id
+        "".join(mentions), embed=data.start_embed()
+    )
+    # Open submissions channel
+    ...  # TODO: open submissions channel
+    await data.client.database.set(
+        "UPDATE tournament SET active = TRUE WHERE id = $1", data.id
+    )
+
+
+async def end_tournament(data: TournamentData):
+    # Post announcement  # TODO: Post
+
+    # Open submissions channel
+    ...  # TODO: close submissions channel
+    await data.client.database.set(
+        "UPDATE tournament SET active = FALSE WHERE id = $1", data.id
+    )
+    data.client.current_tournament = None

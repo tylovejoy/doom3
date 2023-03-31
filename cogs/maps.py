@@ -307,7 +307,6 @@ class Maps(commands.Cog):
         embed_list = []
         embed = utils.DoomEmbed(title="Map Search")
         for i, _map in enumerate(maps):
-
             embed.add_description_field(
                 name=f"{_map.map_code}",
                 value=(
@@ -391,9 +390,7 @@ class Maps(commands.Cog):
         )
 
     @staticmethod
-    async def _check_guides(
-        itx: DoomItx, map_code: str
-    ) -> list[str]:
+    async def _check_guides(itx: DoomItx, map_code: str) -> list[str]:
         await itx.response.defer(ephemeral=True)
         if map_code not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError

@@ -74,7 +74,7 @@ class Test(commands.Cog):
     async def xx(self, ctx: DoomCtx):
         # msg = await ctx.send("starting")
         # thread = await ctx.channel.create_thread(name="Test", message=msg)
-        map_name="Petra"
+        map_name = "Petra"
         print(MAP_DATA)
         print(MAP_DATA["Petra"])
         print(MAP_DATA["Petra"].IMAGE_URL)

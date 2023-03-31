@@ -113,14 +113,18 @@ class BotEvents(commands.Cog):
         if payload.channel_id not in [utils.SPR_RECORDS, utils.RECORDS]:
             return
 
-        if payload.emoji != discord.PartialEmoji.from_str("<:upper:787788134620332063>"):
+        if payload.emoji != discord.PartialEmoji.from_str(
+            "<:upper:787788134620332063>"
+        ):
             return
 
         query = """SELECT * FROM records WHERE message_id = $1;"""
         is_record = bool(await self.bot.database.get_one(query, payload.message_id))
 
         query = """SELECT * FROM records_queue WHERE message_id = $1;"""
-        is_record_queue = bool(await self.bot.database.get_one(query, payload.message_id))
+        is_record_queue = bool(
+            await self.bot.database.get_one(query, payload.message_id)
+        )
 
         if not (is_record or is_record_queue):
             return
@@ -134,10 +138,11 @@ class BotEvents(commands.Cog):
             LIMIT 1;
         """
 
-        row = await self.bot.database.get_one(query, payload.message_id, payload.channel_id, payload.user_id)
+        row = await self.bot.database.get_one(
+            query, payload.message_id, payload.channel_id, payload.user_id
+        )
 
         if row:
-            print("already voted")
             return
 
         query = """
@@ -150,7 +155,9 @@ class BotEvents(commands.Cog):
 
         top_record_id = None
         count = 0
-        async for row in self.bot.database.get(query, payload.message_id, payload.channel_id):
+        async for row in self.bot.database.get(
+            query, payload.message_id, payload.channel_id
+        ):
             count += row.count
             if not top_record_id and row.top_record_id:
                 top_record_id = row.top_record_id
@@ -162,21 +169,25 @@ class BotEvents(commands.Cog):
             DO NOTHING;
         """
 
-        await self.bot.database.set(query, payload.user_id, payload.message_id, payload.channel_id, top_record_id)
+        await self.bot.database.set(
+            query,
+            payload.user_id,
+            payload.message_id,
+            payload.channel_id,
+            top_record_id,
+        )
 
         count += 1
-
         if count < 5:
             return
 
-        print("on raw react ->", top_record_id)
-
-
         content = f"{count} {self.upper_emoji_converter(count)} <#{payload.channel_id}>"
         top_record_channel = self.bot.get_channel(utils.TOP_RECORDS)
+
         if not top_record_id:
-            print("not top record id")
-            original_msg = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+            original_msg = await self.bot.get_channel(payload.channel_id).fetch_message(
+                payload.message_id
+            )
             if not original_msg.embeds:
                 return
             embed = original_msg.embeds[0]
@@ -185,10 +196,14 @@ class BotEvents(commands.Cog):
 
             top_record_msg = await top_record_channel.send(content, embed=embed)
             query = """UPDATE top_records SET top_record_id = $1 WHERE original_message_id = $2 AND channel_id = $3;"""
-            await self.bot.database.set(query, top_record_msg.id, payload.message_id, payload.channel_id)
+            await self.bot.database.set(
+                query, top_record_msg.id, payload.message_id, payload.channel_id
+            )
         else:
             print("yes top record id")
-            await top_record_channel.get_partial_message(top_record_id).edit(content=content)
+            await top_record_channel.get_partial_message(top_record_id).edit(
+                content=content
+            )
 
     @staticmethod
     def upper_emoji_converter(stars: int) -> str:
@@ -200,7 +215,6 @@ class BotEvents(commands.Cog):
             return "<:ds3:873791529926414336>"
         else:
             return "<:ds4:873791530018701312>"
-
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):

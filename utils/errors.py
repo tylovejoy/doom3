@@ -190,7 +190,9 @@ async def on_app_command_error(
     await utils.delete_interaction(itx, minutes=15)
 
 
-async def _respond(embed: discord.Embed | utils.DoomEmbed | utils.ErrorEmbed, itx: DoomItx):
+async def _respond(
+    embed: discord.Embed | utils.DoomEmbed | utils.ErrorEmbed, itx: DoomItx
+):
     if itx.response.is_done():
         await itx.edit_original_response(
             embed=embed,

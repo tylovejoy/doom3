@@ -44,7 +44,7 @@ class Personal(commands.Cog):
         )
 
         await itx.response.send_message(f"Alerts set to {value}.", ephemeral=True)
-        await itx.followup.send(await itx.translate("Testing123"), ephemeral=True)
+        # await itx.followup.send(await itx.translate("Testing123"), ephemeral=True)
 
     @app_commands.command(**utils.name)
     @app_commands.describe(**utils.name_args)

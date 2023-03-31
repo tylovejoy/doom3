@@ -22,9 +22,7 @@ class TagFuzzView(discord.ui.View):
         ]
 
     @discord.ui.select()
-    async def matches(
-        self, itx: DoomItx, select: discord.SelectMenu
-    ):
+    async def matches(self, itx: DoomItx, select: discord.SelectMenu):
         await itx.response.defer()
         tag = [
             x
@@ -44,7 +42,6 @@ class TagCreate(discord.ui.Modal, title="Create Tag"):
     value = discord.ui.TextInput(label="Value", style=discord.TextStyle.paragraph)
 
     async def on_submit(self, itx: DoomItx):
-
         view = views.Confirm(itx)
         await itx.response.send_message(
             content=f"Is this correct?\n\n{self.name}\n{self.value}", view=view

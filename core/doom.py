@@ -8,6 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import cogs
+from cogs.tournament.utils.data import TournamentData
 from core.translations import DoomTranslator
 from utils import MapCacheData, UserCacheData
 
@@ -49,6 +50,8 @@ class Doom(commands.Bot):
         self.auto_join_threads: list[tuple[int, int]] | None = None
 
         self.insults: list[str] | None = None
+
+        self.current_tournament: TournamentData | None = None
 
         self.persistent_views_added = False
 

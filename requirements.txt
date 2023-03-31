@@ -1,6 +1,7 @@
 aiohttp
 asyncpg
-discord.py
+git+https://github.com/Rapptz/discord.py.git
 jishaku
 thefuzz
 python-Levenshtein
+dateparser

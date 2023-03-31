@@ -56,7 +56,9 @@ class MapCodeRecordsTransformer(MapCodeAutoTransformer):
 class MapLevelTransformer(app_commands.Transformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
         if value not in itx.client.map_cache[itx.namespace.map_code]["levels"]:
-            value = utils.fuzz_(value, itx.client.map_names)
+            value = utils.fuzz_(
+                value, itx.client.map_cache[itx.namespace.map_code]["levels"]
+            )
         return value
 
     async def autocomplete(
@@ -64,9 +66,7 @@ class MapLevelTransformer(app_commands.Transformer):
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(
             value,
-            (itx.client.map_cache.get(itx.namespace.map_code, {})).get(
-                "choices", None
-            ),
+            (itx.client.map_cache.get(itx.namespace.map_code, {})).get("choices", None),
         )
 
 
@@ -224,7 +224,12 @@ def pr_records_embed(
     return embed_list
 
 
-def _add_pr_field(cur_code: str, description: str, embed: discord.Embed | DoomEmbed, record: database.DotRecord) -> tuple[str, str]:
+def _add_pr_field(
+    cur_code: str,
+    description: str,
+    embed: discord.Embed | DoomEmbed,
+    record: database.DotRecord,
+) -> tuple[str, str]:
     embed.add_field(
         name=f"{cur_code}",
         value="┗".join(description[:-3].rsplit("┣", 1)),

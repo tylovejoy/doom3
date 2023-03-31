@@ -32,12 +32,9 @@ async def translate_helper(
     string: str | app_commands.locale_str,
     *,
     locale: discord.Locale = discord.utils.MISSING,
-    data: typing.Any = discord.utils.MISSING
+    data: typing.Any = discord.utils.MISSING,
 ) -> str | None:
     _translate = await itx.translate(string, locale=locale, data=data)
-    print(_translate)
-    print(type(_translate))
-
     if _translate is None:
         return string
     return _translate

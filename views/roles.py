@@ -75,9 +75,7 @@ class ServerRelatedPings(discord.ui.View):
         style=discord.ButtonStyle.blurple,
         custom_id="announcements",
     )
-    async def announcements(
-        self, itx: DoomItx, button: discord.Button
-    ):
+    async def announcements(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(802259719229800488)
         await add_remove_roles(itx, role)
@@ -132,9 +130,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="movie_night",
         row=2,
     )
-    async def movie_night(
-        self, itx: DoomItx, button: discord.Button
-    ):
+    async def movie_night(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(903667495922180167)
         await add_remove_roles(itx, role)
@@ -145,9 +141,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="game_night",
         row=2,
     )
-    async def game_night(
-        self, itx: DoomItx, button: discord.Button
-    ):
+    async def game_night(self, itx: DoomItx, button: discord.Button):
         await itx.response.defer(ephemeral=True)
         role = itx.guild.get_role(903667578549968896)
         await add_remove_roles(itx, role)
@@ -201,9 +195,7 @@ class TherapyRole(discord.ui.View):
         style=discord.ButtonStyle.green,
         custom_id="therapy",
     )
-    async def therapy_access(
-        self, itx: DoomItx, button: discord.Button
-    ):
+    async def therapy_access(self, itx: DoomItx, button: discord.Button):
         return
         await itx.response.defer(ephemeral=True)
 

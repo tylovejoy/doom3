@@ -68,9 +68,7 @@ class Paginator(discord.ui.View):
         return await super().on_timeout()
 
     @discord.ui.button(label="First", emoji="⏮")
-    async def first(
-        self, itx: DoomItx, button: discord.ui.Button
-    ) -> None:
+    async def first(self, itx: DoomItx, button: discord.ui.Button) -> None:
         """Button component to return to the first pagination page."""
         if len(self.pages) == 1:
             button.disabled = True
@@ -78,9 +76,7 @@ class Paginator(discord.ui.View):
         return await self.change_page(itx)
 
     @discord.ui.button(label="Back", emoji="◀")
-    async def back(
-        self, itx: DoomItx, button: discord.ui.Button
-    ) -> None:
+    async def back(self, itx: DoomItx, button: discord.ui.Button) -> None:
         """Button component to go back to the last pagination page."""
         if len(self.pages) == 1:
             button.disabled = True
@@ -126,9 +122,7 @@ class Paginator(discord.ui.View):
         await self.change_page(itx)
 
     @discord.ui.button(label="Next", emoji="▶")
-    async def next(
-        self, itx: DoomItx, button: discord.ui.Button
-    ) -> None:
+    async def next(self, itx: DoomItx, button: discord.ui.Button) -> None:
         """Button component to go to the next pagination page."""
         if len(self.pages) == 1:
             button.disabled = True
@@ -140,9 +134,7 @@ class Paginator(discord.ui.View):
         return await self.change_page(itx)
 
     @discord.ui.button(label="Last", emoji="⏭")
-    async def last(
-        self, itx: DoomItx, button: discord.ui.Button
-    ) -> None:
+    async def last(self, itx: DoomItx, button: discord.ui.Button) -> None:
         """Button component to go to the last pagination page."""
         if len(self.pages) == 1:
             button.disabled = True
@@ -173,7 +165,5 @@ class PageNumberModal(discord.ui.Modal):
         if self.value:
             await itx.delete_original_response()
 
-    async def on_error(
-        self, itx: DoomItx, error: Exception
-    ) -> None:
+    async def on_error(self, itx: DoomItx, error: Exception) -> None:
         await utils.on_app_command_error(itx, error)

@@ -34,9 +34,7 @@ class ModCommands(commands.Cog):
 
     @keep_alive.command(**utils.add_keep_alive)
     @app_commands.describe(**utils.keep_alive_args)
-    async def add_keep_alive(
-        self, itx: DoomItx, thread: discord.Thread
-    ) -> None:
+    async def add_keep_alive(self, itx: DoomItx, thread: discord.Thread) -> None:
         if thread.id in self.bot.keep_alives:
             await itx.response.send_message(
                 f"{thread.mention} already in keep alive list.",
@@ -56,10 +54,7 @@ class ModCommands(commands.Cog):
 
     @keep_alive.command(**utils.remove_keep_alive)
     @app_commands.describe(**utils.keep_alive_args)
-    async def remove_keep_alive(
-        self, itx: DoomItx, thread: discord.Thread
-    ) -> None:
-
+    async def remove_keep_alive(self, itx: DoomItx, thread: discord.Thread) -> None:
         if thread.id not in self.bot.keep_alives:
             await itx.response.send_message(
                 f"{thread.mention} is not currently in the keep alive list.",
@@ -120,7 +115,7 @@ class ModCommands(commands.Cog):
             return
 
         await self.bot.database.set(
-            "DELETE FROM records WHERE user_id=$1 AND map_code=$2 AND level_name=$1",
+            "DELETE FROM records WHERE user_id=$1 AND map_code=$2 AND level_name=$3",
             user.id,
             map_code,
             level_name,

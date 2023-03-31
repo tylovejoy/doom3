@@ -6,6 +6,8 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 import utils.utils
+from cogs.tournament.utils.data import TournamentData
+from cogs.tournament.utils.utils import CategoryData
 
 if typing.TYPE_CHECKING:
     import core
@@ -26,6 +28,7 @@ class Tasks(commands.Cog):
         self.cache_keep_alives.start()
         self.cache_auto_join.start()
         self.cache_insults.start()
+        self.cache_tournament.start()
 
     @commands.command()
     @commands.is_owner()
@@ -45,6 +48,61 @@ class Tasks(commands.Cog):
         self.cache_auto_join.restart()
         self.cache_insults.restart()
         await ctx.message.delete()
+
+    @tasks.loop(hours=24, count=1)
+    async def cache_tournament(self):
+        self.bot.logger.debug("Caching tournament...")
+        tournament = await self.bot.database.get_one(
+            """
+            SELECT *
+            FROM (SELECT title,
+                         start,
+                         "end",
+                         active,
+                         bracket,
+                         roles,
+                         id,
+                         start < now() as has_started,
+                         "end" < now()    has_ended
+                  FROM tournament) t
+            WHERE not has_ended
+            """
+        )
+        if not tournament:
+            return
+        maps = [
+            x
+            async for x in self.bot.database.get(
+                "SELECT * FROM tournament_maps WHERE id = $1", tournament.id
+            )
+        ]
+        map_data = {
+            row.category: CategoryData(code=row.code, level=row.level) for row in maps
+        }
+
+        self.bot.current_tournament = TournamentData(
+            client=self.bot,
+            title=tournament.title,
+            start=tournament.start,
+            end=tournament.end,
+            bracket=tournament.bracket,
+            data=map_data,
+            id_=tournament.id,
+        )
+        if not tournament.has_started:
+            utils.start_tournament_task.change_interval(
+                time=self.bot.current_tournament.start.time()
+            )
+            utils.start_tournament_task.start(self.bot.current_tournament)
+        elif not tournament.active:
+            await utils.start_tournament(self.bot.current_tournament)
+
+        utils.end_tournament_task.change_interval(
+            time=self.bot.current_tournament.start.time()
+        )
+        utils.end_tournament_task.start(self.bot.current_tournament)
+
+        self.bot.logger.debug("Tournament cached.")
 
     @tasks.loop(hours=24, count=1)
     async def cache_map_code_choices(self):

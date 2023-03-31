@@ -82,9 +82,10 @@ all_map_constants = [
 MAP_DATA: dict[str, MapMetadata] = {const.NAME: const for const in all_map_constants}
 
 
-
 class MapSubmit(discord.ui.Modal, title="MapSubmit"):
-    desc = discord.ui.TextInput(label="Description", style=discord.TextStyle.paragraph, required=False)
+    desc = discord.ui.TextInput(
+        label="Description", style=discord.TextStyle.paragraph, required=False
+    )
     levels = discord.ui.TextInput(
         label="Level Names",
         style=discord.TextStyle.paragraph,
@@ -133,11 +134,16 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
                 f"`  Map ` {self.data['map_name']}\n"
                 f"` Type ` {', '.join(map_types)}\n" + description
             ),
-            color=MAP_DATA.get(self.data["map_name"], discord.Color.from_str("#000000")).COLOR,
+            color=MAP_DATA.get(
+                self.data["map_name"], discord.Color.from_str("#000000")
+            ).COLOR,
             image=MAP_DATA.get(self.data["map_name"], None).IMAGE_URL,
             thumbnail=itx.client.user.display_avatar.url,
         )
-        embed.add_field(name="Level Names (Each should be on separate lines)", value='\n'.join(levels))
+        embed.add_field(
+            name="Level Names (Each should be on separate lines)",
+            value="\n".join(levels),
+        )
         # embed = utils.set_embed_thumbnail_maps(self.data["map_name"], embed)
         view = views.Confirm(itx, ephemeral=True)
         await itx.edit_original_response(

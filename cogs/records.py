@@ -104,15 +104,37 @@ class Records(commands.Cog):
             embed=embed, file=new_screenshot2
         )
 
+        old_hidden_id = await self.bot.database.set_return_val(
+            """
+            DELETE FROM records_queue
+            WHERE map_code = $1
+            AND user_id = $2
+            AND level_name = $3
+            RETURNING hidden_id;
+            """,
+            map_code,
+            itx.user.id,
+            level_name,
+        )
+        if old_hidden_id:
+            await itx.guild.get_channel(utils.VERIFICATION_QUEUE).get_partial_message(
+                old_hidden_id
+            ).delete()
+
         view = views.VerificationView()
         await verification_msg.edit(view=view)
         await itx.client.database.set(
             """
-            INSERT INTO records_queue 
+            INSERT INTO records_queue
             (map_code, user_id, level_name, record, screenshot,
             video, message_id, channel_id, hidden_id, rating) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            """,
+            """
+            # ON CONFLICT (map_code, user_id, level_name)
+            # DO UPDATE SET record = EXCLUDED.record, screenshot = EXCLUDED.screenshot,
+            # video = EXCLUDED.video, message_id = EXCLUDED.message_id, channel_id = EXCLUDED.channel_id,
+            # hidden_id = EXCLUDED.hidden_id, rating = EXCLUDED.rating
+            ,
             map_code,
             itx.user.id,
             level_name,
@@ -198,14 +220,10 @@ class Records(commands.Cog):
     ):
         await self._personal_records(itx, user, wr_only)
 
-    async def pr_context_callback(
-        self, itx: DoomItx, user: discord.Member
-    ):
+    async def pr_context_callback(self, itx: DoomItx, user: discord.Member):
         await self._personal_records(itx, user, False)
 
-    async def wr_context_callback(
-        self, itx: DoomItx, user: discord.Member
-    ):
+    async def wr_context_callback(self, itx: DoomItx, user: discord.Member):
         await self._personal_records(itx, user, True)
 
     @staticmethod
@@ -275,10 +293,14 @@ class Records(commands.Cog):
                 """,
                 user,
             )
-            await itx.edit_original_response(content=f"{res.nickname} has **{res.amount}** verifications!")
+            await itx.edit_original_response(
+                content=f"{res.nickname} has **{res.amount}** verifications!"
+            )
         else:
-            res = [x async for x in itx.client.database.get(
-                """
+            res = [
+                x
+                async for x in itx.client.database.get(
+                    """
                 SELECT v.user_id,
                        amount,
                        nickname,
@@ -289,7 +311,8 @@ class Records(commands.Cog):
                          LEFT JOIN users u on v.user_id = u.user_id
                 ORDER BY amount DESC;
                 """,
-            )]
+                )
+            ]
             leaderboard = ""
             for placement, record in enumerate(res):
                 leaderboard += f"`{utils.make_ordinal(record.rank):^6}` `{record.amount:^6}` `{record.nickname}`\n"

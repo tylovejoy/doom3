@@ -77,6 +77,16 @@ class Database:
             break
         return res
 
+    async def fetchval(self, query: str, *args: typing.Any):
+        if self.pool is None:
+            raise utils.DatabaseConnectionError()
+
+        self.logger.debug(query)
+        self.logger.debug(args)
+
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                return await conn.fetchval(query, *args)
 
     async def _set(
         self,
@@ -90,9 +100,21 @@ class Database:
         async with self.pool.acquire() as conn:
             async with conn.transaction():
                 if single:
-                    await conn.execute(query, *args)
+                    return await conn.execute(query, *args)
                 else:
-                    await conn.executemany(query, *args)
+                    return await conn.executemany(query, *args)
+
+    async def set_return_val(
+        self,
+        query: str,
+        *args: typing.Any,
+    ):
+        if self.pool is None:
+            raise utils.DatabaseConnectionError()
+
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                return await conn.fetchval(query, *args)
 
     async def set(
         self,
@@ -108,7 +130,7 @@ class Database:
             query (str) Store the query string
             *args (Any) Pass any additional arguments to the query
         """
-        await self._set(query, *args, single=True)
+        return await self._set(query, *args, single=True)
 
     async def set_many(
         self,
