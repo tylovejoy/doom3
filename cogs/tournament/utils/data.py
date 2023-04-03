@@ -8,69 +8,13 @@ import discord.utils
 
 if typing.TYPE_CHECKING:
     import core
+
 import utils
-from cogs.tournament.utils.utils import (
-    Category,
-    CategoryData,
-    role_map,
-    # MissionCategory,
-    # MissionDifficulty,
-    MissionType,
-)
-
-
-# class TournamentRecordsData:
-#     user_id: int
-#     record: float
-#     category: Category
-#
-#     def __hash__(self):
-#         return hash((self.user_id, self.category))
-#
-#     def __eq__(self, other):
-#         if isinstance(other, TournamentRecordsData):
-#             return self.user_id == other.user_id and self.category == other.category
-#         raise TypeError
-#
-#     def __ne__(self, other):
-#         if isinstance(other, TournamentRecordsData):
-#             return self.user_id != other.user_id or self.category != other.category
-#         raise TypeError
-#
-#     def __lt__(self, other):
-#         if isinstance(other, TournamentRecordsData):
-#             return self == other and self.record < other.record
-#         raise TypeError
-#
-#     def __le__(self, other):
-#         if isinstance(other, TournamentRecordsData):
-#             return self == other and self.record <= other.record
-#         raise TypeError
-#
-#     def __gt__(self, other):
-#         if isinstance(other, TournamentRecordsData):
-#             return self == other and self.record > other.record
-#         raise TypeError
-#
-#     def __ge__(self, other):
-#         if isinstance(other, TournamentRecordsData):
-#             return self == other and self.record >= other.record
-#         raise TypeError
-#
-#
-# class MissionData:
-#     category: MissionCategory
-#     difficulty: MissionDifficulty
-#     type: MissionType
-#     value: float
+from cogs.tournament.utils import Category, CategoryData
+from cogs.tournament.utils.utils import role_map
 
 
 class TournamentData:
-    # records: dict[Category, set[TournamentRecordsData]] = {
-    #     k: [] for k in Category.all()
-    # }
-    # missions: dict[Category, MissionData]
-
     def __init__(
         self,
         *,
@@ -100,7 +44,7 @@ class TournamentData:
         )
 
     @property
-    def categories(self) -> list[str]:
+    def categories(self) -> list[Category]:
         return [cat for cat in Category.all() if cat in self.map_data]
 
     @property

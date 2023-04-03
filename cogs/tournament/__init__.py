@@ -7,8 +7,9 @@ from .missions import Missions
 
 if typing.TYPE_CHECKING:
     import core
-from .tournament_start import Tournament
+
 from .submissions import TournamentSubmissions
+from .tournament_start import Tournament
 
 
 async def setup(bot: core.Doom):

@@ -12,7 +12,7 @@ import utils
 import views
 
 if typing.TYPE_CHECKING:
-    from core import DoomItx, DoomCtx
+    from core import DoomCtx, DoomItx
 
 
 Units = typing.Literal["kg", "lb"]

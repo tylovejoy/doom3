@@ -2,34 +2,16 @@ from __future__ import annotations
 
 import typing
 
-import discord
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
 
 import views
-
-from cogs.tournament.utils.utils import (
-    MissionCategory,
-    MissionType,
-)
+from cogs.tournament.utils import Categories, Category, Difficulty, MissionType, Type
 from database import DotRecord
-from utils import time_convert, pretty_record
+from utils import pretty_record, time_convert
 
 if typing.TYPE_CHECKING:
     import core
-
-
-Categories = typing.Literal["Time Attack", "Mildcore", "Hardcore", "Bonus", "General"]
-Difficulty = typing.Literal["Easy", "Medium", "Hard", "Expert", "General"]
-Type = typing.Literal[
-    "--DIFFICULTY--",
-    "XP Threshold",
-    "Mission Threshold",
-    "Top Placement",
-    "----GENERAL----",
-    "Sub Time",
-    "Completion",
-]
 
 
 class Missions(commands.Cog):
@@ -59,14 +41,11 @@ class Missions(commands.Cog):
 
         await itx.response.defer()
         # Verify if mission type goes with category
-        if (
-            category == MissionCategory.GENERAL
-            and mission_type not in MissionType.general()
-        ):
+        if category == Category.GENERAL and mission_type not in MissionType.general():
             return  # TODO: Raise
 
         if (
-            category != MissionCategory.GENERAL
+            category != Category.GENERAL
             and mission_type not in MissionType.difficulty()
         ):
             return  # TODO: Raise

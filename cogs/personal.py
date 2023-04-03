@@ -14,7 +14,7 @@ import views
 
 if typing.TYPE_CHECKING:
     import core
-    from core import DoomItx, DoomCtx
+    from core import DoomCtx, DoomItx
 
 with open("assets/emoji-data.json", "r", encoding="utf8") as f:
     mapping = json.load(f)

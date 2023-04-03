@@ -11,7 +11,7 @@ import views
 
 if typing.TYPE_CHECKING:
     import core
-    from core import DoomItx, DoomCtx
+    from core import DoomCtx, DoomItx
 
 
 class ModCommands(commands.Cog):

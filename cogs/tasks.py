@@ -6,8 +6,8 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 import utils.utils
+from cogs.tournament.utils import CategoryData
 from cogs.tournament.utils.data import TournamentData
-from cogs.tournament.utils.utils import CategoryData
 
 if typing.TYPE_CHECKING:
     import core

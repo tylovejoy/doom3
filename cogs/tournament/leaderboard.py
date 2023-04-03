@@ -3,12 +3,11 @@ from __future__ import annotations
 import typing
 
 import discord
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
 
 import utils
 import views
-from cogs.tournament.utils.utils import Category, full_title_map, reverse_title_map
 
 if typing.TYPE_CHECKING:
     import core
@@ -35,19 +34,14 @@ class TournamentLeaderboards(commands.Cog):
             SELECT nickname, record, screenshot, value
             FROM tournament_records tr 
             LEFT JOIN users u on u.user_id = tr.user_id
-            LEFT JOIN user_ranks_new ur on u.user_id = ur.user_id
+            LEFT JOIN user_ranks ur on u.user_id = ur.user_id
             WHERE tournament_id = (SELECT tournament_id FROM tournament WHERE id = (SELECT max(id) FROM tournament))
             AND tr.category = $1
             AND ur.category = $1
             AND ($2::text IS NULL OR ur.value = $2)
             ORDER BY record;
         """
-        records = [
-            x
-            async for x in self.bot.database.get(
-                query, reverse_title_map[category], rank
-            )
-        ]
+        records = [x async for x in self.bot.database.get(query, category, rank)]
         total_text = 0
         descriptions = []
         description = f"**{category} Leaderboard**\n"

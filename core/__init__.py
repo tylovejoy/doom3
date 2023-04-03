@@ -3,4 +3,4 @@ from core.events import *
 from core.translations import *
 
 if typing.TYPE_CHECKING:
-    from core.types import DoomItx, DoomCtx
+    from core.types import DoomCtx, DoomItx

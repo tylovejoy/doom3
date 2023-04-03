@@ -3,12 +3,12 @@ from __future__ import annotations
 import typing
 
 import discord
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
 
 import utils
 import views
-from cogs.tournament.utils.utils import Category, full_title_map, reverse_title_map
+from cogs.tournament.utils import Category
 
 if typing.TYPE_CHECKING:
     import core
@@ -77,7 +77,7 @@ class TournamentSubmissions(commands.Cog):
         if old_record and old_record < record:
             return  # TODO: Raise error
         pretty_record = utils.pretty_record(record)
-        content = f"**{itx.user.mention}'s {full_title_map[category]} Submission**\n**Record:** {pretty_record}"
+        content = f"**{itx.user.mention}'s {category} Submission**\n**Record:** {pretty_record}"
         view = views.Confirm(itx, confirm_msg=content)
         await itx.response.send_message(
             f"{itx.user.mention}, is this correct?\n\n{content}",

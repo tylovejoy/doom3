@@ -4,27 +4,22 @@ import datetime
 import typing
 
 import discord
-import utils
+from discord import EntityType, PrivacyLevel, app_commands
 from discord.ext import commands, tasks
-from discord import app_commands
-from discord import EntityType, PrivacyLevel
 
+import utils
+from cogs.tournament.utils import Category, CategoryData
 from cogs.tournament.utils.data import TournamentData
+from cogs.tournament.utils.end_tournament import ExperienceCalculator
 from cogs.tournament.utils.transformers import (
-    TALevelTransformer,
-    DateTransformer,
-    MCLevelTransformer,
-    HCLevelTransformer,
     BOLevelTransformer,
+    DateTransformer,
+    HCLevelTransformer,
+    MCLevelTransformer,
+    TALevelTransformer,
 )
-from cogs.tournament.utils.utils import (
-    Category,
-    CategoryData,
-    role_map,
-    ANNOUNCEMENTS,
-    parse,
-)
-from utils import start_tournament_task, end_tournament_task
+from cogs.tournament.utils.utils import ANNOUNCEMENTS, parse, role_map
+from utils import end_tournament_task, start_tournament_task
 
 if typing.TYPE_CHECKING:
     import core
@@ -33,6 +28,14 @@ if typing.TYPE_CHECKING:
 class Tournament(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.is_owner()
+    async def fake_end(self, ctx: core.DoomCtx):
+        calculator = ExperienceCalculator(self.bot.current_tournament)
+        print(await calculator.compute_xp())
+        print(calculator.mission_totals)
 
     @app_commands.command()
     @app_commands.guilds(discord.Object(id=195387617972322306))
