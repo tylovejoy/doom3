@@ -101,16 +101,16 @@ class GymUtils(commands.Cog):
         lb = self._convert_kg_to_lb(value)
         if not unit:
             output = f"{value} lb ≈ {kg} kg\n{value} kg ≈ {lb} lb"
-        elif unit.lower() in ["lb", "lbs", "pounds", "pound"]:
+        elif unit.lower() in {"lb", "lbs", "pounds", "pound"}:
             output = f"{value} lb ≈ {kg} kg\n"
-        elif unit.lower() in [
+        elif unit.lower() in {
             "kg",
             "kgs",
             "kilogram",
             "kilograms",
             "kilogramme",
             "kilogrammes",
-        ]:
+        }:
             output = f"{value} kg ≈ {lb} lb"
         else:
             output = (

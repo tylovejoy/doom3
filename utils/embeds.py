@@ -84,20 +84,11 @@ def set_embed_thumbnail_maps(
 
 
 def record_embed(data: dict[str, typing.Any]) -> DoomEmbed:
-    if not data.get("video", None):
-        description = (
-            f"┣ `   Code ` {data['map_code']}\n"
-            f"┣ `  Level ` {data['map_level']}\n"
-            f"┗ ` Record ` {data['record']}\n"
-        )
-    else:
-        description = (
-            f"┣ `   Code ` {data['map_code']}\n"
-            f"┣ `  Level ` {data['map_level']}\n"
-            f"┣ ` Record ` {data['record']}\n"
-            f"┗ `  Video ` [Link]({data['video']})\n"
-        )
-
+    description = (
+        f"┣ `   Code ` {data['map_code']}\n┣ `  Level ` {data['map_level']}\n┣ ` Record ` {data['record']}\n┗ `  Video ` [Link]({data['video']})\n"
+        if data.get("video", None)
+        else f"┣ `   Code ` {data['map_code']}\n┣ `  Level ` {data['map_level']}\n┗ ` Record ` {data['record']}\n"
+    )
     embed = DoomEmbed(
         title="New Personal Record!",
         description=description,

@@ -197,13 +197,6 @@ class TherapyRole(discord.ui.View):
     )
     async def therapy_access(self, itx: DoomItx, button: discord.Button):
         return
-        await itx.response.defer(ephemeral=True)
-
-        await itx.edit_original_response(
-            content="This function is current unavailable. "
-            "If you would like access to #serious-chat, talk to a staff member.",
-        )
-        return
         # user = await ExperiencePoints.find_user(itx.user.id)
         # if getattr(user, "therapy_banned", None):
         #     await itx.response.send_message(

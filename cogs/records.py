@@ -55,7 +55,7 @@ class Records(commands.Cog):
         if level_name not in itx.client.map_cache[map_code]["levels"]:
             raise utils.InvalidMapLevelError
 
-        search = [
+        if search := [
             x
             async for x in itx.client.database.get(
                 "SELECT record, screenshot, video, verified, m.map_name "
@@ -65,9 +65,7 @@ class Records(commands.Cog):
                 level_name,
                 itx.user.id,
             )
-        ]
-
-        if search:
+        ]:
             search = search[0]
             if search.record < record:
                 raise utils.RecordNotFasterError
@@ -161,7 +159,7 @@ class Records(commands.Cog):
         if map_code not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
 
-        query = f"""
+        query = """
         SELECT * FROM (
         SELECT u.nickname, 
                level_name, 
@@ -313,10 +311,10 @@ class Records(commands.Cog):
                 """,
                 )
             ]
-            leaderboard = ""
-            for placement, record in enumerate(res):
-                leaderboard += f"`{utils.make_ordinal(record.rank):^6}` `{record.amount:^6}` `{record.nickname}`\n"
-
+            leaderboard = "".join(
+                f"`{utils.make_ordinal(record.rank):^6}` `{record.amount:^6}` `{record.nickname}`\n"
+                for record in res
+            )
             await itx.edit_original_response(content=leaderboard)
 
 

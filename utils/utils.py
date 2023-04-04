@@ -89,7 +89,7 @@ async def tournament_task(
     func: typing.Callable[[TournamentData], typing.Awaitable[None]],
 ):
     time = "start" if start else "end"
-    if datetime.datetime.today().date() != getattr(data, time).date():
+    if datetime.datetime.now().date() != getattr(data, time).date():
         return
 
     await func(data)

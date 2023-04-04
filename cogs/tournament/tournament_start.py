@@ -102,11 +102,11 @@ class Tournament(commands.Cog):
     def clean_categories_input(
         categories: list[tuple[Category, CategoryData]]
     ) -> dict[Category, CategoryData]:
-        data = {}
-        for cat in categories:
-            if cat[1]["code"] and cat[1]["level"]:
-                data[cat[0]] = cat[1]
-        return data
+        return {
+            cat[0]: cat[1]
+            for cat in categories
+            if cat[1]["code"] and cat[1]["level"]
+        }
 
     async def insert_tournament_db(self, data: TournamentData):
         if bool(

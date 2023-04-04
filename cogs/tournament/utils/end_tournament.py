@@ -104,9 +104,7 @@ class ExperienceCalculator:
             / (multiplier * float(top_record))
             * 2500
         )
-        if formula < 100:
-            return 100
-        return math.ceil(formula)
+        return 100 if formula < 100 else math.ceil(formula)
 
     async def compute_difficulty_missions(self):
         query = """
@@ -331,7 +329,7 @@ class SpreadsheetCreator:
             worksheet.write(1, 11, "", self._workbook.add_format({"border": 0}))
             worksheet.write(1, 15, "", self._workbook.add_format({"border": 0}))
         self._missions_worksheet.write_row(
-            "A" + str(1),
+            'A1',
             [
                 "Names",
                 "Easy",
@@ -392,5 +390,5 @@ class SpreadsheetCreator:
     def _write_leaderboards(self):
         for rank, categories in self._split_records.items():
             for category, records in categories.items():
-                for record in records:
+                for _ in records:
                     ...

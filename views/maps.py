@@ -118,22 +118,15 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
 
         if not view.value:
             return
-        map_types = [x for x in view.map_type.values]
+        map_types = list(view.map_type.values)
         levels = list(
             map(str.strip, filter(lambda x: bool(x), self.levels.value.split("\n")))
         )
 
-        description = ""
-        if self.desc.value:
-            description = f"` Desc ` {self.desc}\n"
-
+        description = f"` Desc ` {self.desc}\n" if self.desc.value else ""
         embed = utils.DoomEmbed(
             title="Map Submission - Confirmation",
-            description=(
-                f">>> ` Code ` {self.data['map_code']}\n"
-                f"`  Map ` {self.data['map_name']}\n"
-                f"` Type ` {', '.join(map_types)}\n" + description
-            ),
+            description=f">>> ` Code ` {self.data['map_code']}\n`  Map ` {self.data['map_name']}\n` Type ` {', '.join(map_types)}\n{description}",
             color=MAP_DATA.get(
                 self.data["map_name"], discord.Color.from_str("#000000")
             ).COLOR,

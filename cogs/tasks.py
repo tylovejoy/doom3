@@ -171,8 +171,8 @@ class Tasks(commands.Cog):
             """
         ):
             self.bot.map_cache[x.map_code] = utils.utils.MapCacheData(
-                levels=[y for y in x.levels],
-                user_ids=[y for y in x.user_ids],
+                levels=list(x.levels),
+                user_ids=list(x.user_ids),
                 choices=[app_commands.Choice(name=y, value=y) for y in x.levels],
             )
 

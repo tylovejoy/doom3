@@ -7,9 +7,6 @@ import dateparser
 
 from cogs.tournament.utils import Category
 
-if typing.TYPE_CHECKING:
-    pass
-
 # TODO: Change these before prod
 TA_ROLE = 841339455285886976
 MC_ROLE = 841339569705844756

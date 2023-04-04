@@ -127,7 +127,7 @@ class Personal(commands.Cog):
         await itx.response.send_message(f"8{'=' * self.length}D")
         if random.random() > 0.80:
             await asyncio.sleep(2)
-            await itx.edit_original_response(content=f"DICK CHOPPED...")
+            await itx.edit_original_response(content="DICK CHOPPED...")
             self.length = 0
 
     @app_commands.command(**utils.decrease)
@@ -138,7 +138,7 @@ class Personal(commands.Cog):
         await itx.response.send_message(f"8{'=' * self.length}D")
         if random.random() < 0.20:
             await asyncio.sleep(2)
-            await itx.edit_original_response(content=f"DICK VIAGRA TIME...")
+            await itx.edit_original_response(content="DICK VIAGRA TIME...")
             self.length = 50
 
 

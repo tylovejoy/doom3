@@ -23,7 +23,7 @@ class ExerciseView(discord.ui.View):
         super().__init__()
         self.itx = itx
         self.all = all_exercises
-        self.cur_page = self.all[0:10]
+        self.cur_page = self.all[:10]
         self.page_num = 0
         self.max_page = 0
 
