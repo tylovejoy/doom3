@@ -65,7 +65,7 @@ class MissionType(enum.StrEnum):
         return [cls.XP_THRESHOLD, cls.MISSION_THRESHOLD, cls.TOP_PLACEMENT]
 
 
-class CategoryData(typing.TypedDict):
+class CategoryData(TypedDict):
     code: str
     level: str
 
@@ -73,3 +73,19 @@ class CategoryData(typing.TypedDict):
 class MissionData(TypedDict):
     mission_type: MissionType
     target: float
+
+
+BaseXP = {
+    "nickname": "",
+    "Easy": 0,
+    "Medium": 0,
+    "Hard": 0,
+    "Expert": 0,
+    "General": 0,
+    "Mission Total XP": 0,
+    "Total XP": 0,
+    "Time Attack": 0,
+    "Mildcore": 0,
+    "Hardcore": 0,
+    "Bonus": 0,
+}

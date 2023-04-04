@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import typing
 
@@ -10,7 +11,7 @@ from discord.ext import commands, tasks
 import utils
 from cogs.tournament.utils import Category, CategoryData
 from cogs.tournament.utils.data import TournamentData
-from cogs.tournament.utils.end_tournament import ExperienceCalculator
+from cogs.tournament.utils.end_tournament import ExperienceCalculator, SpreadsheetCreator
 from cogs.tournament.utils.transformers import (
     BOLevelTransformer,
     DateTransformer,
@@ -33,9 +34,16 @@ class Tournament(commands.Cog):
     @commands.guild_only()
     @commands.is_owner()
     async def fake_end(self, ctx: core.DoomCtx):
-        calculator = ExperienceCalculator(self.bot.current_tournament)
-        print(await calculator.compute_xp())
-        print(calculator.mission_totals)
+
+        xp = await ExperienceCalculator(self.bot.current_tournament).compute_xp()
+        await SpreadsheetCreator(self.bot.current_tournament, xp).create()
+
+        file = discord.File(
+            fp=r"DPK_Tournament.xlsx",
+            filename=f"DPK_Tournament_{datetime.datetime.today().strftime('%d-%m-%Y')}.xlsx",
+        )
+        await ctx.send("Crotch", file=file)
+
 
     @app_commands.command()
     @app_commands.guilds(discord.Object(id=195387617972322306))

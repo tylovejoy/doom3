@@ -29,6 +29,7 @@ class Tasks(commands.Cog):
         self.cache_auto_join.start()
         self.cache_insults.start()
         self.cache_tournament.start()
+        print("huh")
 
     @commands.command()
     @commands.is_owner()
@@ -51,21 +52,22 @@ class Tasks(commands.Cog):
 
     @tasks.loop(hours=24, count=1)
     async def cache_tournament(self):
+        print("JKSDFBKSJDBFSKDF")
         self.bot.logger.debug("Caching tournament...")
         tournament = await self.bot.database.get_one(
             """
-            SELECT *
-            FROM (SELECT title,
-                         start,
-                         "end",
-                         active,
-                         bracket,
-                         roles,
-                         id,
-                         start < now() as has_started,
-                         "end" < now()    has_ended
-                  FROM tournament) t
-            WHERE not has_ended
+                SELECT *
+                FROM (SELECT title,
+                             start,
+                             "end",
+                             active,
+                             bracket,
+                             roles,
+                             id,
+                             start < now()                as has_started,
+                             "end" < now()                as has_ended
+                      FROM tournament) t
+                WHERE not has_ended or (has_ended and active)  
             """
         )
         if not tournament:
@@ -97,10 +99,14 @@ class Tasks(commands.Cog):
         elif not tournament.active:
             await utils.start_tournament(self.bot.current_tournament)
 
-        utils.end_tournament_task.change_interval(
-            time=self.bot.current_tournament.start.time()
-        )
-        utils.end_tournament_task.start(self.bot.current_tournament)
+        if tournament.has_ended and tournament.active:
+            await utils.end_tournament_task(self.bot.current_tournament)
+        else:
+            utils.end_tournament_task.change_interval(
+                time=self.bot.current_tournament.end.time()
+            )
+            print("gsdfs")
+            utils.end_tournament_task.start(self.bot.current_tournament)
 
         self.bot.logger.debug("Tournament cached.")
 
@@ -113,7 +119,6 @@ class Tasks(commands.Cog):
                 "SELECT map_code FROM maps ORDER BY 1;",
             )
         ]
-
         self.bot.logger.debug("Map codes cached.")
 
     @tasks.loop(hours=24, count=1)

@@ -6,3 +6,4 @@ thefuzz~=0.19.0
 python-Levenshtein
 dateparser~=1.1.8
 XlsxWriter~=3.0.9
+Pillow~=9.5.0

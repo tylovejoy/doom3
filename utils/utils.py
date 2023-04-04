@@ -12,11 +12,12 @@ from discord.ext import tasks
 from thefuzz import fuzz
 
 from cogs.tournament.utils.data import TournamentData
+from cogs.tournament.utils.end_tournament import ExperienceCalculator, SpreadsheetCreator
 from cogs.tournament.utils.utils import ANNOUNCEMENTS
+from utils import HALL_OF_FAME_ID, TOURNAMENT_SUBMISSIONS
 
 if typing.TYPE_CHECKING:
     from core import DoomItx
-
 
 CODE_VERIFICATION = re.compile(r"^[A-Z0-9]{4,6}$")
 
@@ -77,20 +78,24 @@ NUMBER_EMOJI = {
 
 def split_nth_conditional(cur_i: int, n: int, collection: typing.Sequence) -> bool:
     return (
-        (cur_i != 0 and cur_i % n == 0)
-        or (cur_i == 0 and len(collection) == 1)
-        or cur_i == len(collection) - 1
+            (cur_i != 0 and cur_i % n == 0)
+            or (cur_i == 0 and len(collection) == 1)
+            or cur_i == len(collection) - 1
     )
 
 
 async def tournament_task(
-    data: TournamentData,
-    start: bool,
-    func: typing.Callable[[TournamentData], typing.Awaitable[None]],
+        data: TournamentData,
+        start: bool,
+        func: typing.Callable[[TournamentData], typing.Awaitable[None]],
 ):
     time = "start" if start else "end"
-    if datetime.datetime.today().date() != getattr(data, time).date():
-        return
+
+
+    # if start and datetime.datetime.today().date() > data.start.date():
+    #     return
+    #
+    # if not start and datetime.datetime.today().date() != data.start.date()
 
     await func(data)
 
@@ -127,10 +132,35 @@ async def start_tournament(data: TournamentData):
 
 
 async def end_tournament(data: TournamentData):
-    # Post announcement  # TODO: Post
+    guild = data.client.get_guild(195387617972322306)  # TODO: real ID
+    await data.client.database.set(
+        "UPDATE tournament SET active = FALSE WHERE id = $1", data.id
+    )
+    remove_perms = guild.get_channel(TOURNAMENT_SUBMISSIONS).overwrites_for(
+        guild.default_role
+    )
+    remove_perms.update(send_messages=False)
+    await guild.get_channel(TOURNAMENT_SUBMISSIONS).set_permissions(
+        guild.default_role,
+        overwrite=remove_perms,
+        reason="Tournament Ended.",
+    )
 
-    # Open submissions channel
-    ...  # TODO: close submissions channel
+    xp = await ExperienceCalculator(data).compute_xp()
+    await SpreadsheetCreator(data, xp).create()
+
+
+    await guild.get_channel(ANNOUNCEMENTS).send(embed=data.end_embed())
+
+    hof_embed, lb_embeds = await data.hall_of_fame()
+    hof_msg = await guild.get_channel(HALL_OF_FAME_ID).send(embed=hof_embed)
+    hof_thread = await hof_msg.create_thread(name="Records Archive")
+    file = discord.File(
+        fp=r"DPK_Tournament.xlsx",
+        filename=f"DPK_Tournament_{datetime.datetime.now().strftime('%d-%m-%Y')}.xlsx",
+    )
+    await hof_thread.send(embeds=lb_embeds, file=file)
+
     await data.client.database.set(
         "UPDATE tournament SET active = FALSE WHERE id = $1", data.id
     )

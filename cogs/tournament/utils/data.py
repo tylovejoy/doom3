@@ -6,13 +6,22 @@ from typing import Literal
 
 import discord.utils
 
+from utils import make_ordinal, pretty_record
+
 if typing.TYPE_CHECKING:
     import core
 
 import utils
-from cogs.tournament.utils import Category, CategoryData
+from cogs.tournament.utils import Category, CategoryData, Rank
 from cogs.tournament.utils.utils import role_map
 
+
+rank_display = {
+    Rank.GOLD: "<:gold:931317421862699118>",
+    Rank.DIAMOND: "<:diamond:931317455639445524>",
+    Rank.GRANDMASTER: "<:grandmaster:931317469396729876>",
+    Rank.UNRANKED: "",
+}
 
 class TournamentData:
     def __init__(
@@ -105,7 +114,7 @@ class TournamentData:
     def base_embed(
         self,
         description: str,
-        embed_type: Literal["start", "end", "announcement", "leaderboard"],
+        embed_type: Literal["start", "end", "announcement", "leaderboard", "hall_of_fame"],
     ) -> discord.Embed:
         embed = utils.DoomEmbed(
             title=self.title,
@@ -129,16 +138,56 @@ class TournamentData:
         # TODO: Add champions
         return self.base_embed(description, "end")
 
-    # def get_record(self, data: TournamentRecordsData) -> TournamentRecordsData:
-    #     for record in self.records[data.category]:
-    #         if record == data:
-    #             return record
-    #     raise TypeError  # TODO: Real error
-    #
-    # def replace_record(self, data: TournamentRecordsData):
-    #     record = self.get_record(data)
-    #     if record > data:
-    #         self.records[data.category].remove(record)
-    #         self.records[data.category].add(data)
-    #     else:
-    #         raise TypeError  # TODO: Real error
+    async def hall_of_fame(self):
+        hof_embed = self.base_embed("", "hall_of_fame")
+        hof_embed.title += "Hall of Fame - Top 3"
+        lb_embeds = []
+        for category in self.map_data:
+            lb_description = ""
+            hof_embed_field_value = ""
+            async for record in self.client.database.get(
+                """
+                    WITH t_records AS (SELECT ur.user_id, record, ur.value, tr.category, screenshot
+                                       FROM tournament_records tr
+                                                LEFT JOIN user_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
+                                       WHERE tournament_id = $1),
+                         ranks AS (SELECT user_id,
+                                          record,
+                                          value,
+                                          category,
+                                          screenshot,
+                                          rank() OVER (
+                                              PARTITION BY category
+                                              ORDER BY record
+                                              ) rank_num
+                                   FROM t_records)
+                    SELECT r.user_id, nickname, record, value , category, screenshot, rank_num
+                    FROM ranks r
+                    LEFT JOIN users u ON r.user_id = u.user_id
+                    WHERE category = $2
+                    ORDER BY category != 'Time Attack',
+                             category != 'Mildcore',
+                             category != 'Hardcore',
+                             category != 'Bonus',
+                             rank_num
+                             
+                """,
+                self.id,
+                category,
+            ):
+
+                value = (
+                    f"`{make_ordinal(record.rank_num)}` - {record.nickname} - {pretty_record(record.record)} "
+                    f"{rank_display[record.value]} [Image]({record.screenshot})\n"
+                )
+                if record.rank_num < 3:
+                    hof_embed_field_value += value
+                lb_description += value
+            hof_embed.add_field(
+                name=category,
+                value=hof_embed_field_value,
+                inline=False,
+            )
+            lb_embeds.append(self.base_embed(lb_description, "leaderboard"))
+
+        return hof_embed, lb_embeds
