@@ -253,9 +253,7 @@ class Maps(commands.Cog):
         if not any([map_type, map_name, creator, map_code]):
             raise utils.InvalidFiltersError
 
-        async for _map in itx.client.database.get(
-            textwrap.dedent(
-                f"""
+        async for _map in itx.client.database.get(textwrap.dedent("""
                 SELECT map_code,
                        map_type,
                        map_name,
@@ -284,13 +282,7 @@ class Maps(commands.Cog):
                       ORDER BY map_code) layer0
                 GROUP BY map_code, map_type, map_name, "desc", official, creators, creators_ids
                 ORDER BY map_code;
-                """
-            ),
-            map_type,
-            map_name,
-            map_code,
-            creator,
-        ):
+                """), map_type, map_name, map_code, creator):
             _map: database.DotRecord
             maps.append(_map)
         if not maps:
@@ -304,19 +296,12 @@ class Maps(commands.Cog):
     def create_map_embeds(
         self, maps: list[database.DotRecord]
     ) -> list[utils.Embed | utils.DoomEmbed]:
-        embed_list = []
         embed = utils.DoomEmbed(title="Map Search")
+        embed_list = []
         for i, _map in enumerate(maps):
             embed.add_description_field(
                 name=f"{_map.map_code}",
-                value=(
-                    self.display_official(_map.official)
-                    + f"┣ `Rating` {utils.create_stars(_map.rating)}\n"
-                    f"┣ `Creator` {discord.utils.escape_markdown(_map.creators)}\n"
-                    f"┣ `Map` {_map.map_name}\n"
-                    f"┣ `Type` {_map.map_type}\n"
-                    f"┗ `Description` {_map.desc}"
-                ),
+                value=f"{self.display_official(_map.official)}┣ `Rating` {utils.create_stars(_map.rating)}\n┣ `Creator` {discord.utils.escape_markdown(_map.creators)}\n┣ `Map` {_map.map_name}\n┣ `Type` {_map.map_type}\n┗ `Description` {_map.desc}",
             )
             if utils.split_nth_conditional(i, 10, maps):
                 embed_list.append(embed)

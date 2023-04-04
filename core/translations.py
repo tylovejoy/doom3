@@ -21,8 +21,7 @@ class DoomTranslator(app_commands.Translator):
         locale: discord.Locale,
         context: app_commands.TranslationContext,
     ) -> str | None:
-        locales = translations.get(string.message, None)
-        if locales:
+        if locales := translations.get(string.message, None):
             return locales.get(locale.value)
         return None
 
@@ -35,6 +34,4 @@ async def translate_helper(
     data: typing.Any = discord.utils.MISSING,
 ) -> str | None:
     _translate = await itx.translate(string, locale=locale, data=data)
-    if _translate is None:
-        return string
-    return _translate
+    return string if _translate is None else _translate

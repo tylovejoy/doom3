@@ -102,7 +102,7 @@ class BotEvents(commands.Cog):
             self.bot.add_view(PronounRoles(), message_id=960946618142699560)
             self.bot.add_view(TherapyRole(), message_id=1005874559037231284)
 
-            self.bot.logger.debug(f"Added persistent views.")
+            self.bot.logger.debug("Added persistent views.")
             self.persistent_views_added = True
 
     @commands.Cog.listener()

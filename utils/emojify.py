@@ -32,12 +32,11 @@ def emojify(text: str) -> str:
     res = ""
     for raw in text:
         word = raw.lower()
-        random_choice = random.random() * 100 <= 100
+        random_choice = random.random() <= 1
         is_common = word in common_words
         emojis = []
 
-        temp_map = mapping.get(word, None)
-        if temp_map:
+        if temp_map := mapping.get(word, None):
             for emoji, freq in temp_map.items():
                 emojis += [emoji] * freq
 

@@ -33,11 +33,11 @@ async def autocomplete(
 ) -> list[app_commands.Choice[str]]:
     if not choices:  # Quietly ignore empty choices
         return []
-    if current == "":
-        response = choices[:25]
-    else:
-        response = [x for x in choices if case_ignore_compare(x.name, current)][:25]
-    return response
+    return (
+        [x for x in choices if case_ignore_compare(x.name, current)][:25]
+        if current
+        else choices[:25]
+    )
 
 
 async def exercise_name_autocomplete(

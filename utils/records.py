@@ -95,7 +95,7 @@ class URLTransformer(app_commands.Transformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
         value = value.strip()
         if not value.startswith("https://") and not value.startswith("http://"):
-            value = "https://" + value
+            value = f"https://{value}"
         async with itx.client.session.get(value) as resp:
             if resp.status != 200:
                 raise utils.IncorrectURLFormatError
@@ -136,21 +136,15 @@ def pretty_record(record: decimal.Decimal | float) -> str:
     negative = "-" if record < 0 else ""
     dt = datetime.datetime.min + datetime.timedelta(seconds=abs(record))
     hour_remove = 0
+    if dt.hour == 0:
+        if dt.minute == 0:
+            hour_remove = 6
+            if dt.second < 10:
+                hour_remove += 1
+
+        else:
+            hour_remove = 4 if dt.minute < 10 else 3
     seconds_remove = -4
-
-    if dt.hour == 0 and dt.minute == 0:
-        hour_remove = 6
-        if dt.second < 10:
-            hour_remove += 1
-
-    elif dt.hour == 0:
-        hour_remove = 3
-        if dt.minute < 10:
-            hour_remove = 4
-
-    if dt.microsecond == 0:
-        seconds_remove = -4
-
     return negative + dt.strftime("%H:%M:%S.%f")[hour_remove:seconds_remove]
 
 
@@ -162,21 +156,11 @@ def all_levels_records_embed(
     embed_list = []
     embed = utils.DoomEmbed(title=title)
     for i, record in enumerate(records):
-        if not record.video:
-            description = (
-                f"┣ `Name` {record.nickname}\n"
-                f"┗ `Record` [{pretty_record(record.record)}]"
-                f"({record.screenshot}) "
-                f"{utils.HALF_VERIFIED}\n"
-            )
-        else:
-            description = (
-                f"┣ `Name` {record.nickname}\n"
-                f"┣ `Record` [{pretty_record(record.record)}]"
-                f"({record.screenshot}) "
-                f"{utils.VERIFIED}\n "
-                f"┗ `Video` [Link]({record.video})\n"
-            )
+        description = (
+            f"┣ `Name` {record.nickname}\n┣ `Record` [{pretty_record(record.record)}]({record.screenshot}) {utils.VERIFIED}\n ┗ `Video` [Link]({record.video})\n"
+            if record.video
+            else f"┣ `Name` {record.nickname}\n┗ `Record` [{pretty_record(record.record)}]({record.screenshot}) {utils.HALF_VERIFIED}\n"
+        )
         embed.add_field(
             name=f"{utils.PLACEMENTS.get(i + 1, '')} {make_ordinal(i + 1)}"
             if single
@@ -202,21 +186,11 @@ def pr_records_embed(
     for i, record in enumerate(records):
         if cur_code != f"{record.map_name} by {record.creators} ({record.map_code})":
             cur_code, description = _add_pr_field(cur_code, description, embed, record)
-        if not record.video:
-            description += (
-                f"┣ `Level` ***{record.level_name}***\n"
-                f"┣ `Record` [{pretty_record(record.record)}]"
-                f"({record.screenshot}) "
-                f"{utils.HALF_VERIFIED}\n┃\n"
-            )
-        else:
-            description += (
-                f"┣ `Level` ***{record.level_name}***\n"
-                f"┣ `Record` [{pretty_record(record.record)}]"
-                f"({record.screenshot})"
-                f"{utils.VERIFIED}\n "
-                f"┣ `Video` [Link]({record.video})\n┃\n"
-            )
+        description += (
+            f"┣ `Level` ***{record.level_name}***\n┣ `Record` [{pretty_record(record.record)}]({record.screenshot}){utils.VERIFIED}\n ┣ `Video` [Link]({record.video})\n┃\n"
+            if record.video
+            else f"┣ `Level` ***{record.level_name}***\n┣ `Record` [{pretty_record(record.record)}]({record.screenshot}) {utils.HALF_VERIFIED}\n┃\n"
+        )
         if utils.split_nth_conditional(i, 10, records):
             cur_code, description = _add_pr_field(cur_code, description, embed, record)
             embed_list.append(embed)
@@ -248,7 +222,7 @@ def make_ordinal(n: int) -> str:
         make_ordinal(122) => '122nd'
         make_ordinal(213) => '213th'
     """
-    n = int(n)
+    n = n
     suffix = ["th", "st", "nd", "rd", "th"][min(n % 10, 4)]
     if 11 <= (n % 100) <= 13:
         suffix = "th"

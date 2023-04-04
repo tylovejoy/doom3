@@ -88,33 +88,24 @@ class TournamentData:
         return [role_map[cat] for cat in Category.all() if cat in self.map_data]
 
     def embed_description(self) -> str:
-        map_info = ""
         print(self.map_data)
-        for cat, data in self.map_data.items():  # TODO: Change ID to utils
-            map_info += (
-                self.client.get_guild(195387617972322306)
-                .get_role(role_map[cat])
-                .mention
-                + "\n"
-                f"**Code:** {data['code']}\n"
-                f"**Level:** {data['level']}\n"
-            )
-
-        return map_info
+        return "".join(
+            f"{self.client.get_guild(195387617972322306).get_role(role_map[cat]).mention}\n**Code:** {data['code']}\n**Level:** {data['level']}\n"
+            for cat, data in self.map_data.items()
+        )
 
     def base_embed(
         self,
         description: str,
         embed_type: Literal["start", "end", "announcement", "leaderboard"],
     ) -> discord.Embed:
-        embed = utils.DoomEmbed(
+        return utils.DoomEmbed(
             title=self.title,
             description=description,
             thumbnail="http://207.244.249.145/assets/images/icons/gold_cup.png",
             image=f"http://207.244.249.145/assets/images/icons/tournament_{embed_type}_banner.png",
             color=discord.Color.gold(),
         )
-        return embed
 
     def start_embed(self):
         return self.base_embed(self.embed_description() + "\n\n" + self.dates, "start")
