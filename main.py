@@ -21,13 +21,9 @@ async def main() -> None:
             f"{os.environ['PSQL_PORT']}/"
             f"{os.environ['PSQL_DATABASE']}"
         ) as connection:
-            print("WAAAAAAAAAA")
             bot = core.Doom(session=session, db=database.Database(connection))
-            print("WEEEEEEEEEEEEe")
             async with bot:
-                print("WIIII")
                 await bot.start(os.environ["TOKEN"])
-                print("ASDDDDDDDD")
 
 
 if __name__ == "__main__":

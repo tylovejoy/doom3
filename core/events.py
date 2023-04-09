@@ -198,7 +198,6 @@ class BotEvents(commands.Cog):
                 query, top_record_msg.id, payload.message_id, payload.channel_id
             )
         else:
-            print("yes top record id")
             await top_record_channel.get_partial_message(top_record_id).edit(
                 content=content
             )

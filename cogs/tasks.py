@@ -33,7 +33,6 @@ class Tasks(commands.Cog):
         self.cache_auto_join.start()
         self.cache_insults.start()
         self.cache_tournament.start()
-        print("huh")
 
     @commands.command()
     @commands.is_owner()

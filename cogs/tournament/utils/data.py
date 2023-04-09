@@ -105,7 +105,6 @@ class TournamentData:
 
     def embed_description(self) -> str:
         map_info = ""
-        print(self.map_data)
         for cat, data in self.map_data.items():
             map_info += (
                 self.client.get_guild(utils.GUILD_ID).get_role(role_map[cat]).mention

@@ -161,7 +161,6 @@ class ExperienceCalculator:
             query, self._tournament.client.current_tournament.id
         ):
             # await self._create_xp_row(row)
-            print(row.user_id)
             self._xp[row.user_id]["Mission Total XP"] += MISSION_POINTS[row.difficulty]
             self._xp[row.user_id]["Total XP"] += MISSION_POINTS[row.difficulty]
             self._xp[row.user_id][row.difficulty] += 1

@@ -75,9 +75,6 @@ class Test(commands.Cog):
         # msg = await ctx.send("starting")
         # thread = await ctx.channel.create_thread(name="Test", message=msg)
         map_name = "Petra"
-        print(MAP_DATA)
-        print(MAP_DATA["Petra"])
-        print(MAP_DATA["Petra"].IMAGE_URL)
         embed = utils.DoomEmbed(
             title="Map Submission - Confirmation",
             description=(
@@ -89,9 +86,7 @@ class Test(commands.Cog):
             image=MAP_DATA.get(map_name, None).IMAGE_URL,
             thumbnail=ctx.bot.user.display_avatar.url,
         )
-        print(embed.to_dict())
         await ctx.send(embed=embed)
-        # await asyncio.sleep(1)
 
     @commands.command()
     @commands.is_owner()
