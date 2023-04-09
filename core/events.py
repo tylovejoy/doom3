@@ -85,7 +85,7 @@ class BotEvents(commands.Cog):
             queue = [
                 x.hidden_id
                 async for x in self.bot.database.get(
-                    "SELECT hidden_id FROM records_queue;",
+                    "SELECT hidden_id FROM records WHERE hidden_id is not null;",
                 )
             ]
             for x in queue:
@@ -118,13 +118,11 @@ class BotEvents(commands.Cog):
         ):
             return
 
-        query = """SELECT * FROM records WHERE message_id = $1;"""
-        is_record = bool(await self.bot.database.get_one(query, payload.message_id))
+        query = """SELECT user_id, hidden_id FROM records WHERE message_id = $1;"""
+        row = await self.bot.database.get_one(query, payload.message_id)
 
-        query = """SELECT * FROM records_queue WHERE message_id = $1;"""
-        is_record_queue = bool(
-            await self.bot.database.get_one(query, payload.message_id)
-        )
+        is_record = bool(row.user_id)
+        is_record_queue = bool(row.hidden_id)
 
         if not (is_record or is_record_queue):
             return

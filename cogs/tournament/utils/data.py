@@ -12,9 +12,8 @@ if typing.TYPE_CHECKING:
     import core
 
 import utils
-from cogs.tournament.utils import Category, CategoryData, Rank
+from cogs.tournament.utils import Categories, Category, CategoryData, Rank
 from cogs.tournament.utils.utils import role_map
-
 
 rank_display = {
     Rank.GOLD: "<:gold:931317421862699118>",
@@ -22,6 +21,14 @@ rank_display = {
     Rank.GRANDMASTER: "<:grandmaster:931317469396729876>",
     Rank.UNRANKED: "",
 }
+
+category_color = {
+    Category.TIME_ATTACK: "#CAFFD0",
+    Category.MILDCORE: "#EE6C4D",
+    Category.HARDCORE: "#DB2B39",
+    Category.BONUS: "#AD1457",
+}
+
 
 class TournamentData:
     def __init__(
@@ -99,14 +106,13 @@ class TournamentData:
     def embed_description(self) -> str:
         map_info = ""
         print(self.map_data)
-        for cat, data in self.map_data.items():  # TODO: Change ID to utils
+        for cat, data in self.map_data.items():
             map_info += (
-                self.client.get_guild(195387617972322306)
-                .get_role(role_map[cat])
-                .mention
+                self.client.get_guild(utils.GUILD_ID).get_role(role_map[cat]).mention
                 + "\n"
                 f"**Code:** {data['code']}\n"
                 f"**Level:** {data['level']}\n"
+                f"**Creator:** {data['creator']}\n"
             )
 
         return map_info
@@ -114,7 +120,9 @@ class TournamentData:
     def base_embed(
         self,
         description: str,
-        embed_type: Literal["start", "end", "announcement", "leaderboard", "hall_of_fame"],
+        embed_type: Literal[
+            "start", "end", "announcement", "leaderboard", "hall_of_fame"
+        ],
     ) -> discord.Embed:
         embed = utils.DoomEmbed(
             title=self.title,
@@ -123,6 +131,21 @@ class TournamentData:
             image=f"http://207.244.249.145/assets/images/icons/tournament_{embed_type}_banner.png",
             color=discord.Color.gold(),
         )
+        return embed
+
+    def leaderboard_embed(
+        self, description: str, category: Categories, rank: Rank | None
+    ):
+        embed = self.base_embed(description=description, embed_type="leaderboard")
+        if rank:
+            embed.set_thumbnail(
+                url=f"http://207.244.249.145/assets/images/icons/{rank.lower()}.png"
+            )
+        embed.set_image(
+            url=f"http://207.244.249.145/assets/images/tournament/{category.lower().replace(' ', '_')}.png"
+        )
+
+        embed.colour = discord.Color.from_str(category_color[category])
         return embed
 
     def start_embed(self):
@@ -135,7 +158,6 @@ class TournamentData:
         description = (
             "**The round has ended!**\n" "Stay tuned for the next announcement!\n\n"
         )
-        # TODO: Add champions
         return self.base_embed(description, "end")
 
     async def hall_of_fame(self):
@@ -147,7 +169,7 @@ class TournamentData:
             hof_embed_field_value = ""
             async for record in self.client.database.get(
                 """
-                    WITH t_records AS (SELECT ur.user_id, record, ur.value, tr.category, screenshot
+                    WITH t_records AS (SELECT tr.user_id, record, coalesce(ur.value, 'Unranked') as value, tr.category, screenshot
                                        FROM tournament_records tr
                                                 LEFT JOIN user_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
                                        WHERE tournament_id = $1),
@@ -175,12 +197,11 @@ class TournamentData:
                 self.id,
                 category,
             ):
-
                 value = (
                     f"`{make_ordinal(record.rank_num)}` - {record.nickname} - {pretty_record(record.record)} "
                     f"{rank_display[record.value]} [Image]({record.screenshot})\n"
                 )
-                if record.rank_num < 3:
+                if record.rank_num <= 3:
                     hof_embed_field_value += value
                 lb_description += value
             hof_embed.add_field(

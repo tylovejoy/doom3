@@ -8,12 +8,12 @@ import typing
 import xlsxwriter
 
 from cogs.tournament.utils import (
+    BaseXP,
     Categories,
     Category,
     MissionDifficulty,
     MissionType,
     Rank,
-    BaseXP,
 )
 from cogs.tournament.utils.data import TournamentData
 from database import DotRecord
@@ -57,7 +57,12 @@ class ExperienceCalculator:
 
     async def _computer_leaderboard_xp(self):
         query = """
-            WITH t_records AS (SELECT ur.user_id, record, ur.value, tr.category
+            WITH t_records AS (SELECT tr.user_id,
+                                      record,
+                                      coalesce(ur.value, 'Unranked')                                                            as value,
+                                      tr.category,
+                                      rank()
+                                      over (partition by ur.user_id, value, tr.category, ur.category order by inserted_at DESC) as date_rank
                                FROM tournament_records tr
                                         LEFT JOIN user_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
                                WHERE tournament_id = $1),
@@ -70,19 +75,23 @@ class ExperienceCalculator:
             FROM top_recs tr
             
                      RIGHT JOIN t_records r ON tr.category = r.category AND tr.rank = r.value
-                     LEFT JOIN users u on r.user_id = u.user_id;
+                     LEFT JOIN users u on r.user_id = u.user_id
+            WHERE date_rank = 1;
         """
         async for row in self._tournament.client.database.get(
             query, self._tournament.client.current_tournament.id
         ):
-            if not self._xp.get(row.user_id, None):
-                self._xp[row.user_id] = BaseXP.copy()
-                self._xp[row.user_id]["nickname"] = row.nickname
+            await self._create_xp_row(row)
 
             value = self._lb_xp_formula(row.category, row.record, row.top_record)
 
             self._xp[row.user_id][row.category] += value
             self._xp[row.user_id]["Total XP"] += value
+
+    async def _create_xp_row(self, row):
+        if not self._xp.get(row.user_id, None):
+            self._xp[row.user_id] = BaseXP.copy()
+            self._xp[row.user_id]["nickname"] = row.nickname
 
     @staticmethod
     def _lb_xp_formula(
@@ -99,15 +108,15 @@ class ExperienceCalculator:
 
     async def _compute_difficulty_missions(self):
         query = """
-            WITH t_records AS (SELECT ur.user_id, record, ur.value, tr.category
-                               FROM tournament_records tr
+            WITH t_records AS (SELECT tr.user_id, record, coalesce(ur.value, 'Unranked') as value, tr.category FROM tournament_records tr
                                         LEFT JOIN user_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
                                WHERE tournament_id = $1),
                  top AS (SELECT category, min(record) as top_record FROM t_records GROUP BY category, value),
-                 top_records AS (SELECT user_id, record, top.category, value as "rank"
+                 top_recs AS (SELECT user_id, record, top.category, value as "rank"
                                  FROM top
                                           LEFT JOIN t_records r ON top.category = r.category
                                      AND record = top.top_record),
+                                     
                  sub_time_missions AS (SELECT target,
                                               t_records.user_id,
                                               t_records.category,
@@ -146,11 +155,13 @@ class ExperienceCalculator:
                                     difficulty != 'Easy')
             SELECT t.user_id, t.category, nickname, difficulty, tr.record as top_record
             FROM distinct_values t
-                     LEFT JOIN top_records tr ON tr.category = t.category AND tr.rank = t.rank;
+                     LEFT JOIN top_recs tr ON tr.category = t.category AND tr.rank = t.rank;
         """
         async for row in self._tournament.client.database.get(
             query, self._tournament.client.current_tournament.id
         ):
+            # await self._create_xp_row(row)
+            print(row.user_id)
             self._xp[row.user_id]["Mission Total XP"] += MISSION_POINTS[row.difficulty]
             self._xp[row.user_id]["Total XP"] += MISSION_POINTS[row.difficulty]
             self._xp[row.user_id][row.difficulty] += 1
@@ -182,7 +193,8 @@ class ExperienceCalculator:
 
     async def _compute_top_placement(self, target: int):
         query = """
-            WITH t_records AS (SELECT ur.user_id, record, ur.value, tr.category
+            WITH t_records AS (SELECT tr.user_id, record, coalesce(ur.value, 'Unranked') as value, tr.category, rank()
+                                        over (partition by ur.user_id, value, tr.category, ur.category order by inserted_at DESC) as date_rank
                                FROM tournament_records tr
                                         LEFT JOIN user_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
                                WHERE tournament_id = $1),
@@ -194,7 +206,8 @@ class ExperienceCalculator:
                                       PARTITION BY value, category
                                       ORDER BY record
                                       ) rank_num
-                           FROM t_records),
+                           FROM t_records
+                           WHERE date_rank = 1),
                  top_three AS (SELECT user_id, count(user_id) as amount
                                FROM ranks
                                WHERE rank_num <= 3
@@ -216,6 +229,7 @@ class ExperienceCalculator:
         self._xp[user_id]["General"] = 1
 
 
+# noinspection PyTypeChecker
 class SpreadsheetCreator:
     _records: list[DotRecord] = []
     _split_records: dict[Rank, dict[Category, list[DotRecord]]] = {
@@ -243,7 +257,8 @@ class SpreadsheetCreator:
 
     async def _get_records(self):
         query = """
-            SELECT tr.user_id, nickname, tr.category, tr.record, ur.value as rank
+            WITH recs AS (SELECT tr.user_id, nickname, tr.category, tr.record, coalesce(ur.value, 'Unranked') as rank, rank()
+                                        over (partition by nickname, value, tr.category, ur.category order by inserted_at DESC) as date_rank
             FROM tournament_records tr
                      LEFT JOIN users u on u.user_id = tr.user_id
                      LEFT JOIN user_ranks ur on u.user_id = ur.user_id AND tr.category = ur.category
@@ -256,7 +271,8 @@ class SpreadsheetCreator:
                      tr.category != 'Mildcore',
                      tr.category != 'Hardcore',
                      tr.category != 'Bonus',
-                     record;
+                     record)
+            SELECT * FROM recs WHERE date_rank = 1;    
         """
         self._records = [
             record

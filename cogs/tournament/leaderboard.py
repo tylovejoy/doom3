@@ -8,6 +8,10 @@ from discord.ext import commands
 
 import utils
 import views
+from cogs.tournament.utils import Categories, Rank
+from cogs.tournament.utils.data import rank_display
+from database import DotRecord
+from utils import pretty_record
 
 if typing.TYPE_CHECKING:
     import core
@@ -18,11 +22,13 @@ class TournamentLeaderboards(commands.Cog):
         self.bot = bot
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
+    )
     async def tournament_leaderboard(
         self,
         itx: core.DoomItx,
-        category: typing.Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"],
+        category: Categories,
         rank: typing.Literal[
             "Unranked", "Gold", "Diamond", "Grandmaster", "All"
         ] = "All",
@@ -31,36 +37,53 @@ class TournamentLeaderboards(commands.Cog):
             rank = None
         await itx.response.defer(ephemeral=True)
         query = """
-            SELECT nickname, record, screenshot, value
-            FROM tournament_records tr 
-            LEFT JOIN users u on u.user_id = tr.user_id
-            LEFT JOIN user_ranks ur on u.user_id = ur.user_id
-            WHERE tournament_id = (SELECT tournament_id FROM tournament WHERE id = (SELECT max(id) FROM tournament))
-            AND tr.category = $1
-            AND ur.category = $1
-            AND ($2::text IS NULL OR ur.value = $2)
-            ORDER BY record;
+            WITH all_records AS (SELECT nickname,
+                                        record,
+                                        screenshot,
+                                        value,
+                                        rank()
+                                        over (partition by nickname, value, tr.category, ur.category order by inserted_at DESC) as date_rank
+                                 FROM tournament_records tr
+                                          LEFT JOIN users u on u.user_id = tr.user_id
+                                          LEFT JOIN user_ranks ur on u.user_id = ur.user_id
+                                 WHERE tournament_id =
+                                       (SELECT tournament_id FROM tournament WHERE id = (SELECT max(id) FROM tournament))
+                                   AND tr.category = $1
+                                   AND ur.category = $1
+                                   AND ($2::text IS NULL OR ur.value = $2)
+                                 ORDER BY record)
+            SELECT *
+            FROM all_records
+            WHERE date_rank = 1;
         """
         records = [x async for x in self.bot.database.get(query, category, rank)]
-        total_text = 0
-        descriptions = []
-        description = f"**{category} Leaderboard**\n"
-        for i, record in enumerate(records, start=1):
-            cur_text = f"`{utils.make_ordinal(i):^6}` `{record.record:^10}` `{record.nickname}` [Link]({record.screenshot})\n"
-            if total_text + len(cur_text) >= 4095:
-                descriptions.append(description)
-                description = f"**{category} Leaderboard**\n"
-                total_text = 0
-            total_text += len(cur_text)
-            description += cur_text
-        if description:
-            descriptions.append(description)
-
-        embeds = [
-            self.bot.current_tournament.base_embed(
-                description=x, embed_type="leaderboard"
-            )
-            for x in descriptions
-        ]
+        if not records:
+            raise utils.NoRecordsFoundError
+        embeds = self._split_records(records, category, rank)
         view = views.Paginator(embeds, itx.user)
         await view.start(itx)
+
+    def _split_records(self, records: DotRecord, category: Categories, rank: Rank):
+        embed_list = []
+        embed = self.bot.current_tournament.leaderboard_embed(
+            description="",
+            category=category,
+            rank=rank,
+        )
+        for i, record in enumerate(records):
+            embed.add_field(
+                name=f"{utils.make_ordinal(i + 1)} - {record.nickname} {rank_display[record.value]}",
+                value=(
+                    f"> *Record:* {pretty_record(record.record)}\n"
+                    f"> [Screenshot]({record.screenshot})\n\n"
+                ),
+                inline=False,
+            )
+            if utils.split_nth_conditional(i, 9, records):
+                embed_list.append(embed)
+                embed = self.bot.current_tournament.leaderboard_embed(
+                    description="",
+                    category=category,
+                    rank=rank,
+                )
+        return embed_list

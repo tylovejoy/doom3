@@ -12,7 +12,10 @@ from discord.ext import tasks
 from thefuzz import fuzz
 
 from cogs.tournament.utils.data import TournamentData
-from cogs.tournament.utils.end_tournament import ExperienceCalculator, SpreadsheetCreator
+from cogs.tournament.utils.end_tournament import (
+    ExperienceCalculator,
+    SpreadsheetCreator,
+)
 from cogs.tournament.utils.utils import ANNOUNCEMENTS
 from utils import HALL_OF_FAME_ID, TOURNAMENT_SUBMISSIONS
 
@@ -78,36 +81,38 @@ NUMBER_EMOJI = {
 
 def split_nth_conditional(cur_i: int, n: int, collection: typing.Sequence) -> bool:
     return (
-            (cur_i != 0 and cur_i % n == 0)
-            or (cur_i == 0 and len(collection) == 1)
-            or cur_i == len(collection) - 1
+        (cur_i != 0 and cur_i % n == 0)
+        or (cur_i == 0 and len(collection) == 1)
+        or cur_i == len(collection) - 1
     )
 
 
 async def tournament_task(
-        data: TournamentData,
-        start: bool,
-        func: typing.Callable[[TournamentData], typing.Awaitable[None]],
+    data: TournamentData,
+    start: bool,
+    func: typing.Callable[[TournamentData], typing.Awaitable[None]],
 ):
     time = "start" if start else "end"
-
-
-    # if start and datetime.datetime.today().date() > data.start.date():
-    #     return
-    #
-    # if not start and datetime.datetime.today().date() != data.start.date()
 
     await func(data)
 
 
 @tasks.loop()
 async def start_tournament_task(data: TournamentData):
-    await tournament_task(data, True, start_tournament)
+    current_date = datetime.datetime.utcnow().date()
+    start_date = data.start.date()
+
+    if current_date == start_date:
+        await start_tournament(data)
 
 
 @tasks.loop()
 async def end_tournament_task(data: TournamentData):
-    await tournament_task(data, False, end_tournament)
+    current_date = datetime.datetime.utcnow().date()
+    end_date = data.end.date()
+
+    if current_date == end_date:
+        await end_tournament(data)
 
 
 async def start_tournament(data: TournamentData):
@@ -147,8 +152,17 @@ async def end_tournament(data: TournamentData):
     )
 
     xp = await ExperienceCalculator(data).compute_xp()
-    await SpreadsheetCreator(data, xp).create()
+    users_xp = [(k, v["Total XP"]) for k, v in xp.items()]
+    query = """
+        INSERT INTO user_xp (user_id, xp) 
+        VALUES ($1, $2)
+        ON CONFLICT (user_id) DO UPDATE 
+        SET xp = user_xp.xp + EXCLUDED.xp
+        RETURNING user_xp.xp
+    """
+    await data.client.database.set_many(query, users_xp)
 
+    await SpreadsheetCreator(data, xp).create()
 
     await guild.get_channel(ANNOUNCEMENTS).send(embed=data.end_embed())
 

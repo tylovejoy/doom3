@@ -9,6 +9,7 @@ from discord.ext import commands
 import utils
 import views
 from cogs.tournament.utils import Category
+from cogs.tournament.utils.errors import TournamentNotActiveError
 
 if typing.TYPE_CHECKING:
     import core
@@ -24,12 +25,6 @@ class TournamentSubmissions(commands.Cog):
         query = """
             INSERT INTO tournament_records (user_id, category, record, tournament_id, screenshot)
             VALUES ($1, $2, $3, (SELECT id FROM tournament WHERE active = TRUE LIMIT 1), $4)
-            ON CONFLICT (user_id, category, tournament_id) 
-            DO UPDATE SET record = EXCLUDED.record, screenshot = EXCLUDED.screenshot
-            WHERE tournament_records.user_id = excluded.user_id
-              AND tournament_records.category = excluded.category
-              AND tournament_records.tournament_id = excluded.tournament_id
-              AND excluded.record < tournament_records.record
         """
         await self.bot.database.set(query, user_id, category, record, screenshot_url)
 
@@ -45,7 +40,8 @@ class TournamentSubmissions(commands.Cog):
     ):
         return await self.bot.database.fetchval(
             """
-            SELECT record FROM tournament_records 
+            SELECT record, rank()
+                over (order by inserted_at DESC) as date_rank FROM tournament_records 
             WHERE user_id = $1 AND
             category = $2 AND 
             tournament_id = $3;
@@ -68,14 +64,14 @@ class TournamentSubmissions(commands.Cog):
     ):
         tournament_id = await self.get_tournament_id()
         if not tournament_id:
-            return  # TODO: Error
+            raise TournamentNotActiveError
         old_record = await self.get_old_record(
             itx.user.id,
             category,
             tournament_id,
         )
         if old_record and old_record < record:
-            return  # TODO: Raise error
+            raise utils.RecordNotFasterError
         pretty_record = utils.pretty_record(record)
         content = f"**{itx.user.mention}'s {category} Submission**\n**Record:** {pretty_record}"
         view = views.Confirm(itx, confirm_msg=content)
@@ -91,7 +87,9 @@ class TournamentSubmissions(commands.Cog):
         await self.insert_record(category, itx.user.id, url, record)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
+    )
     async def ta(
         self,
         itx: core.DoomItx,
@@ -101,7 +99,9 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.TIME_ATTACK)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
+    )
     async def mc(
         self,
         itx: core.DoomItx,
@@ -111,7 +111,9 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.MILDCORE)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
+    )
     async def hc(
         self,
         itx: core.DoomItx,
@@ -121,7 +123,9 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.HARDCORE)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
+    )
     async def bo(
         self,
         itx: core.DoomItx,
@@ -131,12 +135,14 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.BONUS)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
+    )
     async def submit(
         self,
         itx: core.DoomItx,
-        category: typing.Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"],
+        category: Category,
         screenshot: discord.Attachment,
         record: app_commands.Transform[float, utils.RecordTransformer],
     ):
-        await self.submission(itx, screenshot, record, reverse_title_map[category])
+        await self.submission(itx, screenshot, record, category)

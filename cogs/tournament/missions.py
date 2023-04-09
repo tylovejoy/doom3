@@ -5,8 +5,16 @@ import typing
 from discord import app_commands
 from discord.ext import commands
 
+import utils
 import views
 from cogs.tournament.utils import Categories, Category, Difficulty, MissionType, Type
+from cogs.tournament.utils.errors import (
+    InvalidMissionType,
+    MismatchedMissionCategoryType,
+    NoMissionExists,
+    TargetNotInteger,
+    TournamentNotActiveError,
+)
 from database import DotRecord
 from utils import pretty_record, time_convert
 
@@ -21,7 +29,7 @@ class Missions(commands.Cog):
     missions = app_commands.Group(
         name="missions",
         description="Missions",
-        guild_ids=[195387617972322306],
+        guild_ids=[195387617972322306, utils.GUILD_ID],
     )
 
     @missions.command()
@@ -34,21 +42,21 @@ class Missions(commands.Cog):
         target: str,
     ):
         if "-" in mission_type:
-            return  # TODO: Raise
+            raise InvalidMissionType
 
         if not itx.client.current_tournament:
-            return  # TODO: Raise
+            raise TournamentNotActiveError
 
         await itx.response.defer()
         # Verify if mission type goes with category
         if category == Category.GENERAL and mission_type not in MissionType.general():
-            return  # TODO: Raise
+            raise MismatchedMissionCategoryType
 
         if (
             category != Category.GENERAL
             and mission_type not in MissionType.difficulty()
         ):
-            return  # TODO: Raise
+            raise MismatchedMissionCategoryType
 
         target = self.validate_target(mission_type, target)
 
@@ -97,8 +105,7 @@ class Missions(commands.Cog):
             try:
                 res = int(target)
             except ValueError:
-                # TODO: RAISE
-                raise ValueError
+                raise TargetNotInteger
         elif mission_type == MissionType.SUB_TIME:
             res = time_convert(target)
         else:
@@ -113,7 +120,7 @@ class Missions(commands.Cog):
         difficulty: Difficulty,
     ):
         if not itx.client.current_tournament:
-            return  # TODO: Raise
+            raise TournamentNotActiveError
 
         await itx.response.defer(ephemeral=True)
         mission = await itx.client.database.get_one(
@@ -123,7 +130,7 @@ class Missions(commands.Cog):
             itx.client.current_tournament.id,
         )
         if not mission:
-            return  # TODO: Raise
+            raise NoMissionExists
 
         view = views.Confirm(itx)
         await itx.edit_original_response(
@@ -150,7 +157,7 @@ class Missions(commands.Cog):
     @missions.command()
     async def publish(self, itx: core.DoomItx):
         if not itx.client.current_tournament:
-            return  # TODO: Raise
+            raise TournamentNotActiveError
 
         await itx.response.defer(ephemeral=True)
         query = """
@@ -174,7 +181,7 @@ class Missions(commands.Cog):
             )
         ]
         if not missions:
-            return  # TODO: Raise
+            raise NoMissionExists
 
         embed = itx.client.current_tournament.announcement_embed(
             self.pretty_missions(missions)

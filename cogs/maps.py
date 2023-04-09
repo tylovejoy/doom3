@@ -256,6 +256,13 @@ class Maps(commands.Cog):
         async for _map in itx.client.database.get(
             textwrap.dedent(
                 f"""
+                WITH valid_ratings AS (
+                    SELECT mr.map_code, level, rating, mr.user_id, level_name 
+                    FROM map_level_ratings mr
+                    LEFT JOIN records r on mr.user_id = r.user_id 
+                        AND level_name = level
+                        AND r.map_code = mr.map_code
+                )
                 SELECT map_code,
                        map_type,
                        map_name,
@@ -275,7 +282,7 @@ class Maps(commands.Cog):
                       FROM maps
                                JOIN map_creators mc on maps.map_code = mc.map_code
                                JOIN users u on u.user_id = mc.user_id
-                               LEFT JOIN map_level_ratings mlr on maps.map_code = mlr.map_code
+                               LEFT JOIN valid_ratings vr on maps.map_code = vr.map_code
                       WHERE ($1::text IS NULL OR $1 = ANY (map_type))
                         AND ($2::text IS NULL OR map_name = $2)
                         AND ($3::text IS NULL OR maps.map_code = $3)

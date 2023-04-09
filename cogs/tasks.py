@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import typing
+from logging import getLogger
 
+import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 
@@ -12,6 +14,8 @@ from cogs.tournament.utils.data import TournamentData
 if typing.TYPE_CHECKING:
     import core
     from core import DoomCtx
+
+logger = getLogger(__name__)
 
 
 class Tasks(commands.Cog):
@@ -52,8 +56,7 @@ class Tasks(commands.Cog):
 
     @tasks.loop(hours=24, count=1)
     async def cache_tournament(self):
-        print("JKSDFBKSJDBFSKDF")
-        self.bot.logger.debug("Caching tournament...")
+        logger.debug("Caching tournament...")
         tournament = await self.bot.database.get_one(
             """
                 SELECT *
@@ -64,10 +67,12 @@ class Tasks(commands.Cog):
                              bracket,
                              roles,
                              id,
-                             start < now()                as has_started,
-                             "end" < now()                as has_ended
+                             start > now()                as needs_start_task,
+                             "end" > now()                as needs_end_task,
+                             start < now() and "end" > now() and not active as needs_start_now,
+                             "end" < now() and active     as needs_end_now
                       FROM tournament) t
-                WHERE not has_ended or (has_ended and active)  
+                WHERE id = (SELECT max(id) FROM tournament)
             """
         )
         if not tournament:
@@ -79,7 +84,10 @@ class Tasks(commands.Cog):
             )
         ]
         map_data = {
-            row.category: CategoryData(code=row.code, level=row.level) for row in maps
+            row.category: CategoryData(
+                code=row.code, level=row.level, creator=row.creator
+            )
+            for row in maps
         }
 
         self.bot.current_tournament = TournamentData(
@@ -91,39 +99,41 @@ class Tasks(commands.Cog):
             data=map_data,
             id_=tournament.id,
         )
-        if not tournament.has_started:
+
+        if tournament.needs_start_task:
             utils.start_tournament_task.change_interval(
                 time=self.bot.current_tournament.start.time()
             )
             utils.start_tournament_task.start(self.bot.current_tournament)
-        elif not tournament.active:
-            await utils.start_tournament(self.bot.current_tournament)
 
-        if tournament.has_ended and tournament.active:
-            await utils.end_tournament_task(self.bot.current_tournament)
-        else:
+        if tournament.needs_end_task:
             utils.end_tournament_task.change_interval(
                 time=self.bot.current_tournament.end.time()
             )
-            print("gsdfs")
             utils.end_tournament_task.start(self.bot.current_tournament)
 
-        self.bot.logger.debug("Tournament cached.")
+        if tournament.needs_start_now:
+            await utils.start_tournament(self.bot.current_tournament)
+
+        if tournament.needs_end_now:
+            await utils.end_tournament(self.bot.current_tournament)
+
+        logger.debug("Tournament cached.")
 
     @tasks.loop(hours=24, count=1)
     async def cache_map_code_choices(self):
-        self.bot.logger.debug("Caching map codes...")
+        logger.debug("Caching map codes...")
         self.bot.map_codes_choices = [
             app_commands.Choice(name=x.map_code, value=x.map_code)
             async for x in self.bot.database.get(
                 "SELECT map_code FROM maps ORDER BY 1;",
             )
         ]
-        self.bot.logger.debug("Map codes cached.")
+        logger.debug("Map codes cached.")
 
     @tasks.loop(hours=24, count=1)
     async def cache_map_names(self):
-        self.bot.logger.debug("Caching map names...")
+        logger.debug("Caching map names...")
         self.bot.map_names_choices = [
             app_commands.Choice(name=x.name, value=x.name)
             async for x in self.bot.database.get(
@@ -131,11 +141,11 @@ class Tasks(commands.Cog):
             )
         ]
         self.bot.map_names = [x.name for x in self.bot.map_names_choices]
-        self.bot.logger.debug("Map names cached.")
+        logger.debug("Map names cached.")
 
     @tasks.loop(hours=24, count=1)
     async def cache_map_types(self):
-        self.bot.logger.debug("Caching map types...")
+        logger.debug("Caching map types...")
         self.bot.map_types_choices = [
             app_commands.Choice(name=x.name, value=x.name)
             async for x in self.bot.database.get(
@@ -143,7 +153,7 @@ class Tasks(commands.Cog):
             )
         ]
         self.bot.map_types = [x.name for x in self.bot.map_types_choices]
-        self.bot.logger.debug("Map types cached.")
+        logger.debug("Map types cached.")
 
     @tasks.loop(hours=24, count=1)
     async def cache_exercise_names(self):

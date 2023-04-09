@@ -1,26 +1,23 @@
 from __future__ import annotations
 
-import asyncio
 import datetime
 import typing
 
 import discord
 from discord import EntityType, PrivacyLevel, app_commands
-from discord.ext import commands, tasks
+from discord.ext import commands
 
 import utils
 from cogs.tournament.utils import Category, CategoryData
 from cogs.tournament.utils.data import TournamentData
-from cogs.tournament.utils.end_tournament import ExperienceCalculator, SpreadsheetCreator
-from cogs.tournament.utils.transformers import (
-    BOLevelTransformer,
-    DateTransformer,
-    HCLevelTransformer,
-    MCLevelTransformer,
-    TALevelTransformer,
+from cogs.tournament.utils.end_tournament import (
+    ExperienceCalculator,
+    SpreadsheetCreator,
 )
-from cogs.tournament.utils.utils import ANNOUNCEMENTS, parse, role_map
-from utils import end_tournament_task, start_tournament_task
+from cogs.tournament.utils.errors import TournamentAlreadyExists
+from cogs.tournament.utils.transformers import DateTransformer
+from cogs.tournament.views.start import TournamentStartView
+from utils import start_tournament_task
 
 if typing.TYPE_CHECKING:
     import core
@@ -30,46 +27,43 @@ class Tournament(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
 
-    @commands.command()
-    @commands.guild_only()
-    @commands.is_owner()
-    async def fake_end(self, ctx: core.DoomCtx):
-
-        xp = await ExperienceCalculator(self.bot.current_tournament).compute_xp()
-        await SpreadsheetCreator(self.bot.current_tournament, xp).create()
-
-        file = discord.File(
-            fp=r"DPK_Tournament.xlsx",
-            filename=f"DPK_Tournament_{datetime.datetime.today().strftime('%d-%m-%Y')}.xlsx",
-        )
-        await ctx.send("Crotch", file=file)
-
-
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
+    )
     async def start(
         self,
         itx: core.DoomItx,
         start: app_commands.Transform[datetime.datetime, DateTransformer],
         end: app_commands.Transform[datetime.datetime, DateTransformer],
-        ta_code: app_commands.Transform[str, utils.MapCodeAutoTransformer] | None,
-        ta_level: app_commands.Transform[str, TALevelTransformer] | None,
-        mc_code: app_commands.Transform[str, utils.MapCodeAutoTransformer] | None,
-        mc_level: app_commands.Transform[str, MCLevelTransformer] | None,
-        hc_code: app_commands.Transform[str, utils.MapCodeAutoTransformer] | None,
-        hc_level: app_commands.Transform[str, HCLevelTransformer] | None,
-        bo_code: app_commands.Transform[str, utils.MapCodeAutoTransformer] | None,
-        bo_level: app_commands.Transform[str, BOLevelTransformer] | None,
     ):
         await itx.response.defer(ephemeral=True)
-        ta = Category.TIME_ATTACK, CategoryData(code=ta_code, level=ta_level)
-        mc = Category.MILDCORE, CategoryData(code=mc_code, level=mc_level)
-        hc = Category.HARDCORE, CategoryData(code=hc_code, level=hc_level)
-        bo = Category.BONUS, CategoryData(code=bo_code, level=bo_level)
+        end = end - discord.utils.utcnow() + start
 
-        categories = [ta, mc, hc, bo]
-        # TODO: TIME END NEEDS TO BE EXTENSTION FROM START!!!!!!!!
-        data = self.clean_categories_input(categories)
+        view = TournamentStartView(itx)
+        await itx.edit_original_response(
+            content="Click on the buttons to add necessary info.", view=view
+        )
+        await view.wait()
+
+        categories = [
+            (Category.TIME_ATTACK, view.ta_modal),
+            (Category.MILDCORE, view.mc_modal),
+            (Category.HARDCORE, view.hc_modal),
+            (Category.BONUS, view.bo_modal),
+        ]
+        category_data = [
+            (
+                cat,
+                CategoryData(
+                    code=cat_data.code, level=cat_data.level, creator=cat_data.creator
+                ),
+            )
+            for cat, cat_data in categories
+            if cat_data
+        ]
+
+        data = self.clean_categories_input(category_data)
         x = TournamentData(
             client=self.bot,
             title="Doomfist Parkour Tournament",
@@ -86,9 +80,7 @@ class Tournament(commands.Cog):
         ]
         await self.insert_tournament_db(x)
 
-        await self.create_discord_event(
-            itx, x
-        )  # TODO: Try and except this if start time is too fast
+        await self.create_discord_event(itx, x)
         await itx.edit_original_response(content="".join(mentions), embed=embed)
 
     @staticmethod
@@ -122,7 +114,7 @@ class Tournament(commands.Cog):
                 'SELECT * FROM tournament WHERE start > now() or "end" > now()'
             )
         ):
-            return  # TODO: Raise
+            raise TournamentAlreadyExists
 
         data.id = await self.bot.database.set_return_val(
             """
@@ -141,7 +133,10 @@ class Tournament(commands.Cog):
                 INSERT INTO tournament_maps (id, code, level, category)
                 VALUES ($1, $2, $3, $4)
             """,
-            [(data.id, v["code"], v["level"], k) for k, v in data.map_data.items()],
+            [
+                (data.id, v["code"], v["level"], v["creator"], k)
+                for k, v in data.map_data.items()
+            ],
         )
         self.bot.current_tournament = data
 

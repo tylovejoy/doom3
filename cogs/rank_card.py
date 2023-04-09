@@ -6,9 +6,9 @@ from math import ceil
 from typing import TYPE_CHECKING
 
 import discord
-from PIL import Image, ImageDraw, ImageFont
 from discord import app_commands
 from discord.ext import commands
+from PIL import Image, ImageDraw, ImageFont
 
 import utils
 
@@ -22,6 +22,7 @@ LOGO_FILE_PATH = {
     "Diamond": "data/ranks/diamond.png",
     "Grandmaster": "data/ranks/grandmaster.png",
 }
+
 
 class RankCard(commands.Cog):
     def __init__(self, bot: core.Doom):
@@ -42,7 +43,7 @@ class RankCard(commands.Cog):
         """Find a player's level from their XP amount."""
         total = 0
         for level in range(101):
-            total += 5 * (level ** 2) + (50 * level) + 100
+            total += 5 * (level**2) + (50 * level) + 100
             if total > player_xp:
                 return level
 
@@ -68,7 +69,9 @@ class RankCard(commands.Cog):
         return rank + number + ".png"
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
+    )
     async def rank(self, itx: core.DoomItx, user: discord.Member | None):
         await itx.response.defer(ephemeral=True)
 
@@ -79,13 +82,18 @@ class RankCard(commands.Cog):
 
         with io.BytesIO() as avatar_binary:
             await user.display_avatar.save(fp=avatar_binary)
-            image = await asyncio.to_thread(self._create_card, avatar_binary, search, user)
+            image = await asyncio.to_thread(
+                self._create_card, avatar_binary, search, user
+            )
             with io.BytesIO() as image_binary:
                 image.save(image_binary, "PNG")
                 image_binary.seek(0)
 
                 await itx.edit_original_response(
-                    content="", attachments=[discord.File(fp=image_binary, filename="rank_card.png")]
+                    content="",
+                    attachments=[
+                        discord.File(fp=image_binary, filename="rank_card.png")
+                    ],
                 )
 
     @staticmethod
@@ -178,7 +186,7 @@ class RankCard(commands.Cog):
         rank_x_offset = 50
         rank_y_offset = 37
         for x_val, logo in zip(
-                [375, 508, 641, 774], [ta_logo, mc_logo, hc_logo]  # bo_logo]
+            [375, 508, 641, 774], [ta_logo, mc_logo, hc_logo]  # bo_logo]
         ):
             img.paste(
                 logo,
@@ -243,9 +251,9 @@ class RankCard(commands.Cog):
             place_font_size = 85
         place_font = ImageFont.truetype(font_file, place_font_size)
         place_x = (
-                place_circle_x1
-                + (place_circle_x2 - place_circle_x1) // 2
-                - d.textlength(str(place), font=place_font) // 2
+            place_circle_x1
+            + (place_circle_x2 - place_circle_x1) // 2
+            - d.textlength(str(place), font=place_font) // 2
         )
         ascent, _ = place_font.getmetrics()
         (_, _), (_, offset_y) = place_font.font.getsize(str(place))
@@ -258,7 +266,6 @@ class RankCard(commands.Cog):
         width, height = img.size
         img = img.resize((width // 2, height // 2))
         return img
-
 
 
 async def setup(bot):

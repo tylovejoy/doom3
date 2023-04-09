@@ -60,7 +60,6 @@ class Paginator(discord.ui.View):
         """
         return itx.user == self.author
 
-
     async def on_timeout(self) -> None:
         """Stop view on timeout."""
         self.stop()

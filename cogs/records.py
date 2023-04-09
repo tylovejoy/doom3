@@ -55,22 +55,19 @@ class Records(commands.Cog):
         if level_name not in itx.client.map_cache[map_code]["levels"]:
             raise utils.InvalidMapLevelError
 
-        search = [
-            x
-            async for x in itx.client.database.get(
-                "SELECT record, screenshot, video, verified, m.map_name "
-                "FROM records r LEFT JOIN maps m on r.map_code = m.map_code "
-                "WHERE r.map_code=$1 AND level_name=$2 AND user_id=$3;",
-                map_code,
-                level_name,
-                itx.user.id,
-            )
-        ]
-
-        if search:
-            search = search[0]
-            if search.record < record:
-                raise utils.RecordNotFasterError
+        old_row = await itx.client.database.get_one(
+            """
+                SELECT record, hidden_id FROM records r 
+                LEFT OUTER JOIN maps m on r.map_code = m.map_code
+                WHERE r.map_code = $1 AND level_name = $2 AND user_id = $3
+                ORDER BY inserted_at DESC
+            """,
+            map_code,
+            level_name,
+            itx.user.id,
+        )
+        if old_row and old_row.record < record:
+            raise utils.RecordNotFasterError
 
         user = itx.client.all_users[itx.user.id]
 
@@ -104,37 +101,20 @@ class Records(commands.Cog):
             embed=embed, file=new_screenshot2
         )
 
-        old_hidden_id = await self.bot.database.set_return_val(
-            """
-            DELETE FROM records_queue
-            WHERE map_code = $1
-            AND user_id = $2
-            AND level_name = $3
-            RETURNING hidden_id;
-            """,
-            map_code,
-            itx.user.id,
-            level_name,
-        )
-        if old_hidden_id:
+        if old_row and old_row.hidden_id:
             await itx.guild.get_channel(utils.VERIFICATION_QUEUE).get_partial_message(
-                old_hidden_id
+                old_row.old_hidden_id
             ).delete()
 
         view = views.VerificationView()
         await verification_msg.edit(view=view)
         await itx.client.database.set(
             """
-            INSERT INTO records_queue
+            INSERT INTO records
             (map_code, user_id, level_name, record, screenshot,
-            video, message_id, channel_id, hidden_id, rating) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            """
-            # ON CONFLICT (map_code, user_id, level_name)
-            # DO UPDATE SET record = EXCLUDED.record, screenshot = EXCLUDED.screenshot,
-            # video = EXCLUDED.video, message_id = EXCLUDED.message_id, channel_id = EXCLUDED.channel_id,
-            # hidden_id = EXCLUDED.hidden_id, rating = EXCLUDED.rating
-            ,
+            video, message_id, channel_id, hidden_id) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            """,
             map_code,
             itx.user.id,
             level_name,
@@ -144,8 +124,19 @@ class Records(commands.Cog):
             channel_msg.id,
             channel_msg.channel.id,
             verification_msg.id,
-            rating,
         )
+        if rating:
+            await itx.client.database.set(
+                """
+                INSERT INTO map_level_ratings (map_code, level, rating, user_id) 
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (map_code, level, user_id) DO UPDATE SET rating = excluded.rating 
+                """,
+                map_code,
+                level_name,
+                rating,
+                itx.user.id,
+            )
 
     @app_commands.command(**utils.leaderboard)
     @app_commands.describe(**utils.leaderboard_args)
@@ -161,31 +152,77 @@ class Records(commands.Cog):
         if map_code not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
 
-        query = f"""
-        SELECT * FROM (
-        SELECT u.nickname, 
-               level_name, 
-               record, 
-               screenshot,
-               video, 
-               verified,
-               r.map_code,
-               r.channel_id,
-               r.message_id,
-               m.map_name,
-        RANK() OVER (
-            PARTITION BY level_name
-            ORDER BY record
-        ) rank_num
-        FROM records r
-            LEFT JOIN users u on r.user_id = u.user_id
-            LEFT JOIN maps m on m.map_code = r.map_code
-        ) as ranks
-        WHERE map_code = $1 AND
-            ($4::boolean IS FALSE OR verified = TRUE) AND
-            ($2::boolean IS NOT NULL OR rank_num = 1) AND
-            ($3::text IS NULL OR level_name = $3)
-        ORDER BY substr(level_name, 1, 5) <> 'Level', level_name;
+        query = """
+        WITH all_tournament_records AS (SELECT user_id,
+                                               inserted_at,
+                                               record,
+                                               screenshot,
+                                               code                                                          as map_code,
+                                               level                                                         as level_name,
+                                               RANK() OVER (partition by user_id, code order by inserted_at) as latest
+                                        FROM tournament_records tr
+                                                 LEFT JOIN tournament_maps tm on tr.category = tm.category
+                                            AND tr.tournament_id = tm.id),
+             _tournament_records AS (SELECT user_id,
+                                            record,
+                                            screenshot,
+                                            map_code,
+                                            level_name,
+                                            inserted_at,
+                                            true as verified,
+                                            null as video
+                                     FROM all_tournament_records
+                                     WHERE latest = 1),
+             combined_t_all_records AS (SELECT user_id,
+                                               map_code,
+                                               level_name,
+                                               record,
+                                               screenshot,
+                                               video,
+                                               verified,
+                                               inserted_at,
+                                               true as tournament
+                                        FROM _tournament_records _tr
+                                        UNION
+                                        DISTINCT
+                                        (SELECT user_id,
+                                                map_code,
+                                                level_name,
+                                                record,
+                                                screenshot,
+                                                video,
+                                                verified,
+                                                inserted_at,
+                                                false as tournament
+                                         FROM records))
+        SELECT *
+        FROM (SELECT u.nickname,
+                     level_name,
+                     record,
+                     screenshot,
+                     video,
+                     tournament,
+                     verified,
+                     r.map_code,
+                     m.map_name,
+                     rank() OVER (
+                         partition by r.map_code, r.user_id, level_name
+                         order by inserted_at
+                         ) as latest,
+                     RANK() OVER (
+                         PARTITION BY level_name
+                         ORDER BY record
+                         )    rank_num
+              FROM combined_t_all_records r
+                       LEFT JOIN users u on r.user_id = u.user_id
+                       LEFT JOIN maps m on m.map_code = r.map_code) as ranks
+        WHERE map_code = $1
+          AND ($4::boolean IS FALSE OR video is not null)
+          AND ($2::boolean IS NOT NULL OR rank_num = 1)
+          AND ($3::text IS NULL OR level_name = $3)
+          AND latest = 1
+          AND verified = TRUE
+        ORDER BY substr(level_name, 1, 5) <> 'Level', level_name, record;
         """
 
         records = [
@@ -246,6 +283,10 @@ class Records(commands.Cog):
                      r.message_id,
                      m.map_name,
                      m.creators,
+                     rank() OVER (
+                         partition by r.map_code, level_name
+                         order by inserted_at DESC
+                         ) as latest,
                      RANK() OVER (
                          PARTITION BY level_name
                          ORDER BY record
@@ -260,7 +301,7 @@ class Records(commands.Cog):
                                            LEFT JOIN users u on mc.user_id = u.user_id
                                   GROUP BY m.map_code, m.map_name) m
                                  on m.map_code = r.map_code) as ranks
-        WHERE user_id = $1 AND ($2 IS FALSE OR rank_num = 1)
+        WHERE user_id = $1 AND ($2 IS FALSE OR rank_num = 1) AND latest = 1 AND verified = TRUE
         ORDER BY map_code, substr(level_name, 1, 5) <> 'Level', level_name;
 
         """

@@ -162,7 +162,14 @@ def all_levels_records_embed(
     embed_list = []
     embed = utils.DoomEmbed(title=title)
     for i, record in enumerate(records):
-        if not record.video:
+        if record.tournament:
+            description = (
+                f"┣ `Name` {record.nickname}\n"
+                f"┗ `Record` [{pretty_record(record.record)}]"
+                f"({record.screenshot}) "
+                f"{utils.TROPHY}\n"
+            )
+        elif not record.video:
             description = (
                 f"┣ `Name` {record.nickname}\n"
                 f"┗ `Record` [{pretty_record(record.record)}]"
@@ -184,7 +191,7 @@ def all_levels_records_embed(
             value=description,
             inline=False,
         )
-        if utils.split_nth_conditional(i, 10, records):
+        if utils.split_nth_conditional(i, 9, records):
             embed = utils.set_embed_thumbnail_maps(record.map_name, embed)
             embed_list.append(embed)
             embed = utils.DoomEmbed(title=title)
@@ -217,7 +224,7 @@ def pr_records_embed(
                 f"{utils.VERIFIED}\n "
                 f"┣ `Video` [Link]({record.video})\n┃\n"
             )
-        if utils.split_nth_conditional(i, 10, records):
+        if utils.split_nth_conditional(i, 9, records):
             cur_code, description = _add_pr_field(cur_code, description, embed, record)
             embed_list.append(embed)
             embed = utils.DoomEmbed(title=title)

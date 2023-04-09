@@ -48,63 +48,32 @@ class VerificationView(discord.ui.View):
         rejection: str | None = None,
     ):
         """Verify a record."""
-        search = [
-            x
-            async for x in itx.client.database.get(
-                "SELECT * FROM records_queue WHERE hidden_id=$1",
-                itx.message.id,
-            )
-        ][0]
+        row = await itx.client.database.get_one(
+            "SELECT * FROM records WHERE hidden_id=$1",
+            itx.message.id,
+        )
         original_message = await self.find_original_message(
-            itx, search.channel_id, search.message_id
+            itx, row.channel_id, row.message_id
         )
         if not original_message:
             return
 
-        user = itx.guild.get_member(search.user_id)
+        user = itx.guild.get_member(row.user_id)
 
         if verified:
-            data = self.accepted(itx, search)
+            data = self.accepted(itx, row)
             await self.increment_verification_count(itx)
             await itx.client.database.set(
-                """
-                INSERT INTO records (map_code, user_id, level_name, record, screenshot, video, verified, message_id, channel_id) 
-                VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                ON CONFLICT (map_code, user_id, level_name) DO UPDATE SET record=$4, screenshot=$5, video=$6, message_id=$8, channel_id=$9;
-                """,
-                search.map_code,
-                search.user_id,
-                search.level_name,
-                search.record,
-                search.screenshot,
-                search.video,
-                bool(search.video),
-                search.message_id,
-                search.channel_id,
+                "UPDATE records SET verified = TRUE, hidden_id = null WHERE hidden_id = $1;",
+                itx.message.id,
             )
-
-            if search.rating:
-                await itx.client.database.set(
-                    """
-                    INSERT INTO map_level_ratings (map_code, level, user_id, rating) 
-                    VALUES($1, $2, $3, $4)
-                    ON CONFLICT (map_code, level, user_id) DO UPDATE SET rating=$4;
-                    """,
-                    search.map_code,
-                    search.level_name,
-                    search.user_id,
-                    search.rating,
-                )
         else:
-            data = self.rejected(itx, search, rejection)
+            data = self.rejected(itx, row, rejection)
         await original_message.edit(content=data["edit"])
-        if [
-            x
-            async for x in itx.client.database.get(
-                "SELECT alertable FROM users WHERE user_id=$1",
-                search.user_id,
-            )
-        ][0].alertable:
+        if await itx.client.database.fetchval(
+            "SELECT alertable FROM users WHERE user_id=$1",
+            row.user_id,
+        ):
             try:
                 await user.send(
                     "`- - - - - - - - - - - - - -`\n"
@@ -118,10 +87,6 @@ class VerificationView(discord.ui.View):
     async def stop_view(self, itx: DoomItx):
         self.stop()
         await itx.message.delete()
-        await itx.client.database.set(
-            "DELETE FROM records_queue WHERE hidden_id=$1",
-            itx.message.id,
-        )
 
     @staticmethod
     async def increment_verification_count(itx: DoomItx):

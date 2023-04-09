@@ -5,6 +5,7 @@ import typing
 from typing import Literal, TypedDict
 
 Categories = typing.Literal["Time Attack", "Mildcore", "Hardcore", "Bonus", "General"]
+Categories_NoGen = typing.Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"]
 Difficulty = typing.Literal["Easy", "Medium", "Hard", "Expert", "General"]
 Type = typing.Literal[
     "--DIFFICULTY--",
@@ -68,6 +69,7 @@ class MissionType(enum.StrEnum):
 class CategoryData(TypedDict):
     code: str
     level: str
+    creator: str
 
 
 class MissionData(TypedDict):
