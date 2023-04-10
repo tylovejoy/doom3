@@ -224,12 +224,14 @@ class Maps(commands.Cog):
         itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
         map_name: app_commands.Transform[str, utils.MapNameTransformer],
+        image: discord.Attachment | None,
     ) -> None:
         modal = views.MapSubmit()
         modal.data = {
             "map_code": map_code,
             "map_name": map_name,
             "creator_name": itx.user.name,
+            "image": image
         }
         await itx.response.send_modal(modal)
 

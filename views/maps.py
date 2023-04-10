@@ -186,6 +186,12 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
 
         embed.title = f"New Map by {self.data['creator_name']}"
         embed.remove_field(0)
+        try:
+            image: discord.Attachment = self.data["image"]
+            if image:
+                embed.set_image(url=image.url)
+        except Exception as e:
+            print(e)
         new_map = await itx.guild.get_channel(utils.NEW_MAPS).send(embed=embed)
         await new_map.create_thread(name=f"Discuss {self.data['map_code']} here.")
         map_maker = itx.guild.get_role(746167804121841744)

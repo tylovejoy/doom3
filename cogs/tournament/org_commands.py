@@ -85,8 +85,12 @@ class OrgCommands(commands.Cog):
 
         if not thumbnail:
             thumbnail = "http://207.244.249.145/assets/images/icons/gold_cup.png"
+        else:
+            thumbnail = thumbnail.url
         if not image:
             image = "http://207.244.249.145/assets/images/icons/tournament_announcement_banner.png"
+        else:
+            image = image.url
 
         embed = DoomEmbed(
             **modal.values,
