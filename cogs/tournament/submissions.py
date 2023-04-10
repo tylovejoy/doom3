@@ -8,8 +8,9 @@ from discord.ext import commands
 
 import utils
 import views
-from cogs.tournament.utils import Category
+from cogs.tournament.utils import Categories_NoGen, Category
 from cogs.tournament.utils.errors import TournamentNotActiveError
+from cogs.tournament.utils.utils import ORGANIZER
 
 if typing.TYPE_CHECKING:
     import core
@@ -18,6 +19,12 @@ if typing.TYPE_CHECKING:
 class TournamentSubmissions(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
+
+    tournament = app_commands.Group(
+        name="tournament",
+        description="tournament",
+        guild_ids=[195387617972322306, utils.GUILD_ID],
+    )
 
     async def insert_record(
         self, category: Category, user_id: int, screenshot_url: str, record: float
@@ -134,10 +141,7 @@ class TournamentSubmissions(commands.Cog):
     ):
         await self.submission(itx, screenshot, record, Category.BONUS)
 
-    @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @tournament.command()
     async def submit(
         self,
         itx: core.DoomItx,
@@ -146,3 +150,49 @@ class TournamentSubmissions(commands.Cog):
         record: app_commands.Transform[float, utils.RecordTransformer],
     ):
         await self.submission(itx, screenshot, record, category)
+
+    @tournament.command()
+    async def delete(
+        self,
+        itx: core.DoomItx,
+        category: Categories_NoGen,
+        user: discord.Member | None = None,
+    ):
+        tournament_id = await self.get_tournament_id()
+        if not tournament_id:
+            raise TournamentNotActiveError
+
+        if (
+            user
+            and user != itx.user
+            and itx.guild.get_role(ORGANIZER) not in itx.user.roles
+        ):
+            raise utils.NoPermissionsError
+
+        if not user:
+            user = itx.user
+
+        view = views.Confirm(itx)
+        await itx.response.send_message(
+            f"Do you want to delete {user.mention}'s latest {category} submission?",
+            view=view,
+        )
+
+        await view.wait()
+        if not view.value:
+            return
+
+        query = """
+        WITH latest_record AS (SELECT max(inserted_at)
+                               FROM tournament_records
+                               WHERE user_id = $1
+                                 AND tournament_id = $3
+                                 AND category = $2)
+        DELETE
+        FROM tournament_records
+        WHERE user_id = $1
+          AND tournament_id = $3
+          AND category = $2
+          AND inserted_at = latest_record
+        """
+        await itx.client.database.set(query, user.id, category, tournament_id)

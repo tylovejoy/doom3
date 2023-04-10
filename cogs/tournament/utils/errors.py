@@ -23,3 +23,7 @@ class TargetNotInteger(BaseParkourException):
 
 class NoMissionExists(BaseParkourException):
     """There is no mission data."""
+
+
+class ModalError(BaseParkourException):
+    """There was an error with your modal input."""

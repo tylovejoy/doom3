@@ -7,7 +7,15 @@ from discord import app_commands
 from discord.ext import commands
 
 import utils
+import views
 from cogs.tournament.utils import Categories_NoGen, Ranks
+from cogs.tournament.utils.errors import ModalError
+from cogs.tournament.utils.utils import ANNOUNCEMENTS, role_map
+from cogs.tournament.views.announcement import (
+    TournamentAnnouncementModal,
+    TournamentRolesDropdown,
+)
+from utils import DoomEmbed
 
 if TYPE_CHECKING:
     import core
@@ -58,3 +66,46 @@ class OrgCommands(commands.Cog):
         await itx.edit_original_response(
             content=f"{member.mention} was given {xp} XP. \nNew total: {total}\n Previous total: {pre_total}."
         )
+
+    @app_commands.command()
+    @app_commands.guilds(
+        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
+    )
+    async def announcement(
+        self,
+        itx: core.DoomItx,
+        thumbnail: discord.Attachment | None,
+        image: discord.Attachment | None,
+    ):
+        modal = TournamentAnnouncementModal()
+        await itx.response.send_modal(modal)
+        await modal.wait()
+        if not modal.value:
+            raise ModalError
+
+        if not thumbnail:
+            thumbnail = "http://207.244.249.145/assets/images/icons/gold_cup.png"
+        if not image:
+            image = "http://207.244.249.145/assets/images/icons/tournament_announcement_banner.png"
+
+        embed = DoomEmbed(
+            **modal.values,
+            color=discord.Color.gold(),
+            thumbnail=thumbnail,
+            image=image,
+        )
+        select = TournamentRolesDropdown()
+        view = views.Confirm(modal.itx)
+        view.add_item(select)
+
+        await modal.itx.edit_original_response(
+            content="Is this correct?", embed=embed, view=view
+        )
+        await view.wait()
+        if not view.value:
+            return
+
+        mentions = "".join(
+            [itx.guild.get_role(role_map[x]).mention for x in select.values]
+        )
+        await itx.guild.get_channel(ANNOUNCEMENTS).send(mentions, embed=embed)

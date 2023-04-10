@@ -11,6 +11,7 @@ from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 
 import utils
+import views
 
 if TYPE_CHECKING:
     import core
@@ -266,6 +267,34 @@ class RankCard(commands.Cog):
         width, height = img.size
         img = img.resize((width // 2, height // 2))
         return img
+
+    @app_commands.command()
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
+    )
+    async def xp_leaderboard(self, itx: core.DoomItx):
+        query = """
+            SELECT nickname, xp, rank() over(order by xp DESC)
+            FROM user_xp LEFT JOIN users u on user_xp.user_id = u.user_id 
+            ORDER BY xp DESC
+        """
+        await itx.response.defer(ephemeral=True)
+        embed = utils.DoomEmbed(title="XP Leaderboard")
+        embed_list = []
+        records = [row async for row in itx.client.database.get(query)]
+
+        for i, record in enumerate(records):
+            embed.add_field(
+                name=f"{utils.make_ordinal(record.rank)} - {record.nickname}",
+                value=f"XP: {record.xp}",
+                inline=False,
+            )
+            if utils.split_nth_conditional(i, 9, records):
+                embed_list.append(embed)
+                embed = utils.DoomEmbed(title="XP Leaderboard")
+
+        view = views.Paginator(embed_list, itx.user)
+        await view.start(itx)
 
 
 async def setup(bot):

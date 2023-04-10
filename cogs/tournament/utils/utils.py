@@ -10,6 +10,8 @@ from cogs.tournament.utils import Category
 if typing.TYPE_CHECKING:
     pass
 
+ORGANIZER = 758399333942558800
+
 TA_ROLE = 814532908638404618
 MC_ROLE = 814532865672478760
 HC_ROLE = 814532947461013545
@@ -24,6 +26,8 @@ role_map = {
     Category.MILDCORE: MC_ROLE,
     Category.HARDCORE: HC_ROLE,
     Category.BONUS: BO_ROLE,
+    "Trifecta": TRIFECTA_ROLE,
+    "Bracket": BRACKET_ROLE,
 }
 
 
