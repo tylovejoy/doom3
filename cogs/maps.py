@@ -248,52 +248,49 @@ class Maps(commands.Cog):
         | None = None,
     ) -> None:
         await itx.response.defer(ephemeral=True)
-        embed = utils.DoomEmbed(title="Map Search")
-        embed.set_thumbnail(url=None)
         maps = []
-
-        if not any([map_type, map_name, creator, map_code]):
-            raise utils.InvalidFiltersError
 
         async for _map in itx.client.database.get(
             textwrap.dedent(
                 f"""
-                WITH valid_ratings AS (
-                    SELECT mr.map_code, level, rating, mr.user_id, level_name 
-                    FROM map_level_ratings mr
-                    LEFT JOIN records r on mr.user_id = r.user_id 
-                        AND level_name = level
-                        AND r.map_code = mr.map_code
-                )
-                SELECT map_code,
-                       map_type,
-                       map_name,
-                       "desc",
-                       official,
-                       creators,
-                       creators_ids,
-                       avg(rating) as rating
-                FROM (SELECT mc.map_code,
-                             array_to_string((map_type), ', ')     as map_type,
-                             map_name,
-                             "desc",
-                             official,
-                             string_agg(distinct (nickname), ', ') as creators,
-                             array_agg(distinct mc.user_id)        as creators_ids,
-                             AVG(COALESCE(rating, 0))              as rating
-                      FROM maps
-                               JOIN map_creators mc on maps.map_code = mc.map_code
-                               JOIN users u on u.user_id = mc.user_id
-                               LEFT JOIN valid_ratings vr on maps.map_code = vr.map_code
-                      WHERE ($1::text IS NULL OR $1 = ANY (map_type))
-                        AND ($2::text IS NULL OR map_name = $2)
-                        AND ($3::text IS NULL OR maps.map_code = $3)
-                      GROUP BY map_type, mc.map_code, map_name, "desc", official, rating
-                      HAVING ($4::bigint IS NULL OR $4 = ANY(array_agg(distinct (mc.user_id))))
-                      ORDER BY map_code) layer0
-                GROUP BY map_code, map_type, map_name, "desc", official, creators, creators_ids
-                ORDER BY map_code;
-                """
+            WITH valid_ratings AS (
+                SELECT mr.map_code, level, rating, mr.user_id, level_name 
+                FROM map_level_ratings mr
+                LEFT JOIN records r on mr.user_id = r.user_id 
+                    AND level_name = level
+                    AND r.map_code = mr.map_code
+            )
+            SELECT map_code,
+                   map_type,
+                   map_name,
+                   "desc",
+                   official,
+                   image,
+                   creators,
+                   creators_ids,
+                   avg(rating) as rating
+            FROM (SELECT mc.map_code,
+                         array_to_string((map_type), ', ')     as map_type,
+                         map_name,
+                         "desc",
+                         official,
+                         image,
+                         string_agg(distinct (nickname), ', ') as creators,
+                         array_agg(distinct mc.user_id)        as creators_ids,
+                         AVG(COALESCE(rating, 0))              as rating
+                  FROM maps
+                           JOIN map_creators mc on maps.map_code = mc.map_code
+                           JOIN users u on u.user_id = mc.user_id
+                           LEFT JOIN valid_ratings vr on maps.map_code = vr.map_code
+                  WHERE ($1::text IS NULL OR $1 = ANY (map_type))
+                    AND ($2::text IS NULL OR map_name = $2)
+                    AND ($3::text IS NULL OR maps.map_code = $3)
+                  GROUP BY map_type, mc.map_code, map_name, "desc", official, rating, image
+                  HAVING ($4::bigint IS NULL OR $4 = ANY(array_agg(distinct (mc.user_id))))
+                  ORDER BY map_code) layer0
+            GROUP BY map_code, map_type, map_name, "desc", official, creators, creators_ids, image
+            ORDER BY map_code
+            """
             ),
             map_type,
             map_name,
@@ -304,11 +301,87 @@ class Maps(commands.Cog):
             maps.append(_map)
         if not maps:
             raise utils.NoMapsFoundError
-
         embeds = self.create_map_embeds(maps)
-
+        if map_code and maps[0].get("image", None):
+            embeds[0].set_image(url=maps[0].image)
         view = views.Paginator(embeds, itx.user, None)
         await view.start(itx)
+
+    @app_commands.command()
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    async def random_map(
+        self,
+        itx: DoomItx,
+        random_level: bool | None = False
+    ) -> None:
+        await itx.response.defer(ephemeral=True)
+        query = """
+            WITH valid_ratings AS (
+                SELECT m.map_code, ml.level, rating, mr.user_id 
+                FROM maps m
+                LEFT JOIN map_levels ml on m.map_code = ml.map_code
+                LEFT JOIN map_level_ratings mr ON m.map_code = mr.map_code AND ml.level = mr.level
+                LEFT JOIN records r on mr.user_id = r.user_id 
+                    AND level_name = ml.level
+                    AND r.map_code = mr.map_code
+            ),
+            levels_with_ratings AS (
+                SELECT map_code, level, avg(rating) as avg_rating FROM valid_ratings GROUP BY map_code, level
+                ),
+            random_map_level AS (
+            SELECT map_code, level, avg_rating FROM levels_with_ratings offset random() * (select count(*) from levels_with_ratings) limit 1)
+            SELECT map_code,
+                   map_type,
+                   map_name,
+                   "desc",
+                   official,
+                   image,
+                   creators,
+                   creators_ids,
+                   level,
+                   avg_rating,
+                   avg(rating) as rating
+            FROM (SELECT mc.map_code,
+                         array_to_string((map_type), ', ')     as map_type,
+                         map_name,
+                         "desc",
+                         official,
+                         image,
+                         rml.level,
+                         avg_rating,
+                         string_agg(distinct (nickname), ', ') as creators,
+                         array_agg(distinct mc.user_id)        as creators_ids,
+                         AVG(rating)              as rating
+                  FROM maps
+                           JOIN map_creators mc on maps.map_code = mc.map_code
+                           JOIN users u on u.user_id = mc.user_id
+                           LEFT JOIN random_map_level rml on maps.map_code = rml.map_code
+                            LEFT JOIN valid_ratings vr on maps.map_code = vr.map_code
+                    WHERE (maps.map_code = rml.map_code)
+                  GROUP BY map_type, mc.map_code, map_name, "desc", official, image, rml.level, rml.avg_rating
+                  ORDER BY map_code) layer0 GROUP BY map_code,
+                   map_type,
+                   map_name,
+                   "desc",
+                   official,
+                   image,
+                   creators,
+                   creators_ids,
+                   level, avg_rating
+                   
+        """
+        embed = utils.DoomEmbed(title="Map Search")
+        embed.set_thumbnail(url=None)
+        _map = await itx.client.database.get_one(query)
+        if not _map:
+            raise utils.NoMapsFoundError
+        embed = self.create_random_map_embeds(_map, random_level)
+        if _map.get("image", None):
+            embed.set_image(url=_map.image)
+        view = views.Paginator([embed], itx.user, None)
+        await view.start(itx)
+
+
 
     def create_map_embeds(
         self, maps: list[database.DotRecord]
@@ -331,6 +404,24 @@ class Maps(commands.Cog):
                 embed_list.append(embed)
                 embed = utils.DoomEmbed(title="Map Search")
         return embed_list
+    def create_random_map_embeds(
+        self, _map: database.DotRecord, level: bool
+    ) -> utils.Embed | utils.DoomEmbed:
+        embed = utils.DoomEmbed(title="Map Search")
+        embed.add_description_field(
+            name=f"{_map.map_code}",
+            value=(
+                self.display_official(_map.official)
+                + f"┣ `Rating` {utils.create_stars(_map.rating)}\n"
+                f"┣ `Creator` {discord.utils.escape_markdown(_map.creators)}\n"
+                f"┣ `Map` {_map.map_name}\n"
+                f"┣ `Type` {_map.map_type}\n"
+                f"┗ `Description` {_map.desc}"
+            ),
+        )
+        if level:
+            embed.add_field(name="Random Level", value=f"{_map.level} - {utils.create_stars(_map.avg_rating)}")
+        return embed
 
     @staticmethod
     def display_official(official: bool) -> str:
@@ -417,3 +508,80 @@ class Maps(commands.Cog):
 async def setup(bot):
     """Add Cog to Discord bot."""
     await bot.add_cog(Maps(bot))
+
+
+query = """
+WITH all_tournament_records AS (SELECT user_id,
+                                               inserted_at,
+                                               record,
+                                               screenshot,
+                                               code                                                          as map_code,
+                                               level                                                         as level_name,
+                                               RANK() OVER (partition by user_id, code order by inserted_at) as latest
+                                        FROM tournament_records tr
+                                                 LEFT JOIN tournament_maps tm on tr.category = tm.category
+                                            AND tr.tournament_id = tm.id),
+             _tournament_records AS (SELECT user_id,
+                                            record,
+                                            screenshot,
+                                            map_code,
+                                            level_name,
+                                            inserted_at,
+                                            true as verified,
+                                            null as video
+                                     FROM all_tournament_records
+                                     WHERE latest = 1),
+             combined_t_all_records AS (SELECT user_id,
+                                               map_code,
+                                               level_name,
+                                               record,
+                                               screenshot,
+                                               video,
+                                               verified,
+                                               inserted_at,
+                                               true as tournament
+                                        FROM _tournament_records _tr
+                                        UNION
+                                        DISTINCT
+                                        (SELECT user_id,
+                                                map_code,
+                                                level_name,
+                                                record,
+                                                screenshot,
+                                                video,
+                                                verified,
+                                                inserted_at,
+                                                false as tournament
+                                         FROM records))
+        SELECT *
+        FROM (SELECT u.nickname,
+                     level_name,
+                     record,
+                     screenshot,
+                     video,
+                     tournament,
+                     verified,
+                     r.map_code,
+                     m.map_name,
+                     rank() OVER (
+                         partition by r.map_code, r.user_id, level_name
+                         order by inserted_at
+                         ) as latest,
+                     RANK() OVER (
+                         PARTITION BY level_name
+                         ORDER BY record
+                         )    rank_num
+              FROM combined_t_all_records r
+                       LEFT JOIN users u on r.user_id = u.user_id
+                       LEFT JOIN maps m on m.map_code = r.map_code) as ranks
+        WHERE map_code = $1
+          AND ($4::boolean IS FALSE OR video is not null)
+          AND ($2::boolean IS NOT NULL OR rank_num = 1)
+          AND ($3::text IS NULL OR level_name = $3)
+          AND latest = 1
+          AND verified = TRUE
+        ORDER BY substr(level_name, 1, 5) <> 'Level', level_name, record;
+
+
+"""
+

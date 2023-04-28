@@ -8,7 +8,7 @@ from discord.ext import commands
 
 import utils
 import views
-from views.roles import ColorRolesView, PronounRoles, ServerRelatedPings, TherapyRole
+from views.roles import ColorRolesView, PronounRoles, ServerRelatedPings, TherapyRole, TournamentRoles
 
 if typing.TYPE_CHECKING:
     from .doom import Doom
@@ -74,7 +74,6 @@ class BotEvents(commands.Cog):
             for x in queue:
                 self.bot.add_view(views.VerificationView(), message_id=x)
 
-            # colors = await ColorRoles.find().sort("+sort_order").to_list()
             view = ColorRolesView(colors)
             self.bot.add_view(view, message_id=960946616288813066)
             await self.bot.get_channel(752273327749464105).get_partial_message(
@@ -84,9 +83,10 @@ class BotEvents(commands.Cog):
             self.bot.add_view(ServerRelatedPings(), message_id=960946617169612850)
             self.bot.add_view(PronounRoles(), message_id=960946618142699560)
             self.bot.add_view(TherapyRole(), message_id=1005874559037231284)
+            self.bot.add_view(TournamentRoles(), message_id=1096968488544911491)
 
             self.bot.logger.debug(f"Added persistent views.")
-            self.persistent_views_added = True
+            self.bot.persistent_views_added = True
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):

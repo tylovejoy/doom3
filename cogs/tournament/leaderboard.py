@@ -8,7 +8,7 @@ from discord.ext import commands
 
 import utils
 import views
-from cogs.tournament.utils import Categories, Rank
+from cogs.tournament.utils import Categories, Rank, Categories_NoGen
 from cogs.tournament.utils.data import rank_display
 from database import DotRecord
 from utils import pretty_record
@@ -28,7 +28,7 @@ class TournamentLeaderboards(commands.Cog):
     async def tournament_leaderboard(
         self,
         itx: core.DoomItx,
-        category: Categories,
+        category: Categories_NoGen,
         rank: typing.Literal[
             "Unranked", "Gold", "Diamond", "Grandmaster", "All"
         ] = "All",
@@ -37,20 +37,23 @@ class TournamentLeaderboards(commands.Cog):
             rank = None
         await itx.response.defer(ephemeral=True)
         query = """
-            WITH all_records AS (SELECT nickname,
+            WITH all_ranks AS (SELECT u.user_id, nickname, cats.value as category, COALESCE(ur.value, 'Unranked') as value
+                               FROM users u
+                                        JOIN tournament_ranks cats ON TRUE
+                                        LEFT JOIN user_ranks ur on u.user_id = ur.user_id AND cats.value = ur.category),
+                 all_records AS (SELECT nickname,
                                         record,
                                         screenshot,
                                         value,
                                         rank()
-                                        over (partition by nickname, value, tr.category, ur.category order by inserted_at DESC) as date_rank
+                                        over (partition by nickname, value, tr.category, ar.category order by inserted_at DESC) as date_rank
                                  FROM tournament_records tr
-                                          LEFT JOIN users u on u.user_id = tr.user_id
-                                          LEFT JOIN user_ranks ur on u.user_id = ur.user_id
+                                          LEFT JOIN all_ranks ar ON ar.user_id = tr.user_id
                                  WHERE tournament_id =
                                        (SELECT tournament_id FROM tournament WHERE id = (SELECT max(id) FROM tournament))
                                    AND tr.category = $1
-                                   AND ur.category = $1
-                                   AND ($2::text IS NULL OR ur.value = $2)
+                                   AND ar.category = $1
+                                   AND ($2::text IS NULL OR ar.value = $2)
                                  ORDER BY record)
             SELECT *
             FROM all_records

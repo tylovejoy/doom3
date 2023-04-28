@@ -101,7 +101,11 @@ class TournamentData:
 
     @property
     def mention_ids(self) -> list[int]:
-        return [role_map[cat] for cat in Category.all() if cat in self.map_data]
+        trifecta = []
+        if "Time Attack" in self.map_data and "Mildcore" in self.map_data and "Hardcore" in self.map_data:
+            trifecta.append(role_map["Trifecta"])
+        base = [role_map[cat] for cat in Category.all() if cat in self.map_data]
+        return base + trifecta
 
     def embed_description(self) -> str:
         map_info = ""
@@ -120,7 +124,7 @@ class TournamentData:
         self,
         description: str,
         embed_type: Literal[
-            "start", "end", "announcement", "leaderboard", "hall_of_fame"
+            "start", "end", "announcement", "leaderboard", "hall_of_fame", "missions"
         ],
     ) -> discord.Embed:
         embed = utils.DoomEmbed(
@@ -143,6 +147,7 @@ class TournamentData:
         embed.set_image(
             url=f"http://207.244.249.145/assets/images/tournament/{category.lower().replace(' ', '_')}.png"
         )
+        print("we've set the image... ", category)
 
         embed.colour = discord.Color.from_str(category_color[category])
         return embed
@@ -152,6 +157,9 @@ class TournamentData:
 
     def announcement_embed(self, announcement: str):
         return self.base_embed(announcement, "announcement")
+
+    def missions_embed(self, announcement: str):
+        return self.base_embed(announcement, "missions")
 
     def end_embed(self):
         description = (
@@ -163,12 +171,14 @@ class TournamentData:
         hof_embed = self.base_embed("", "hall_of_fame")
         hof_embed.title += "Hall of Fame - Top 3"
         lb_embeds = []
-        for category in self.map_data:
+        for category in ["Time Attack", "Mildcore", "Hardcore", "Bonus"]:
+            if category not in self.map_data:
+                continue
             lb_description = ""
             hof_embed_field_value = ""
             async for record in self.client.database.get(
                 """
-                    WITH t_records AS (SELECT tr.user_id, record, coalesce(ur.value, 'Unranked') as value, tr.category, screenshot
+                    WITH t_records AS (SELECT tr.user_id, record, coalesce(ur.value, 'Unranked') as value, tr.category, screenshot, inserted_at
                                        FROM tournament_records tr
                                                 LEFT JOIN user_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
                                        WHERE tournament_id = $1),
@@ -178,27 +188,33 @@ class TournamentData:
                                           category,
                                           screenshot,
                                           rank() OVER (
+                                           PARTITION BY user_id, category
+                                            ORDER BY inserted_at DESC
+                                          ) as latest
+                                   FROM t_records)
+                    SELECT r.user_id, nickname, record, value , category, screenshot, latest,
+                    
+                                          rank() OVER (
                                               PARTITION BY category
                                               ORDER BY record
                                               ) rank_num
-                                   FROM t_records)
-                    SELECT r.user_id, nickname, record, value , category, screenshot, rank_num
                     FROM ranks r
                     LEFT JOIN users u ON r.user_id = u.user_id
-                    WHERE category = $2
+                    WHERE category = $2 
+                    AND latest = 1
                     ORDER BY category != 'Time Attack',
                              category != 'Mildcore',
                              category != 'Hardcore',
                              category != 'Bonus',
                              rank_num
-                             
                 """,
                 self.id,
                 category,
             ):
                 value = (
-                    f"`{make_ordinal(record.rank_num)}` - {record.nickname} - {pretty_record(record.record)} "
-                    f"{rank_display[record.value]} [Image]({record.screenshot})\n"
+                    f"`{make_ordinal(record.rank_num)}` - "
+                    f"{record.nickname} - [{pretty_record(record.record)}]({record.screenshot}) "
+                    f"{rank_display[record.value]}\n"
                 )
                 if record.rank_num <= 3:
                     hof_embed_field_value += value
@@ -208,6 +224,8 @@ class TournamentData:
                 value=hof_embed_field_value,
                 inline=False,
             )
-            lb_embeds.append(self.base_embed(lb_description, "leaderboard"))
+            temp = self.leaderboard_embed(lb_description, category, None)
+            print(temp.image.url)
+            lb_embeds.append(temp)
 
         return hof_embed, lb_embeds

@@ -77,6 +77,7 @@ all_map_constants = [
     MapMetadata("Workshop Island", discord.Color.from_str("#000000")),
     MapMetadata("Framework", discord.Color.from_str("#000000")),
     MapMetadata("Tools", discord.Color.from_str("#000000")),
+MapMetadata("Talantis", discord.Color.from_str("#1AA7EC"))
 ]
 
 MAP_DATA: dict[str, MapMetadata] = {const.NAME: const for const in all_map_constants}
@@ -155,13 +156,14 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         await itx.client.database.set(
             (
                 "INSERT INTO maps "
-                '(map_name, map_type, map_code, "desc") '
-                "VALUES ($1, $2, $3, $4); "
+                '(map_name, map_type, map_code, "desc", image) '
+                "VALUES ($1, $2, $3, $4, $5); "
             ),
             self.data["map_name"],
             map_types,
             self.data["map_code"],
             self.desc.value,
+            getattr(self.data["image"], "url", None),
         )
         await itx.client.database.set(
             "INSERT INTO map_creators (map_code, user_id) VALUES ($1, $2); ",
@@ -183,7 +185,6 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         itx.client.map_codes_choices.append(
             app_commands.Choice(name=self.data["map_code"], value=self.data["map_code"])
         )
-
         embed.title = f"New Map by {self.data['creator_name']}"
         embed.remove_field(0)
         try:

@@ -10,7 +10,7 @@ import utils
 import views
 from cogs.tournament.utils import Categories_NoGen, Category
 from cogs.tournament.utils.errors import TournamentNotActiveError
-from cogs.tournament.utils.utils import ORGANIZER
+from cogs.tournament.utils.utils import ORGANIZER, ORG_CHAT
 
 if typing.TYPE_CHECKING:
     import core
@@ -60,7 +60,7 @@ class TournamentSubmissions(commands.Cog):
 
     @staticmethod
     async def get_image_url(itx: core.DoomItx):
-        return (await itx.original_response()).attachments[0].url
+        return (await itx.original_response()).embeds[0].image.url
 
     async def submission(
         self,
@@ -80,11 +80,17 @@ class TournamentSubmissions(commands.Cog):
         if old_record and old_record < record:
             raise utils.RecordNotFasterError
         pretty_record = utils.pretty_record(record)
-        content = f"**{itx.user.mention}'s {category} Submission**\n**Record:** {pretty_record}"
-        view = views.Confirm(itx, confirm_msg=content)
+        embed = utils.DoomEmbed(
+            title=f"{itx.client.all_users[itx.user.id]['nickname']}'s {category} Submission",
+            description=f"> Record: {pretty_record}",
+            image="attachment://image.png",
+        )
+
+        view = views.Confirm(itx, confirm_msg="")
         await itx.response.send_message(
-            f"{itx.user.mention}, is this correct?\n\n{content}",
-            file=await screenshot.to_file(),
+            f"{itx.user.mention}, is this correct?",
+            embed=embed,
+            file=await screenshot.to_file(filename="image.png"),
             view=view,
         )
         await view.wait()
@@ -92,6 +98,20 @@ class TournamentSubmissions(commands.Cog):
             return
         url = await self.get_image_url(itx)
         await self.insert_record(category, itx.user.id, url, record)
+        query = """
+            SELECT value FROM (SELECT 
+            coalesce(value, 'Unranked') as value ,
+            coalesce(category, $2) as category
+            FROM users u
+            LEFT JOIN user_ranks ur on u.user_id = ur.user_id
+            WHERE u.user_id = $1) pre WHERE category = $2
+        """
+        value = await itx.client.database.fetchval(query, itx.user.id, category)
+        if value == 'Unranked':
+            await itx.guild.get_channel(ORG_CHAT).send(
+                f"{itx.user.mention} is **UNRANKED** in {category}.\n"
+                "Please change this users rank before the end of the tournament!"
+            )
 
     @app_commands.command()
     @app_commands.guilds(
@@ -145,7 +165,7 @@ class TournamentSubmissions(commands.Cog):
     async def submit(
         self,
         itx: core.DoomItx,
-        category: Category,
+        category: typing.Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"],
         screenshot: discord.Attachment,
         record: app_commands.Transform[float, utils.RecordTransformer],
     ):
@@ -183,16 +203,15 @@ class TournamentSubmissions(commands.Cog):
             return
 
         query = """
-        WITH latest_record AS (SELECT max(inserted_at)
-                               FROM tournament_records
-                               WHERE user_id = $1
-                                 AND tournament_id = $3
-                                 AND category = $2)
         DELETE
         FROM tournament_records
         WHERE user_id = $1
           AND tournament_id = $3
           AND category = $2
-          AND inserted_at = latest_record
+          AND inserted_at = (SELECT max(inserted_at) as inserted_at
+                               FROM tournament_records
+                               WHERE user_id = $1
+                                 AND tournament_id = $3
+                                 AND category = $2)
         """
         await itx.client.database.set(query, user.id, category, tournament_id)

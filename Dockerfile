@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 # For safety reason, create an user with lower privileges than root and run from there
 RUN useradd -m -d /home/doom -s /bin/bash doom && \
     mkdir /usr/src/doom && \
-    chown -R doom /usr/src/doom
+    chown -R doom /usr/src/app
 
 USER doom
 

@@ -24,7 +24,7 @@ class TournamentStartModal(discord.ui.Modal, title="Tournament Submit Wizard"):
     async def on_submit(self, itx: discord.Interaction):
         logger.info("helo")
         self.code = self.children[0].value.upper()
-        self.level = self.children[1].value.capitalize()
+        self.level = self.children[1].value
         self.creator = self.children[2].value
         await itx.response.send_message(
             f"{self.category} has been set. Continue adding maps or proceed above.\n"
@@ -45,6 +45,8 @@ class TournamentStartView(discord.ui.View):
         self.hc_modal = None
         self.bo_modal = None
         self.bracket = False
+        self.added = False
+        self.confirm_msg = "Confirmed"
 
     @discord.ui.button(
         label="Bracket Toggle Off", style=discord.ButtonStyle.grey, row=0
@@ -121,5 +123,7 @@ class TournamentStartView(discord.ui.View):
                 for x in [self.bo.style, self.ta.style, self.mc.style, self.hc.style]
             ]
         ):
-            self.add_item(self.confirm_button)
+            if not self.added:
+                self.added = True
+                self.add_item(self.confirm_button)
         await self.original_itx.edit_original_response(view=self)

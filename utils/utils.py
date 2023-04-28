@@ -11,6 +11,7 @@ from discord import app_commands
 from discord.ext import tasks
 from thefuzz import fuzz
 
+import utils
 from cogs.tournament.utils.data import TournamentData
 from cogs.tournament.utils.end_tournament import (
     ExperienceCalculator,
@@ -118,26 +119,36 @@ async def end_tournament_task(data: TournamentData):
 async def start_tournament(data: TournamentData):
     # Post announcement
     mentions = [
-        data.client.get_guild(195387617972322306)
+        data.client.get_guild(utils.GUILD_ID)
         .get_role(_id)
-        .mention  # TODO: Guild id
+        .mention
         for _id in data.mention_ids
     ]
 
-    await data.client.get_guild(195387617972322306).get_channel(
+    await data.client.get_guild(utils.GUILD_ID).get_channel(
         ANNOUNCEMENTS
-    ).send(  # TODO: Guild id
+    ).send(
         "".join(mentions), embed=data.start_embed()
     )
     # Open submissions channel
-    ...  # TODO: open submissions channel
+    guild = data.client.get_guild(utils.GUILD_ID)
+    add_perms = guild.get_channel(TOURNAMENT_SUBMISSIONS).overwrites_for(
+        guild.default_role
+    )
+    add_perms.update(send_messages=True)
+    await guild.get_channel(TOURNAMENT_SUBMISSIONS).set_permissions(
+        guild.default_role,
+        overwrite=add_perms,
+        reason="Tournament Ended.",
+    )
+
     await data.client.database.set(
         "UPDATE tournament SET active = TRUE WHERE id = $1", data.id
     )
 
 
 async def end_tournament(data: TournamentData):
-    guild = data.client.get_guild(195387617972322306)  # TODO: real ID
+    guild = data.client.get_guild(utils.GUILD_ID)
     await data.client.database.set(
         "UPDATE tournament SET active = FALSE WHERE id = $1", data.id
     )
@@ -164,7 +175,15 @@ async def end_tournament(data: TournamentData):
 
     await SpreadsheetCreator(data, xp).create()
 
-    await guild.get_channel(ANNOUNCEMENTS).send(embed=data.end_embed())
+    mentions = [
+        data.client.get_guild(utils.GUILD_ID).get_role(_id).mention
+        for _id in data.client.current_tournament.mention_ids
+    ]
+
+    await guild.get_channel(ANNOUNCEMENTS).send(
+        "".join(mentions),
+        embed=data.end_embed(),
+    )
 
     hof_embed, lb_embeds = await data.hall_of_fame()
     hof_msg = await guild.get_channel(HALL_OF_FAME_ID).send(embed=hof_embed)

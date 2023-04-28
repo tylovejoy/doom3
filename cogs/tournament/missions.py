@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import typing
+from typing import Tuple, Any
 
 from discord import app_commands
 from discord.ext import commands
 
 import utils
 import views
-from cogs.tournament.utils import Categories, Category, Difficulty, MissionType, Type
+from cogs.tournament.utils import Categories, Category, Difficulty, MissionType, Type, MissionDifficulty
 from cogs.tournament.utils.errors import (
     InvalidMissionType,
     MismatchedMissionCategoryType,
@@ -15,6 +16,8 @@ from cogs.tournament.utils.errors import (
     TargetNotInteger,
     TournamentNotActiveError,
 )
+from cogs.tournament.utils.utils import ANNOUNCEMENTS, role_map
+from cogs.tournament.views.announcement import TournamentRolesDropdown
 from database import DotRecord
 from utils import pretty_record, time_convert
 
@@ -58,7 +61,7 @@ class Missions(commands.Cog):
         ):
             raise MismatchedMissionCategoryType
 
-        target = self.validate_target(mission_type, target)
+        target, extra = self.validate_target(mission_type, target)
 
         old_mission = await itx.client.database.get_one(
             "SELECT * FROM tournament_missions WHERE category = $1 AND difficulty = $2 and id = $3",
@@ -78,6 +81,7 @@ class Missions(commands.Cog):
             f"**Difficulty: ** {difficulty}\n"
             f"**Type: ** {mission_type}\n"
             f"**Target: ** {target}\n"
+            f"**Extra: ** {extra}\n"
         )
         view = views.Confirm(itx)
         await itx.edit_original_response(content=content, view=view)
@@ -87,8 +91,8 @@ class Missions(commands.Cog):
 
         await itx.client.database.set(
             """
-            INSERT INTO tournament_missions (id, type, target, difficulty, category) 
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO tournament_missions (id, type, target, difficulty, category, extra_target) 
+            VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (id, category, difficulty)
             DO UPDATE SET target = EXCLUDED.target, type = EXCLUDED.type
             """,
@@ -97,20 +101,31 @@ class Missions(commands.Cog):
             target,
             difficulty,
             category,
+            extra,
         )
 
-    @staticmethod
-    def validate_target(mission_type: Type, target: str) -> int | float:
-        if mission_type in MissionType.difficulty():
-            try:
-                res = int(target)
-            except ValueError:
-                raise TargetNotInteger
+    def validate_target(self, mission_type: Type, target: str) -> tuple[float | int | Any, Any | None]:
+        extra = None
+        if mission_type == MissionType.MISSION_THRESHOLD:
+            res, extra = target.split(maxsplit=1)
+            res = self._convert_to_int(res)
+            extra = extra.capitalize()
+            if extra not in MissionDifficulty.diffs():
+                raise ValueError
+        elif mission_type in MissionType.general():
+            res = self._convert_to_int(target)
         elif mission_type == MissionType.SUB_TIME:
             res = time_convert(target)
         else:
             res = 0
-        return res
+        return res, extra
+
+    @staticmethod
+    def _convert_to_int(value):
+        try:
+            return int(value)
+        except ValueError:
+            raise TargetNotInteger
 
     @missions.command()
     async def remove(
@@ -161,14 +176,24 @@ class Missions(commands.Cog):
 
         await itx.response.defer(ephemeral=True)
         query = """
-            SELECT *
-            FROM tournament_missions
-            WHERE id = $1
-            ORDER BY category != 'General',
-                     category != 'Time Attack',
-                     category != 'Mildcore',
-                     category != 'Hardcore',
-                     category != 'Bonus',
+            SELECT 
+                tmi.id,
+                type,
+                target,
+                difficulty,
+                tmi.category,
+                extra_target,
+                code,
+                level,
+                creator
+            FROM tournament_missions tmi
+            LEFT JOIN tournament_maps tm on tmi.category = tm.category AND tmi.id = tm.id
+            WHERE tmi.id = $1
+            ORDER BY tmi.category != 'General',
+                     tmi.category != 'Time Attack',
+                     tmi.category != 'Mildcore',
+                     tmi.category != 'Hardcore',
+                     tmi.category != 'Bonus',
                      difficulty != 'Easy',
                      difficulty != 'Medium',
                      difficulty != 'Hard',
@@ -183,38 +208,57 @@ class Missions(commands.Cog):
         if not missions:
             raise NoMissionExists
 
-        embed = itx.client.current_tournament.announcement_embed(
+        embed = itx.client.current_tournament.missions_embed(
             self.pretty_missions(missions)
         )
-        await itx.edit_original_response(embed=embed)
+        view = views.Confirm(itx)
+        dropdown = TournamentRolesDropdown()
+        view.add_item(dropdown)
+        await itx.edit_original_response(content="Is this correct?", embed=embed, view=view)
+        await view.wait()
+        if not view.value:
+            return
+
+        roles = [itx.guild.get_role(role_map[x]) for x in dropdown.values]
+        mentions = "".join([r.mention for r in roles])
+        await itx.guild.get_channel(ANNOUNCEMENTS).send(content=mentions, embed=embed)
+
 
     def pretty_missions(self, missions: list[DotRecord]):
         description = "__**Missions**__\n"
-        cur_title = "\n**" + missions[0].category + ":**\n"
+        cur_category = missions[0].category
+        if missions[0].code:
+            map_data = f"({missions[0].code} - {missions[0].level})"
+        else:
+            map_data = ""
         mission_text = ""
         for mission in missions:
-            if mission.category + ":\n" != cur_title:
-                description += cur_title
+            if mission.category not in cur_category:
+                description += f"\n**{cur_category} {map_data}**\n"
                 description += mission_text
                 mission_text = ""
-                cur_title = mission.category + ":\n"
+                cur_category = mission.category
+                map_data = f"({mission.code} - {mission.level})"
+
             mission_text += self.format_missions(
-                mission.difficulty, mission.type, mission.target
+                mission.difficulty, mission.type, mission.target, mission.extra_target
             )
         if mission_text:
+            description += f"\n**{cur_category} {map_data}**\n"
             description += mission_text
         return description
 
+
     @staticmethod
     def format_missions(
-        difficulty: str, mission_type: str, target: str | int | float
+        difficulty: str, mission_type: str, target: str | int | float, extra: str,
     ) -> str:
         """Format missions into user-friendly strings."""
         formatted = ""
         if mission_type == MissionType.XP_THRESHOLD:
             formatted += f"Get {target} XP (excluding this mission)\n"
         elif mission_type == MissionType.MISSION_THRESHOLD:
-            formatted += f"Complete {target} missions\n"
+            formatted += f"Complete {int(target)} {extra} missions\n"
         elif mission_type == MissionType.TOP_PLACEMENT:
             formatted += f"Get Top 3 in {target} categories.\n"
         elif mission_type == MissionType.SUB_TIME:

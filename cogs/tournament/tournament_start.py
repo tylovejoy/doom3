@@ -8,6 +8,7 @@ from discord import EntityType, PrivacyLevel, app_commands
 from discord.ext import commands
 
 import utils
+import views
 from cogs.tournament.utils import Category, CategoryData
 from cogs.tournament.utils.data import TournamentData
 from cogs.tournament.utils.end_tournament import (
@@ -16,6 +17,7 @@ from cogs.tournament.utils.end_tournament import (
 )
 from cogs.tournament.utils.errors import TournamentAlreadyExists
 from cogs.tournament.utils.transformers import DateTransformer
+from cogs.tournament.utils.utils import ANNOUNCEMENTS, CHAT
 from cogs.tournament.views.start import TournamentStartView
 from utils import start_tournament_task
 
@@ -64,7 +66,7 @@ class Tournament(commands.Cog):
         ]
 
         data = self.clean_categories_input(category_data)
-        x = TournamentData(
+        tournament = TournamentData(
             client=self.bot,
             title="Doomfist Parkour Tournament",
             start=start,
@@ -73,30 +75,43 @@ class Tournament(commands.Cog):
             bracket=False,
         )
 
-        embed = x.start_embed()
+        embed = tournament.start_embed()
         mentions = [
-            self.bot.get_guild(195387617972322306).get_role(_id).mention
-            for _id in x.mention_ids
+            self.bot.get_guild(utils.GUILD_ID).get_role(_id).mention
+            for _id in tournament.mention_ids
         ]
-        await self.insert_tournament_db(x)
 
-        await self.create_discord_event(itx, x)
-        await itx.edit_original_response(content="".join(mentions), embed=embed)
+        confirm = views.Confirm(itx)
+        await itx.edit_original_response(content="**Is this correct?**\n\n" + "".join(mentions), embed=embed, view=confirm)
+        await view.wait()
+
+        if not view.value:
+            return
+
+        await self.insert_tournament_db(tournament)
+
+        await self.create_discord_event(itx, tournament)
 
     @staticmethod
     async def create_discord_event(itx: core.DoomItx, tournament: TournamentData):
         with open("assets/event_banner.png", "rb") as fp:
             image_bytes = fp.read()
-        await itx.guild.create_scheduled_event(
+
+        announcements = itx.guild.get_channel(ANNOUNCEMENTS).mention
+        chat = itx.guild.get_channel(CHAT).mention
+
+        event = await itx.guild.create_scheduled_event(
             name=tournament.title,
             start_time=tournament.start,
             end_time=tournament.end,
             privacy_level=PrivacyLevel.guild_only,
             entity_type=EntityType.external,
-            location="#tournament-chat",
+            location=f"{announcements} {chat}",
             image=bytearray(image_bytes),
             description="Submit your best times in the tournament for XP!",
         )
+        await itx.guild.get_channel(ANNOUNCEMENTS).send(event.url)
+
 
     @staticmethod
     def clean_categories_input(
@@ -130,8 +145,8 @@ class Tournament(commands.Cog):
 
         await self.bot.database.set_many(
             """
-                INSERT INTO tournament_maps (id, code, level, category)
-                VALUES ($1, $2, $3, $4)
+                INSERT INTO tournament_maps (id, code, level, creator, category)
+                VALUES ($1, $2, $3, $4, $5)
             """,
             [
                 (data.id, v["code"], v["level"], v["creator"], k)

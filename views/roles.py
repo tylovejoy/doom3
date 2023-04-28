@@ -5,6 +5,7 @@ import typing
 import discord
 
 import database
+from cogs.tournament.utils.utils import TA_ROLE, MC_ROLE, HC_ROLE, BO_ROLE, TRIFECTA_ROLE
 
 if typing.TYPE_CHECKING:
     from core import DoomItx
@@ -213,3 +214,60 @@ class TherapyRole(discord.ui.View):
         #     return
         # role = itx.guild.get_role(815041888566116422)
         # await add_remove_roles(itx, role)
+
+
+class TournamentRoles(discord.ui.View):
+    """Persistent reaction tournament related roles."""
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Time Attack",
+        style=discord.ButtonStyle.grey,
+        custom_id="ta_role_",
+    )
+    async def time_attack(self, itx: DoomItx, button: discord.Button):
+        await itx.response.defer(ephemeral=True)
+        role = itx.guild.get_role(TA_ROLE)
+        await add_remove_roles(itx, role)
+
+    @discord.ui.button(
+        label="Mildcore",
+        style=discord.ButtonStyle.grey,
+        custom_id="mc_role_",
+    )
+    async def mildcore(self, itx: DoomItx, button: discord.Button):
+        await itx.response.defer(ephemeral=True)
+        role = itx.guild.get_role(MC_ROLE)
+        await add_remove_roles(itx, role)
+
+    @discord.ui.button(
+        label="Hardcore",
+        style=discord.ButtonStyle.grey,
+        custom_id="hc_role_",
+    )
+    async def hardcore(self, itx: DoomItx, button: discord.Button):
+        await itx.response.defer(ephemeral=True)
+        role = itx.guild.get_role(HC_ROLE)
+        await add_remove_roles(itx, role)
+
+    @discord.ui.button(
+        label="Bonus",
+        style=discord.ButtonStyle.grey,
+        custom_id="bo_role_",
+    )
+    async def bonus(self, itx: DoomItx, button: discord.Button):
+        await itx.response.defer(ephemeral=True)
+        role = itx.guild.get_role(BO_ROLE)
+        await add_remove_roles(itx, role)
+
+    @discord.ui.button(
+        label="Trifecta",
+        style=discord.ButtonStyle.grey,
+        custom_id="tr_role_",
+    )
+    async def trifecta(self, itx: DoomItx, button: discord.Button):
+        await itx.response.defer(ephemeral=True)
+        role = itx.guild.get_role(TRIFECTA_ROLE)
+        await add_remove_roles(itx, role)

@@ -57,26 +57,32 @@ class ExperienceCalculator:
 
     async def _computer_leaderboard_xp(self):
         query = """
-            WITH t_records AS (SELECT tr.user_id,
+            WITH 
+            all_ranks AS (SELECT u.user_id, nickname, cats.value as category, COALESCE(ur.value, 'Unranked') as value
+                               FROM users u
+                                        JOIN tournament_ranks cats ON TRUE
+                                        LEFT JOIN user_ranks ur on u.user_id = ur.user_id AND cats.value = ur.category),
+            t_records AS (SELECT tr.user_id,
                                       record,
-                                      coalesce(ur.value, 'Unranked')                                                            as value,
+                                      ur.value                                                            as value,
                                       tr.category,
                                       rank()
                                       over (partition by ur.user_id, value, tr.category, ur.category order by inserted_at DESC) as date_rank
                                FROM tournament_records tr
-                                        LEFT JOIN user_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
+                                        LEFT JOIN all_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
                                WHERE tournament_id = $1),
                  top AS (SELECT category, min(record) as top_record FROM t_records GROUP BY category, value),
                  top_recs AS (SELECT user_id, record, top.category, value as "rank"
                               FROM top
                                        LEFT JOIN t_records r ON top.category = r.category
                                   AND record = top.top_record)
-            SELECT nickname, r.user_id, r.record, r.category, tr.record as top_record
+            SELECT nickname, r.user_id, r.record, r.category, tr.record as top_record, value
             FROM top_recs tr
             
                      RIGHT JOIN t_records r ON tr.category = r.category AND tr.rank = r.value
                      LEFT JOIN users u on r.user_id = u.user_id
-            WHERE date_rank = 1;
+            WHERE date_rank = 1
+            ORDER BY r.category, value, record;
         """
         async for row in self._tournament.client.database.get(
             query, self._tournament.client.current_tournament.id
@@ -160,7 +166,7 @@ class ExperienceCalculator:
         async for row in self._tournament.client.database.get(
             query, self._tournament.client.current_tournament.id
         ):
-            # await self._create_xp_row(row)
+            await self._create_xp_row(row)
             self._xp[row.user_id]["Mission Total XP"] += MISSION_POINTS[row.difficulty]
             self._xp[row.user_id]["Total XP"] += MISSION_POINTS[row.difficulty]
             self._xp[row.user_id][row.difficulty] += 1
