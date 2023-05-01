@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing
 from typing import TYPE_CHECKING
 
 import discord
@@ -33,7 +34,7 @@ class OrgCommands(commands.Cog):
         self,
         itx: core.DoomItx,
         member: discord.Member,
-        category: Categories_NoGen,
+        category: typing.Literal["Time Attack", "Mildcore", "Hardcore"],
         rank: Ranks,
     ):
         await itx.response.defer(ephemeral=True)
