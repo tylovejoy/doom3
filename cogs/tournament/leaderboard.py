@@ -50,7 +50,7 @@ class TournamentLeaderboards(commands.Cog):
                                  FROM tournament_records tr
                                           LEFT JOIN all_ranks ar ON ar.user_id = tr.user_id
                                  WHERE tournament_id =
-                                       (SELECT tournament_id FROM tournament WHERE id = (SELECT max(id) FROM tournament))
+                                       (SELECT id FROM tournament WHERE id = (SELECT max(id) FROM tournament))
                                    AND tr.category = $1
                                    AND ar.category = $1
                                    AND ($2::text IS NULL OR ar.value = $2)
