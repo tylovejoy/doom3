@@ -107,7 +107,7 @@ class TournamentSubmissions(commands.Cog):
             WHERE u.user_id = $1) pre WHERE category = $2
         """
         value = await itx.client.database.fetchval(query, itx.user.id, category)
-        if value == 'Unranked':
+        if value == 'Unranked' and category != "Bonus":
             await itx.guild.get_channel(ORG_CHAT).send(
                 f"{itx.user.mention} is **UNRANKED** in {category}.\n"
                 "Please change this users rank before the end of the tournament!"
