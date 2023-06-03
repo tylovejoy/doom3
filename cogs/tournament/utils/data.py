@@ -102,7 +102,11 @@ class TournamentData:
     @property
     def mention_ids(self) -> list[int]:
         trifecta = []
-        if "Time Attack" in self.map_data and "Mildcore" in self.map_data and "Hardcore" in self.map_data:
+        if (
+            "Time Attack" in self.map_data
+            and "Mildcore" in self.map_data
+            and "Hardcore" in self.map_data
+        ):
             trifecta.append(role_map["Trifecta"])
         base = [role_map[cat] for cat in Category.all() if cat in self.map_data]
         return base + trifecta
@@ -147,7 +151,6 @@ class TournamentData:
         embed.set_image(
             url=f"http://207.244.249.145/assets/images/tournament/{category.lower().replace(' ', '_')}.png"
         )
-        print("we've set the image... ", category)
 
         embed.colour = discord.Color.from_str(category_color[category])
         return embed

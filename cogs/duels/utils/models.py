@@ -18,7 +18,11 @@ class DuelMap:
 
 class DuelPlayer:
     def __init__(
-        self, user_id: int, ready: bool, record: float | None = None, url: str | None = None
+        self,
+        user_id: int,
+        ready: bool,
+        record: float | None = None,
+        url: str | None = None,
     ):
         self._user_id = user_id
         self._ready = ready
@@ -64,7 +68,6 @@ class Duel:
         start: datetime,
         end: datetime,
         duel_id: int | None = None,
-
     ):
         self.client = client
         self.thread = thread
@@ -79,4 +82,3 @@ class Duel:
     @property
     def ready(self):
         return self.player1.ready and self.player2.ready
-

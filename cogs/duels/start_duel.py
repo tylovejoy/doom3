@@ -48,10 +48,11 @@ class Duels(commands.Cog):
     @app_commands.choices(
         length=[
             app_commands.Choice(name="1 Day", value="1 Day"),
-        ] + [
-            app_commands.Choice(name=f"{x} Days", value=f"{x} Days") for x in range(2, 8)
         ]
-
+        + [
+            app_commands.Choice(name=f"{x} Days", value=f"{x} Days")
+            for x in range(2, 8)
+        ]
     )
     async def request(
         self,
@@ -76,10 +77,14 @@ class Duels(commands.Cog):
             level = await self._get_random_level(map_code)
 
         start = discord.utils.utcnow() + datetime.timedelta(days=1)
-        end = dateparser.parse(
-            length.value,
-            settings={"PREFER_DATES_FROM": "future"},
-        ).astimezone(datetime.timezone.utc) - discord.utils.utcnow() + start
+        end = (
+            dateparser.parse(
+                length.value,
+                settings={"PREFER_DATES_FROM": "future"},
+            ).astimezone(datetime.timezone.utc)
+            - discord.utils.utcnow()
+            + start
+        )
 
         forum: discord.ForumChannel = itx.guild.get_channel(1095368893591203861)
         thread = await forum.create_thread(
@@ -91,7 +96,7 @@ class Duels(commands.Cog):
                 f"`Wager` {wager}\n"
                 f"`Start` {discord.utils.format_dt(start, style='F')}{discord.utils.format_dt(start, style='R')}\n"
                 f"`End` {discord.utils.format_dt(end, style='F')}{discord.utils.format_dt(end, style='R')}"
-            )
+            ),
         )
         map_data = DuelMap(map_code, level)
         player1 = DuelPlayer(itx.user.id, True)
@@ -138,7 +143,10 @@ class Duels(commands.Cog):
         """
         await self.bot.database.set_many(
             query,
-            [(player.user_id, player.ready, duel_id, i) for i, player in enumerate((duel.player1, duel.player2), start=1)]
+            [
+                (player.user_id, player.ready, duel_id, i)
+                for i, player in enumerate((duel.player1, duel.player2), start=1)
+            ],
         )
 
     async def _check_if_in_match(self, player1: int, player2: int):

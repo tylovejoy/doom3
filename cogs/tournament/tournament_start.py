@@ -82,7 +82,11 @@ class Tournament(commands.Cog):
         ]
 
         confirm = views.Confirm(itx)
-        await itx.edit_original_response(content="**Is this correct?**\n\n" + "".join(mentions), embed=embed, view=confirm)
+        await itx.edit_original_response(
+            content="**Is this correct?**\n\n" + "".join(mentions),
+            embed=embed,
+            view=confirm,
+        )
         await view.wait()
 
         if not view.value:
@@ -111,7 +115,6 @@ class Tournament(commands.Cog):
             description="Submit your best times in the tournament for XP!",
         )
         await itx.guild.get_channel(ANNOUNCEMENTS).send(event.url)
-
 
     @staticmethod
     def clean_categories_input(

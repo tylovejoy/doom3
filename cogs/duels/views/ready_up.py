@@ -45,7 +45,11 @@ class ReadyUpButton(discord.ui.Button):
         await itx.message.edit(view=self.view)
 
     def update_button(self):
-        self.label = f"Player {self.player_num} is ready!" if self.ready else f"Player {self.player_num} is not ready!"
+        self.label = (
+            f"Player {self.player_num} is ready!"
+            if self.ready
+            else f"Player {self.player_num} is not ready!"
+        )
         self.style = ButtonStyle.green if self.ready else ButtonStyle.red
         self.emoji = "✔️" if self.ready else "✖️"
 

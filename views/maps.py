@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import discord
 from discord import app_commands
-from discord.utils import MISSING
 
 import utils
 import utils.utils
@@ -77,7 +76,7 @@ all_map_constants = [
     MapMetadata("Workshop Island", discord.Color.from_str("#000000")),
     MapMetadata("Framework", discord.Color.from_str("#000000")),
     MapMetadata("Tools", discord.Color.from_str("#000000")),
-MapMetadata("Talantis", discord.Color.from_str("#1AA7EC"))
+    MapMetadata("Talantis", discord.Color.from_str("#1AA7EC")),
 ]
 
 MAP_DATA: dict[str, MapMetadata] = {const.NAME: const for const in all_map_constants}

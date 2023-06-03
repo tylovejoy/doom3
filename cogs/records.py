@@ -159,7 +159,7 @@ class Records(commands.Cog):
                                                screenshot,
                                                code                                                          as map_code,
                                                level                                                         as level_name,
-                                               RANK() OVER (partition by user_id, code order by inserted_at) as latest
+                                               RANK() OVER (partition by user_id, code, level order by inserted_at) as latest
                                         FROM tournament_records tr
                                                  LEFT JOIN tournament_maps tm on tr.category = tm.category
                                             AND tr.tournament_id = tm.id),

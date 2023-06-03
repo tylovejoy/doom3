@@ -231,7 +231,7 @@ class Maps(commands.Cog):
             "map_code": map_code,
             "map_name": map_name,
             "creator_name": itx.user.name,
-            "image": image
+            "image": image,
         }
         await itx.response.send_modal(modal)
 
@@ -309,11 +309,7 @@ class Maps(commands.Cog):
 
     @app_commands.command()
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
-    async def random_map(
-        self,
-        itx: DoomItx,
-        random_level: bool | None = False
-    ) -> None:
+    async def random_map(self, itx: DoomItx, random_level: bool | None = False) -> None:
         await itx.response.defer(ephemeral=True)
         query = """
             WITH valid_ratings AS (
@@ -381,8 +377,6 @@ class Maps(commands.Cog):
         view = views.Paginator([embed], itx.user, None)
         await view.start(itx)
 
-
-
     def create_map_embeds(
         self, maps: list[database.DotRecord]
     ) -> list[utils.Embed | utils.DoomEmbed]:
@@ -404,6 +398,7 @@ class Maps(commands.Cog):
                 embed_list.append(embed)
                 embed = utils.DoomEmbed(title="Map Search")
         return embed_list
+
     def create_random_map_embeds(
         self, _map: database.DotRecord, level: bool
     ) -> utils.Embed | utils.DoomEmbed:
@@ -420,7 +415,10 @@ class Maps(commands.Cog):
             ),
         )
         if level:
-            embed.add_field(name="Random Level", value=f"{_map.level} - {utils.create_stars(_map.avg_rating)}")
+            embed.add_field(
+                name="Random Level",
+                value=f"{_map.level} - {utils.create_stars(_map.avg_rating)}",
+            )
         return embed
 
     @staticmethod
@@ -584,4 +582,3 @@ WITH all_tournament_records AS (SELECT user_id,
 
 
 """
-

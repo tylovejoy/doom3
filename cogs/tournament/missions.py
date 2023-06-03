@@ -8,7 +8,14 @@ from discord.ext import commands
 
 import utils
 import views
-from cogs.tournament.utils import Categories, Category, Difficulty, MissionType, Type, MissionDifficulty
+from cogs.tournament.utils import (
+    Categories,
+    Category,
+    Difficulty,
+    MissionType,
+    Type,
+    MissionDifficulty,
+)
 from cogs.tournament.utils.errors import (
     InvalidMissionType,
     MismatchedMissionCategoryType,
@@ -104,7 +111,9 @@ class Missions(commands.Cog):
             extra,
         )
 
-    def validate_target(self, mission_type: Type, target: str) -> tuple[float | int | Any, Any | None]:
+    def validate_target(
+        self, mission_type: Type, target: str
+    ) -> tuple[float | int | Any, Any | None]:
         extra = None
         if mission_type == MissionType.MISSION_THRESHOLD:
             res, extra = target.split(maxsplit=1)
@@ -214,7 +223,9 @@ class Missions(commands.Cog):
         view = views.Confirm(itx)
         dropdown = TournamentRolesDropdown()
         view.add_item(dropdown)
-        await itx.edit_original_response(content="Is this correct?", embed=embed, view=view)
+        await itx.edit_original_response(
+            content="Is this correct?", embed=embed, view=view
+        )
         await view.wait()
         if not view.value:
             return
@@ -222,7 +233,6 @@ class Missions(commands.Cog):
         roles = [itx.guild.get_role(role_map[x]) for x in dropdown.values]
         mentions = "".join([r.mention for r in roles])
         await itx.guild.get_channel(ANNOUNCEMENTS).send(content=mentions, embed=embed)
-
 
     def pretty_missions(self, missions: list[DotRecord]):
         description = "__**Missions**__\n"
@@ -248,10 +258,12 @@ class Missions(commands.Cog):
             description += mission_text
         return description
 
-
     @staticmethod
     def format_missions(
-        difficulty: str, mission_type: str, target: str | int | float, extra: str,
+        difficulty: str,
+        mission_type: str,
+        target: str | int | float,
+        extra: str,
     ) -> str:
         """Format missions into user-friendly strings."""
         formatted = ""

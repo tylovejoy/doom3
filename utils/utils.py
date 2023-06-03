@@ -119,15 +119,11 @@ async def end_tournament_task(data: TournamentData):
 async def start_tournament(data: TournamentData):
     # Post announcement
     mentions = [
-        data.client.get_guild(utils.GUILD_ID)
-        .get_role(_id)
-        .mention
+        data.client.get_guild(utils.GUILD_ID).get_role(_id).mention
         for _id in data.mention_ids
     ]
 
-    await data.client.get_guild(utils.GUILD_ID).get_channel(
-        ANNOUNCEMENTS
-    ).send(
+    await data.client.get_guild(utils.GUILD_ID).get_channel(ANNOUNCEMENTS).send(
         "".join(mentions), embed=data.start_embed()
     )
     # Open submissions channel

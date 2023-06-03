@@ -5,7 +5,13 @@ import typing
 import discord
 
 import database
-from cogs.tournament.utils.utils import TA_ROLE, MC_ROLE, HC_ROLE, BO_ROLE, TRIFECTA_ROLE
+from cogs.tournament.utils.utils import (
+    TA_ROLE,
+    MC_ROLE,
+    HC_ROLE,
+    BO_ROLE,
+    TRIFECTA_ROLE,
+)
 
 if typing.TYPE_CHECKING:
     from core import DoomItx

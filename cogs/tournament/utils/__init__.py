@@ -53,6 +53,7 @@ class MissionDifficulty(enum.StrEnum):
     def diffs(cls):
         return [cls.EASY, cls.MEDIUM, cls.HARD, cls.EXPERT]
 
+
 class MissionType(enum.StrEnum):
     XP_THRESHOLD = "XP Threshold"
     MISSION_THRESHOLD = "Mission Threshold"

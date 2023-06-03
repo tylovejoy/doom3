@@ -8,7 +8,13 @@ from discord.ext import commands
 
 import utils
 import views
-from views.roles import ColorRolesView, PronounRoles, ServerRelatedPings, TherapyRole, TournamentRoles
+from views.roles import (
+    ColorRolesView,
+    PronounRoles,
+    ServerRelatedPings,
+    TherapyRole,
+    TournamentRoles,
+)
 
 if typing.TYPE_CHECKING:
     from .doom import Doom

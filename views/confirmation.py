@@ -18,7 +18,6 @@ class ConfirmButton(discord.ui.Button):
             emoji=utils.VERIFIED_EMOJI,
             style=discord.ButtonStyle.green,
             disabled=disabled,
-
         )
 
     async def callback(self, itx: DoomItx):
