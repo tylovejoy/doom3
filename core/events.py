@@ -206,7 +206,7 @@ class BotEvents(commands.Cog):
     async def on_member_join(self, member: discord.Member):
         # Add user to DB
         await self.bot.database.set(
-            "INSERT INTO users VALUES ($1, $2, true);",
+            "INSERT INTO users VALUES ($1, $2, true) ON CONFLICT DO NOTHING;",
             member.id,
             member.name[:25],
         )
