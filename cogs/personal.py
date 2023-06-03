@@ -28,6 +28,21 @@ class Personal(commands.Cog):
             ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239
         )  # Spam-friendly
 
+    @commands.command()
+    async def joe_army(self, ctx: DoomCtx):
+        flag = "<a:_:1105236433523974305>"
+        salute = "<:_:1105236435600146493>"
+        l_hulk = "<:joehulk:1105236434660630598>"
+        r_hulk = "<:joehulkR:1105236430697021491>"
+        running = "<a:runningjoe:1105236437290455132>"
+        message = (
+            f"{flag}{salute * 3}{l_hulk * 3}{running * 3}{r_hulk * 3}{salute * 3}{flag}\n"
+            * 4
+        )
+
+        await ctx.send(message)
+        await ctx.message.delete(delay=2)
+
     @app_commands.command(**utils.alerts)
     @app_commands.describe(**utils.alerts_args)
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
