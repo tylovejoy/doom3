@@ -55,9 +55,9 @@ class MapCodeRecordsTransformer(MapCodeAutoTransformer):
 
 class MapLevelTransformer(app_commands.Transformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
-        if value not in itx.client.map_cache[itx.namespace.map_code]["levels"]:
+        if value not in itx.client.map_cache[itx.namespace.map_code.upper()]["levels"]:
             value = utils.fuzz_(
-                value, itx.client.map_cache[itx.namespace.map_code]["levels"]
+                value, itx.client.map_cache[itx.namespace.map_code.upper()]["levels"]
             )
         return value
 
@@ -66,7 +66,9 @@ class MapLevelTransformer(app_commands.Transformer):
     ) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(
             value,
-            (itx.client.map_cache.get(itx.namespace.map_code, {})).get("choices", None),
+            (itx.client.map_cache.get(itx.namespace.map_code.upper(), {})).get(
+                "choices", None
+            ),
         )
 
 
