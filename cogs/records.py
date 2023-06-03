@@ -207,7 +207,7 @@ class Records(commands.Cog):
                      m.map_name,
                      rank() OVER (
                          partition by r.map_code, r.user_id, level_name
-                         order by inserted_at
+                         order by inserted_at DESC
                          ) as latest,
                      RANK() OVER (
                          PARTITION BY level_name
@@ -222,7 +222,7 @@ class Records(commands.Cog):
           AND ($3::text IS NULL OR level_name = $3)
           AND latest = 1
           AND verified = TRUE
-        ORDER BY substr(level_name, 1, 5) <> 'Level', level_name, record;
+        ORDER BY record, substr(level_name, 1, 5) <> 'Level', level_name;
         """
 
         records = [
