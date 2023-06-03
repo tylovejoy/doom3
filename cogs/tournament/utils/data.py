@@ -30,6 +30,53 @@ category_color = {
 }
 
 
+def base_embed(
+    description: str,
+    embed_type: Literal[
+        "start", "end", "announcement", "leaderboard", "hall_of_fame", "missions"
+    ],
+) -> discord.Embed:
+    embed = utils.DoomEmbed(
+        title="Doomfist Parkour Tournament",
+        description=description,
+        thumbnail="http://207.244.249.145/assets/images/icons/gold_cup.png",
+        image=f"http://207.244.249.145/assets/images/icons/tournament_{embed_type}_banner.png",
+        color=discord.Color.gold(),
+    )
+    return embed
+
+
+def leaderboard_embed(
+    description: str, category: Categories, rank: Rank | None
+):
+    embed = base_embed(description=description, embed_type="leaderboard")
+    if rank:
+        embed.set_thumbnail(
+            url=f"http://207.244.249.145/assets/images/icons/{rank.lower()}.png"
+        )
+    embed.set_image(
+        url=f"http://207.244.249.145/assets/images/tournament/{category.lower().replace(' ', '_')}.png"
+    )
+
+    embed.colour = discord.Color.from_str(category_color[category])
+    return embed
+
+
+def announcement_embed(announcement: str):
+    return base_embed(announcement, "announcement")
+
+
+def missions_embed(announcement: str):
+    return base_embed(announcement, "missions")
+
+
+def end_embed():
+    description = (
+        "**The round has ended!**\n" "Stay tuned for the next announcement!\n\n"
+    )
+    return base_embed(description, "end")
+
+
 class TournamentData:
     def __init__(
         self,
@@ -124,54 +171,11 @@ class TournamentData:
 
         return map_info
 
-    def base_embed(
-        self,
-        description: str,
-        embed_type: Literal[
-            "start", "end", "announcement", "leaderboard", "hall_of_fame", "missions"
-        ],
-    ) -> discord.Embed:
-        embed = utils.DoomEmbed(
-            title=self.title,
-            description=description,
-            thumbnail="http://207.244.249.145/assets/images/icons/gold_cup.png",
-            image=f"http://207.244.249.145/assets/images/icons/tournament_{embed_type}_banner.png",
-            color=discord.Color.gold(),
-        )
-        return embed
-
-    def leaderboard_embed(
-        self, description: str, category: Categories, rank: Rank | None
-    ):
-        embed = self.base_embed(description=description, embed_type="leaderboard")
-        if rank:
-            embed.set_thumbnail(
-                url=f"http://207.244.249.145/assets/images/icons/{rank.lower()}.png"
-            )
-        embed.set_image(
-            url=f"http://207.244.249.145/assets/images/tournament/{category.lower().replace(' ', '_')}.png"
-        )
-
-        embed.colour = discord.Color.from_str(category_color[category])
-        return embed
-
     def start_embed(self):
-        return self.base_embed(self.embed_description() + "\n\n" + self.dates, "start")
-
-    def announcement_embed(self, announcement: str):
-        return self.base_embed(announcement, "announcement")
-
-    def missions_embed(self, announcement: str):
-        return self.base_embed(announcement, "missions")
-
-    def end_embed(self):
-        description = (
-            "**The round has ended!**\n" "Stay tuned for the next announcement!\n\n"
-        )
-        return self.base_embed(description, "end")
+        return base_embed(self.embed_description() + "\n\n" + self.dates, "start")
 
     async def hall_of_fame(self):
-        hof_embed = self.base_embed("", "hall_of_fame")
+        hof_embed = base_embed("", "hall_of_fame")
         hof_embed.title += "Hall of Fame - Top 3"
         lb_embeds = []
         for category in ["Time Attack", "Mildcore", "Hardcore", "Bonus"]:
@@ -227,7 +231,7 @@ class TournamentData:
                 value=hof_embed_field_value,
                 inline=False,
             )
-            temp = self.leaderboard_embed(lb_description, category, None)
+            temp = leaderboard_embed(lb_description, category, None)
             print(temp.image.url)
             lb_embeds.append(temp)
 
