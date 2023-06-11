@@ -85,9 +85,11 @@ class ModCommands(commands.Cog):
         record = [
             x
             async for x in self.bot.database.get(
-                "SELECT * FROM records r "
-                "LEFT JOIN users u on r.user_id = u.user_id "
-                "WHERE r.user_id=$1 AND map_code=$2 AND level_name=$1",
+                """
+                SELECT * FROM records r 
+                LEFT JOIN users u on r.user_id = u.user_id 
+                WHERE r.user_id=$1 AND map_code=$2 AND level_name=$3
+                """,
                 user.id,
                 map_code,
                 level_name,
@@ -101,8 +103,9 @@ class ModCommands(commands.Cog):
             title="Delete Record",
             description=(
                 f"`Name` {record.nickname}\n"
-                f"`Code` {utils.pretty_record(record.map_code)}\n"
+                f"`Code` {record.map_code}\n"
                 f"`Level` {record.level_name}\n"
+                f"`Record` {utils.pretty_record(record.record)}\n"
             ),
         )
         view = views.Confirm(itx)
