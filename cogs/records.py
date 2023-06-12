@@ -194,8 +194,8 @@ class Records(commands.Cog):
                                                 verified,
                                                 inserted_at,
                                                 false as tournament
-                                         FROM records))
-        SELECT *
+                                         FROM records)),
+        final AS (SELECT *
         FROM (SELECT u.nickname,
                      level_name,
                      record,
@@ -222,7 +222,11 @@ class Records(commands.Cog):
           AND ($3::text IS NULL OR level_name = $3)
           AND latest = 1
           AND verified = TRUE
-        ORDER BY record, substr(level_name, 1, 5) <> 'Level', level_name;
+        ORDER BY record, substr(level_name, 1, 5) <> 'Level', level_name)
+        SELECT nickname, level_name, record, screenshot, video, tournament, verified, map_code, map_name, latest, RANK() OVER (
+                         PARTITION BY level_name
+                         ORDER BY record
+                         )    rank_num FROM final;
         """
 
         records = [
