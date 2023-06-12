@@ -9,7 +9,7 @@ from discord.ext import commands
 import utils
 import views
 from cogs.tournament.utils import Categories, Rank, Categories_NoGen
-from cogs.tournament.utils.data import rank_display
+from cogs.tournament.utils.data import rank_display, leaderboard_embed
 from database import DotRecord
 from utils import pretty_record
 
@@ -68,7 +68,7 @@ class TournamentLeaderboards(commands.Cog):
 
     def _split_records(self, records: DotRecord, category: Categories, rank: Rank):
         embed_list = []
-        embed = self.bot.current_tournament.leaderboard_embed(
+        embed = leaderboard_embed(
             description="",
             category=category,
             rank=rank,
@@ -84,7 +84,7 @@ class TournamentLeaderboards(commands.Cog):
             )
             if utils.split_nth_conditional(i, 9, records):
                 embed_list.append(embed)
-                embed = self.bot.current_tournament.leaderboard_embed(
+                embed = leaderboard_embed(
                     description="",
                     category=category,
                     rank=rank,

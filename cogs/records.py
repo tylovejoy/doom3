@@ -103,7 +103,7 @@ class Records(commands.Cog):
 
         if old_row and old_row.hidden_id:
             await itx.guild.get_channel(utils.VERIFICATION_QUEUE).get_partial_message(
-                old_row.old_hidden_id
+                old_row.hidden_id
             ).delete()
 
         view = views.VerificationView()

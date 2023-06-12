@@ -16,6 +16,7 @@ from cogs.tournament.utils import (
     Type,
     MissionDifficulty,
 )
+from cogs.tournament.utils.data import missions_embed
 from cogs.tournament.utils.errors import (
     InvalidMissionType,
     MismatchedMissionCategoryType,
@@ -217,7 +218,7 @@ class Missions(commands.Cog):
         if not missions:
             raise NoMissionExists
 
-        embed = itx.client.current_tournament.missions_embed(
+        embed = missions_embed(
             self.pretty_missions(missions)
         )
         view = views.Confirm(itx)

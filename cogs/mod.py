@@ -82,27 +82,29 @@ class ModCommands(commands.Cog):
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
     ):
         await itx.response.defer(ephemeral=True)
-        record = [
-            x
-            async for x in self.bot.database.get(
-                "SELECT * FROM records r "
-                "LEFT JOIN users u on r.user_id = u.user_id "
-                "WHERE r.user_id=$1 AND map_code=$2 AND level_name=$1",
-                user.id,
-                map_code,
-                level_name,
+        record = await self.bot.database.get_one(
+            """
+            WITH all_user_records AS (
+                SELECT *, rank() OVER (ORDER BY inserted_at DESC) as latest FROM records r 
+                LEFT JOIN users u on r.user_id = u.user_id 
+                WHERE r.user_id = $1 AND map_code = $2 AND level_name = $3
             )
-        ]
+            SELECT * FROM all_user_records WHERE latest = 1
+            """,
+            user.id,
+            map_code,
+            level_name,
+        )
         if not record:
             raise utils.NoRecordsFoundError
 
-        record = record[0]
         embed = utils.DoomEmbed(
             title="Delete Record",
             description=(
                 f"`Name` {record.nickname}\n"
-                f"`Code` {utils.pretty_record(record.map_code)}\n"
+                f"`Code` {record.map_code}\n"
                 f"`Level` {record.level_name}\n"
+                f"`Record` {utils.pretty_record(record.record)}\n"
             ),
         )
         view = views.Confirm(itx)
@@ -115,7 +117,24 @@ class ModCommands(commands.Cog):
             return
 
         await self.bot.database.set(
-            "DELETE FROM records WHERE user_id=$1 AND map_code=$2 AND level_name=$3",
+            """
+              WITH
+                latest AS (
+                  SELECT max(inserted_at)
+                    FROM records
+                   WHERE
+                       user_id = $1
+                   AND map_code = $2
+                   AND level_name = $3
+                )
+            DELETE
+              FROM records
+             WHERE
+                 user_id = $1
+             AND map_code = $2
+             AND level_name = $3
+             AND inserted_at = latest
+            """,
             user.id,
             map_code,
             level_name,

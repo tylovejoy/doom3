@@ -12,7 +12,7 @@ from discord.ext import tasks
 from thefuzz import fuzz
 
 import utils
-from cogs.tournament.utils.data import TournamentData
+from cogs.tournament.utils.data import TournamentData, end_embed
 from cogs.tournament.utils.end_tournament import (
     ExperienceCalculator,
     SpreadsheetCreator,
@@ -178,7 +178,7 @@ async def end_tournament(data: TournamentData):
 
     await guild.get_channel(ANNOUNCEMENTS).send(
         "".join(mentions),
-        embed=data.end_embed(),
+        embed=end_embed(),
     )
 
     hof_embed, lb_embeds = await data.hall_of_fame()
