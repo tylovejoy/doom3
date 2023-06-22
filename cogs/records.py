@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import typing
 
 import discord
@@ -102,9 +103,10 @@ class Records(commands.Cog):
         )
 
         if old_row and old_row.hidden_id:
-            await itx.guild.get_channel(utils.VERIFICATION_QUEUE).get_partial_message(
-                old_row.hidden_id
-            ).delete()
+            with contextlib.suppress(discord.NotFound):
+                await itx.guild.get_channel(utils.VERIFICATION_QUEUE).get_partial_message(
+                    old_row.hidden_id
+                ).delete()
 
         view = views.VerificationView()
         await verification_msg.edit(view=view)
