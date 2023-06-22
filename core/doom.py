@@ -42,6 +42,7 @@ class Doom(commands.Bot):
 
         self.exercise_names: list[app_commands.Choice] | None = None
         self.exercise_names_search: list[app_commands.Choice] | None = None
+        self.exercise_category_map: dict[str, str] | None = None
 
         self.tag_cache: list[str] | None = None
         self.tag_choices: list[app_commands.Choice] | None = None

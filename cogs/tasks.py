@@ -156,12 +156,13 @@ class Tasks(commands.Cog):
 
     @tasks.loop(hours=24, count=1)
     async def cache_exercise_names(self):
-        self.bot.exercise_names = [
-            app_commands.Choice(name=x.name, value=x.name)
-            async for x in self.bot.database.get(
-                "SELECT * FROM all_exercises ORDER BY 1;"
-            )
-        ]
+        self.bot.exercise_names = []
+        self.bot.exercise_category_map = {}
+        async for x in self.bot.database.get(
+            "SELECT name, type FROM all_exercises ORDER BY 1;"
+        ):
+            self.bot.exercise_names.append(app_commands.Choice(name=x.name, value=x.name))
+            self.bot.exercise_category_map[x.name] = x.type
 
     @tasks.loop(hours=24, count=1)
     async def cache_exercise_names_search(self):

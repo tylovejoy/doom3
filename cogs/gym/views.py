@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import typing
+from typing import TYPE_CHECKING
 
 import discord.ui
 
 import database
 import utils
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from core import DoomItx
 
 

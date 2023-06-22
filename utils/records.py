@@ -187,7 +187,7 @@ def all_levels_records_embed(
                 f"┗ `Video` [Link]({record.video})\n"
             )
         embed.add_field(
-            name=f"{utils.PLACEMENTS.get(i + 1, '')} {make_ordinal(i + 1)}"
+            name=f"{utils.PLACEMENTS.get(record.rank_num, '')} {make_ordinal(record.rank_num)}"
             if single
             else record.level_name,
             value=description,
