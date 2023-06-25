@@ -20,9 +20,11 @@ async def main() -> None:
             f"{os.environ['PSQL_HOST']}:"
             f"{os.environ['PSQL_PORT']}/"
             f"{os.environ['PSQL_DATABASE']}"
-        ) as connection:
-            bot = core.Doom(session=session, db=database.Database(connection))
-            async with bot:
+        ) as pool:
+            async with core.Doom() as bot:
+                bot.session = session
+                bot.pool = pool
+                bot.database = database.Database(pool)
                 await bot.start(os.environ["TOKEN"])
 
 

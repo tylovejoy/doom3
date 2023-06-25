@@ -21,6 +21,18 @@ class DatabaseConnection:
         await self.connection.close()
 
 
+class Acquire:
+    def __init__(self, *, pool: asyncpg.Pool) -> None:
+        self.pool: asyncpg.Pool = pool
+
+    async def __aenter__(self) -> asyncpg.Connection:
+        self._connection = c = await self.pool.acquire()
+        return c
+
+    async def __aexit__(self, *args) -> None:
+        await self.pool.release(self._connection)
+
+
 class DotRecord(asyncpg.Record):
     """Adds dot access to asyncpg.Record."""
 
@@ -32,7 +44,7 @@ class Database:
     """Handles all database transactions."""
 
     def __init__(self, conn: asyncpg.Pool):
-        self.logger: logging.Logger | None = None
+        # self.logger: logging.Logger | None = None
         self.pool = conn
 
     async def get(
@@ -54,8 +66,8 @@ class Database:
         if self.pool is None:
             raise utils.DatabaseConnectionError()
 
-        self.logger.debug(query)
-        self.logger.debug(args)
+        # self.logger.debug(query)
+        # self.logger.debug(args)
 
         async with self.pool.acquire() as conn:
             async with conn.transaction():
@@ -81,8 +93,8 @@ class Database:
         if self.pool is None:
             raise utils.DatabaseConnectionError()
 
-        self.logger.debug(query)
-        self.logger.debug(args)
+        # self.logger.debug(query)
+        # self.logger.debug(args)
 
         async with self.pool.acquire() as conn:
             async with conn.transaction():

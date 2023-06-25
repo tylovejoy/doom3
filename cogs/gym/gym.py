@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import cogs
+import database
 import utils
 from cogs.gym.utils import Units, OneRepMax, DuplicateExercise, ExerciseDoesntExist, BODY_PARTS, EQUIPMENT, \
     ExerciseTransformer
@@ -135,41 +136,54 @@ class Gym(commands.Cog):
         else:
             kg = weight
             lb = self._convert_kg_to_lb(weight)
-        await itx.client.database.set(
-            "INSERT INTO gym_records(user_id, exercise, value) "
-            "VALUES ($1, $2, $3) "
-            "ON CONFLICT (user_id, exercise)"
-            "DO UPDATE SET value=$3;",
-            itx.user.id,
-            exercise,
-            kg,
-        )
+        async with database.Acquire(pool=itx.client.pool) as con:
+            query = """
+                INSERT INTO gym_records(user_id, exercise, value)
+                VALUES ($1, $2, $3) 
+                ON CONFLICT (user_id, exercise)
+                DO UPDATE SET value=$3;
+            """
+            await con.execute(
+                query,
+                itx.user.id,
+                exercise,
+                kg,
+            )
         return f"{itx.user.mention} your {exercise} PR is set to {kg} kg / {lb} lb. <:_:1029045690829115402>"
 
     @staticmethod
     async def _reps_pr_submit(exercise: str, itx: DoomItx, value: float):
-        await itx.client.database.set(
-            "INSERT INTO gym_records(user_id, exercise, value) "
-            "VALUES ($1, $2, $3) "
-            "ON CONFLICT (user_id, exercise)"
-            "DO UPDATE SET value=$3;",
-            itx.user.id,
-            exercise,
-            int(value),
-        )
+        async with database.Acquire(pool=itx.client.pool) as con:
+            query = """
+                INSERT INTO gym_records(user_id, exercise, value)
+                VALUES ($1, $2, $3)
+                ON CONFLICT (user_id, exercise)
+                DO UPDATE SET value=$3;
+            """
+            await con.execute(
+                query,
+                itx.user.id,
+                exercise,
+                int(value),
+            )
+
         return f"{itx.user.mention} your {exercise} PR is set to {int(value)} reps. <:_:1029045690829115402>"
 
     @staticmethod
     async def _time_pr_submit(exercise: str, itx: DoomItx, value: float):
-        await itx.client.database.set(
-            "INSERT INTO gym_records(user_id, exercise, value) "
-            "VALUES ($1, $2, $3) "
-            "ON CONFLICT (user_id, exercise)"
-            "DO UPDATE SET value=$3;",
-            itx.user.id,
-            exercise,
-            value,
-        )
+        async with database.Acquire(pool=itx.client.pool) as con:
+            query = """
+                INSERT INTO gym_records(user_id, exercise, value) 
+                VALUES ($1, $2, $3) 
+                ON CONFLICT (user_id, exercise)
+                DO UPDATE SET value=$3;
+            """
+            await con.execute(
+                query,
+                itx.user.id,
+                exercise,
+                value,
+            )
         return f"{itx.user.mention} your {exercise} PR is set to {value} seconds. <:_:1029045690829115402>"
 
     @app_commands.command()
@@ -204,26 +218,24 @@ class Gym(commands.Cog):
 
         """
         await itx.response.defer(ephemeral=False)
+        async with database.Acquire(pool=itx.client.pool) as con:
+            query = """
+                SELECT * FROM gym_records WHERE exercise = $1 ORDER BY value DESC;
+            """
+            prs = await con.fetch(query, exercise)
 
-        prs = [
-            x
-            async for x in itx.client.database.get(
-                "SELECT * FROM gym_records WHERE exercise = $1 ORDER BY value DESC",
-                exercise,
-            )
-        ]
         category = itx.client.exercise_category_map[exercise]
         leaderboard = f"# {exercise} Leaderboard\n"
-        for i, x in enumerate(prs, start=1):
-            user_data = itx.client.all_users.get(x.user_id, {})
+        for position, record in enumerate(prs, start=1):
+            user_data = itx.client.all_users.get(record['user_id'], {})
             name = user_data.get("nickname", "Unknown User")
             if category == "Max":
-                lb = self._convert_kg_to_lb(float(x.value))
-                leaderboard += f"{i}. {name} - {x.value} kg / {lb} lb\n"
+                lb = self._convert_kg_to_lb(float(record['value']))
+                leaderboard += f"{position}. {name} - {record['value']} kg / {lb} lb\n"
             elif category == "Reps":
-                leaderboard += f"{i}. {name} - {int(x.value)} reps\n"
+                leaderboard += f"{position}. {name} - {int(record['value'])} reps\n"
             elif category == "Time":
-                leaderboard += f"{i}. {name} - {x.value} seconds\n"
+                leaderboard += f"{position}. {name} - {record['value']} seconds\n"
             else:
                 raise ExerciseDoesntExist
 

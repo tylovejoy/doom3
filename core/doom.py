@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import typing
 
+import asyncpg
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -20,15 +21,16 @@ if typing.TYPE_CHECKING:
 
 class Doom(commands.Bot):
     """Doom bot class inherited from commands.Bot."""
+    pool: asyncpg.Pool
 
     def __init__(
-        self, *, session: aiohttp.ClientSession, db: database.Database
+        self, *, session: aiohttp.ClientSession = None, db: database.Database = None
     ) -> None:
         super().__init__("?", intents=self._generate_intents(), help_command=None)
         self.session = session
         self.database = db
         self.logger = self._setup_logging()
-        self.database.logger = self.logger
+        # self.database.logger = self.logger
         # Caches
         self.map_names: list[str] | None = None
         self.map_types: list[str] | None = None
