@@ -87,9 +87,9 @@ class Tournament(commands.Cog):
             embed=embed,
             view=confirm,
         )
-        await view.wait()
+        await confirm.wait()
 
-        if not view.value:
+        if not confirm.value:
             return
 
         await self.insert_tournament_db(tournament)
