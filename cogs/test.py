@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
+import io
 import typing
 
+import imgkit
+
+import chat_exporter
 import discord
 from discord import app_commands
 from discord.app_commands import locale_str as _T
@@ -17,6 +22,128 @@ if typing.TYPE_CHECKING:
 
 
 class Test(commands.Cog):
+
+    @app_commands.command()
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    async def purge(
+        self,
+        itx: DoomItx,
+        count: int,
+        reason: str,
+        user_to_ignore_1: discord.Member | None,
+        user_to_ignore_2: discord.Member | None,
+        user_to_ignore_3: discord.Member | None,
+        user_to_ignore_4: discord.Member | None,
+        user_to_ignore_5: discord.Member | None,
+    ):
+        await itx.response.send_message("Purging.", ephemeral=True)
+        users = [user_to_ignore_1, user_to_ignore_2, user_to_ignore_3, user_to_ignore_4, user_to_ignore_5]
+        ignored = [u for u in users if u]
+
+        def check(m: discord.Message):
+            return m.author not in ignored
+
+        messages: list[discord.Message] = await itx.channel.purge(limit=count, check=check, before=itx.created_at, reason=reason)
+        print(messages)
+        applicable_users = set(u.author for u in messages)
+        users_str = [f"{u.name} ({u.id})" for u in applicable_users]
+        content = (
+            f"# {len(messages)} messages purged in {itx.channel.mention}\n"
+            f"**Issued by:** {itx.user}\n"
+            f"**Reason:** {reason}\n"
+            f"**Affected users:** {', '.join(users_str)}\n"
+        )
+        msg = await itx.guild.get_channel(860313850993836042).send(content)
+        thread = await msg.create_thread(name=f"Deleted Messages")
+        all_strings = []
+        current_string = ""
+
+        for i, message in enumerate(messages[::-1]):
+            formatted = f"**{message.author.display_name}:**\n{message.content}\n\n"
+            if len(current_string) + len(formatted) >= 2000 or i + 1 == len(messages):
+                if i + 1 == len(messages):
+                    current_string += formatted
+
+                all_strings.append(current_string)
+                current_string = ""
+
+            current_string += formatted
+
+        transcript = await chat_exporter.raw_export(
+            itx.channel,
+            messages=messages,
+            bot=itx.client,
+        )
+
+        if transcript is None:
+            return
+
+        transcript_file = discord.File(
+            io.BytesIO(transcript.encode()),
+            filename=f"transcript-{itx.channel.name}.html",
+        )
+        await thread.send(
+            "# This thread will never show images and some emojis among other non-text content. "
+            "Use this as a quick overview.\n\n"
+            "The attached file will display more information.",
+            file=transcript_file
+        )
+        for s in all_strings:
+            await thread.send(s)
+
+
+    @app_commands.command()
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    async def intervene(
+        self,
+        itx: DoomItx,
+        user: discord.Member,
+        reason: str,
+        user_2: discord.Member | None,
+        user_3: discord.Member | None,
+        user_4: discord.Member | None,
+        user_5: discord.Member | None,
+        user_6: discord.Member | None,
+        user_7: discord.Member | None,
+        user_8: discord.Member | None,
+        user_9: discord.Member | None,
+        user_10: discord.Member | None,
+    ):
+
+        await itx.response.send_message("Intervening.", ephemeral=True)
+
+        all_users = [user, user_2, user_3, user_4, user_5, user_6, user_7, user_8, user_9, user_10]
+        users = set(u for u in all_users if u)
+        users_str = [f"{u.name} ({u.id})" for u in users]
+
+        timeout_notice = (
+            "# 🛑 Timeout Notice 🛑\n\n"
+            "Hey {name},\n\n"
+            "We've noticed that things got a bit heated in the conversation, and it's important for all of us to "
+            "maintain a respectful and friendly environment. "
+            "To ensure a cool-off period and promote positive interactions, "
+            "you've been temporarily timed out from the chat.\n\n"
+            "Remember, disagreements are okay, but let's keep our discussions civil and "
+            "focused on understanding each other's viewpoints. Take this time to reflect, "
+            "and when the timeout ends, you're welcome to rejoin the conversation with a fresh perspective.\n\n"
+            "We appreciate your cooperation in creating a welcoming community for everyone.".format
+        )
+
+        for u in users:
+            await u.send(timeout_notice(name=u.name))
+            await u.timeout(
+                datetime.timedelta(hours=1),
+                reason=f"Cool off for an hour. {reason}"
+            )
+
+        content = (
+            f"# Intervened in {itx.channel.mention}\n"
+            f"**Issued by:** {itx.user}\n"
+            f"**Reason:** {reason}\n"
+            f"**Affected users:** {', '.join(users_str)}\n"
+        )
+        await itx.guild.get_channel(860313850993836042).send(content)
+
     @commands.command()
     @commands.guild_only()
     @commands.is_owner()

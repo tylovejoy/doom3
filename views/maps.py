@@ -77,6 +77,8 @@ all_map_constants = [
     MapMetadata("Framework", discord.Color.from_str("#000000")),
     MapMetadata("Tools", discord.Color.from_str("#000000")),
     MapMetadata("Talantis", discord.Color.from_str("#1AA7EC")),
+    MapMetadata("Suravasa", discord.Color.from_str("#81EBE0")),
+    MapMetadata("New Junk City", discord.Color.from_str("#EC9D00")),
 ]
 
 MAP_DATA: dict[str, MapMetadata] = {const.NAME: const for const in all_map_constants}
@@ -152,6 +154,11 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         await view.wait()
         if not view.value:
             return
+
+        if image := self.data.get("image", None):
+            image: discord.File = await image.to_file(filename="image.png")
+
+
         await itx.client.database.set(
             (
                 "INSERT INTO maps "
@@ -186,13 +193,15 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         )
         embed.title = f"New Map by {self.data['creator_name']}"
         embed.remove_field(0)
-        try:
-            image: discord.Attachment = self.data["image"]
-            if image:
-                embed.set_image(url=image.url)
-        except Exception as e:
-            print(e)
-        new_map = await itx.guild.get_channel(utils.NEW_MAPS).send(embed=embed)
+
+        new_map = await itx.guild.get_channel(utils.NEW_MAPS).send(embed=embed, file=image)
+
+        await itx.client.database.set(
+            "UPDATE maps SET image = $2 WHERE map_code = $1;",
+            self.data["map_code"],
+            new_map.attachments[0].url,
+        )
+
         await new_map.create_thread(name=f"Discuss {self.data['map_code']} here.")
         map_maker = itx.guild.get_role(746167804121841744)
         if map_maker not in itx.user.roles:

@@ -147,7 +147,7 @@ class Records(commands.Cog):
         self,
         itx: DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeRecordsTransformer],
-        level_name: app_commands.Transform[str, utils.MapLevelTransformer],
+        level_name: app_commands.Transform[str, utils.MapLevelTransformer] | None,
         verified: bool | None = False,
     ) -> None:
         await itx.response.defer(ephemeral=True)
@@ -220,7 +220,7 @@ class Records(commands.Cog):
                        LEFT JOIN maps m on m.map_code = r.map_code) as ranks
         WHERE map_code = $1
           AND ($4::boolean IS FALSE OR video is not null)
-          AND ($2::boolean IS NOT NULL OR rank_num = 1)
+          AND ($2::boolean IS NOT FALSE OR rank_num = 1)
           AND ($3::text IS NULL OR level_name = $3)
           AND latest = 1
           AND verified = TRUE

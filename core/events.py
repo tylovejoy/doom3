@@ -165,7 +165,7 @@ class BotEvents(commands.Cog):
         )
 
         count += 1
-        if count < 5:
+        if count < 10:
             return
 
         content = f"{count} {self.upper_emoji_converter(count)} <#{payload.channel_id}>"
