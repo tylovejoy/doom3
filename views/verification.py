@@ -69,6 +69,12 @@ class VerificationView(discord.ui.View):
             )
         else:
             data = self.rejected(itx, row, rejection)
+            await itx.client.database.set(
+                "DELETE FROM records WHERE user_id = $1 AND map_code = $2 AND level_name = $3",
+                row.user_id,
+                row.map_code,
+                row.level_name,
+            )
         await original_message.edit(content=data["edit"])
         if await itx.client.database.fetchval(
             "SELECT alertable FROM users WHERE user_id=$1",
