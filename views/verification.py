@@ -135,12 +135,14 @@ class VerificationView(discord.ui.View):
                 f"{utils.HALF_VERIFIED} Partial verification by {itx.user.mention}! "
                 f"No video proof supplied."
             )
+        message = itx.guild.get_channel(search.channel_id).get_partial_message(search.message_id)
         return {
             "edit": edit,
             "direct_message": (
                 f"**Map Code:** {search.map_code}\n"
+                f"**Level:** {search.level_name}\n"
                 + record
-                + f"verified by {itx.user.mention}!\n\n"
+                + f"\nVerified by {itx.user.mention}!\n{message.jump_url}\n\n"
                 + ALERT
             ),
         }
