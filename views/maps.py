@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from core import DoomItx
 
 
-_MAPS_BASE_URL = "http://207.244.249.145/assets/images/map_banners/"
+domain_MAPS_BASE_URL = "https://bkan0n.com/assets/images/map_banners/"
 
 
 @dataclass
@@ -79,6 +79,7 @@ all_map_constants = [
     MapMetadata("Talantis", discord.Color.from_str("#1AA7EC")),
     MapMetadata("Suravasa", discord.Color.from_str("#81EBE0")),
     MapMetadata("New Junk City", discord.Color.from_str("#EC9D00")),
+    MapMetadata("Samoa", discord.Color.from_str("#F9FF57")),
 ]
 
 MAP_DATA: dict[str, MapMetadata] = {const.NAME: const for const in all_map_constants}
@@ -196,11 +197,12 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
 
         new_map = await itx.guild.get_channel(utils.NEW_MAPS).send(embed=embed, file=image)
 
-        await itx.client.database.set(
-            "UPDATE maps SET image = $2 WHERE map_code = $1;",
-            self.data["map_code"],
-            new_map.attachments[0].url,
-        )
+        if new_map.attachments:
+            await itx.client.database.set(
+                "UPDATE maps SET image = $2 WHERE map_code = $1;",
+                self.data["map_code"],
+                new_map.attachments[0].url,
+            )
 
         await new_map.create_thread(name=f"Discuss {self.data['map_code']} here.")
         map_maker = itx.guild.get_role(746167804121841744)

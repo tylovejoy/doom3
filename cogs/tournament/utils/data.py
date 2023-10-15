@@ -39,8 +39,8 @@ def base_embed(
     embed = utils.DoomEmbed(
         title="Doomfist Parkour Tournament",
         description=description,
-        thumbnail="http://207.244.249.145/assets/images/icons/gold_cup.png",
-        image=f"http://207.244.249.145/assets/images/icons/tournament_{embed_type}_banner.png",
+        thumbnail="https://bkan0n.com/assets/images/icons/gold_cup.png",
+        image=f"https://bkan0n.com/assets/images/icons/tournament_{embed_type}_banner.png",
         color=discord.Color.gold(),
     )
     return embed
@@ -52,10 +52,10 @@ def leaderboard_embed(
     embed = base_embed(description=description, embed_type="leaderboard")
     if rank:
         embed.set_thumbnail(
-            url=f"http://207.244.249.145/assets/images/icons/{rank.lower()}.png"
+            url=f"https://bkan0n.com/assets/images/icons/{rank.lower()}.png"
         )
     embed.set_image(
-        url=f"http://207.244.249.145/assets/images/tournament/{category.lower().replace(' ', '_')}.png"
+        url=f"https://bkan0n.com/assets/images/tournament/{category.lower().replace(' ', '_')}.png"
     )
 
     embed.colour = discord.Color.from_str(category_color[category])

@@ -85,11 +85,11 @@ class OrgCommands(commands.Cog):
             raise ModalError
 
         if not thumbnail:
-            thumbnail = "http://207.244.249.145/assets/images/icons/gold_cup.png"
+            thumbnail = "https://bkan0n.com/assets/images/icons/gold_cup.png"
         else:
             thumbnail = thumbnail.url
         if not image:
-            image = "http://207.244.249.145/assets/images/icons/tournament_announcement_banner.png"
+            image = "https://bkan0n.com/assets/images/icons/tournament_announcement_banner.png"
         else:
             image = image.url
 
