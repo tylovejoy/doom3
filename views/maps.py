@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from core import DoomItx
 
 
-domain_MAPS_BASE_URL = "https://bkan0n.com/assets/images/map_banners/"
+_MAPS_BASE_URL = "https://bkan0n.com/assets/images/map_banners/"
 
 
 @dataclass
