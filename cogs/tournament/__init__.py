@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing
 
 from .leaderboard import TournamentLeaderboards
+from .map_contest import MapContest
 from .missions import Missions
 from .org_commands import OrgCommands
 
@@ -19,3 +20,4 @@ async def setup(bot: core.Doom):
     await bot.add_cog(TournamentLeaderboards(bot))
     await bot.add_cog(Missions(bot))
     await bot.add_cog(OrgCommands(bot))
+    await bot.add_cog(MapContest(bot))
