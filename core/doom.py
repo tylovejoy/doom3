@@ -55,7 +55,7 @@ class Doom(commands.Bot):
         self.insults: list[str] | None = None
 
         self.current_tournament: TournamentData | None = None
-
+        self.current_season: int | None = None
         self.persistent_views_added = False
 
     async def setup_hook(self) -> None:

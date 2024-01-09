@@ -7,11 +7,13 @@ from typing import TYPE_CHECKING
 
 import discord
 from discord import app_commands
+from discord.app_commands import Transform
 from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 
 import utils
 import views
+from cogs.tournament.utils.transformers import SeasonsTransformer, seasons_autocomplete
 
 if TYPE_CHECKING:
     import core
@@ -97,21 +99,22 @@ class RankCard(commands.Cog):
                     ],
                 )
 
-    @staticmethod
-    async def _get_card_data(itx: core.DoomItx, user: discord.Member):
-        return await itx.client.database.get_one(
-            """
-                WITH all_users AS (SELECT u.user_id,
+    async def _get_card_data(self, itx: core.DoomItx, user: discord.Member):
+        season = self.bot.current_season
+        if season is None:
+            raise RuntimeError("Season not set")
+        query = """
+            WITH all_users AS (SELECT u.user_id,
                                           coalesce(xp, 0) as xp, nickname
                                    FROM user_xp ux
-                                            RIGHT JOIN users u ON ux.user_id = u.user_id),
-                     all_positions as (SELECT user_id, nickname,
+                                        RIGHT JOIN users u ON ux.user_id = u.user_id WHERE season = $2),
+                 all_positions as (SELECT user_id, nickname,
                                               xp,
                                               rank() OVER (
                                                   ORDER BY xp DESC
                                                   ) AS pos
                                        FROM all_users),
-                     ranks AS (SELECT u.user_id,
+                 ranks AS (SELECT u.user_id,
                                       COALESCE((SELECT value
                                                 FROM user_ranks
                                                 WHERE category = 'Time Attack'
@@ -147,9 +150,8 @@ class RankCard(commands.Cog):
                 
                 WHERE all_positions.user_id = $1
                 GROUP BY all_positions.user_id, xp, pos, "Time Attack", "Mildcore", "Hardcore", "Bonus", wins, losses, nickname
-            """,
-            user.id,
-        )
+        """
+        return await itx.client.database.get_one(query, user.id, season)
 
     def _create_card(self, avatar_binary, search, user):
         name = f"{user.name[:18]}#{user.discriminator}"
@@ -268,20 +270,28 @@ class RankCard(commands.Cog):
         img = img.resize((width // 2, height // 2))
         return img
 
-    @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
-    )
-    async def xp_leaderboard(self, itx: core.DoomItx):
+@app_commands.command()
+@app_commands.guilds(
+    discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
+)
+@app_commands.autocomplete(season=seasons_autocomplete)
+async def xp_leaderboard(
+    self,
+    itx: core.DoomItx,
+    season: Transform[str, SeasonsTransformer] | None = None,
+):
+        if season is None:
+            season = self.bot.current_season
         query = """
             SELECT nickname, xp, rank() over(order by xp DESC)
             FROM user_xp LEFT JOIN users u on user_xp.user_id = u.user_id 
+            WHERE season = $1
             ORDER BY xp DESC
         """
         await itx.response.defer(ephemeral=True)
-        embed = utils.DoomEmbed(title="XP Leaderboard")
+        embed = utils.DoomEmbed(title=f"XP Leaderboard - {season}")
         embed_list = []
-        records = [row async for row in itx.client.database.get(query)]
+        records = [row async for row in itx.client.database.get(query, season)]
 
         for i, record in enumerate(records):
             embed.add_field(
@@ -292,7 +302,9 @@ class RankCard(commands.Cog):
             if utils.split_nth_conditional(i, 9, records):
                 embed_list.append(embed)
                 embed = utils.DoomEmbed(title="XP Leaderboard")
-
+        if not embed_list:
+            await itx.edit_original_response(content="The XP Leaderboard for this season is currently empty.")
+            return
         view = views.Paginator(embed_list, itx.user)
         await view.start(itx)
 

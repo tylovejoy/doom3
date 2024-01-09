@@ -30,6 +30,14 @@ category_color = {
 }
 
 
+class SeasonData(typing.TypedDict):
+    name: str
+    active: bool
+
+
+Seasons: typing.TypeAlias = dict[int, SeasonData]
+
+
 def base_embed(
     description: str,
     embed_type: Literal[

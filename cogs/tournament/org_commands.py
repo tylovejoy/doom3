@@ -16,6 +16,7 @@ from cogs.tournament.views.announcement import (
     TournamentAnnouncementModal,
     TournamentRolesDropdown,
 )
+from cogs.tournament.views.seasons import SeasonManager
 from utils import DoomEmbed
 
 if TYPE_CHECKING:
@@ -26,10 +27,20 @@ class OrgCommands(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
 
-    @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
+    org = app_commands.Group(
+        name="org",
+        description="org only commands",
+        guild_ids=[195387617972322306, utils.GUILD_ID],
     )
+
+    async def cog_load(self) -> None:
+        query = "SELECT number FROM tournament_seasons WHERE active = TRUE ORDER BY number DESC LIMIT 1"
+        res = await self.bot.database.fetchval(query)
+        if not res:
+            raise RuntimeError("No tournament season found... Stopping bot.")
+        self.bot.current_season = res
+
+    @org.command()
     async def change_rank(
         self,
         itx: core.DoomItx,
@@ -49,29 +60,23 @@ class OrgCommands(commands.Cog):
             content=f"{member.mention}'s {category} rank was changed to {rank}"
         )
 
-    @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @org.command()
     async def xp(self, itx: core.DoomItx, member: discord.Member, xp: int):
         await itx.response.defer(ephemeral=True)
         query = """
-                    INSERT INTO user_xp (user_id, xp) 
-                    VALUES ($1, $2)
-                    ON CONFLICT (user_id) DO UPDATE 
-                    SET xp = user_xp.xp + EXCLUDED.xp
-                    RETURNING user_xp.xp
-                """
+            INSERT INTO user_xp (user_id, xp, season) 
+            VALUES ($1, $2)
+            ON CONFLICT (user_id, season) DO UPDATE 
+            SET xp = user_xp.xp + EXCLUDED.xp
+            RETURNING user_xp.xp
+        """
         total = await itx.client.database.set_return_val(query, member.id, xp)
         pre_total = total - xp
         await itx.edit_original_response(
             content=f"{member.mention} was given {xp} XP. \nNew total: {total}\n Previous total: {pre_total}."
         )
 
-    @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @org.command()
     async def announcement(
         self,
         itx: core.DoomItx,
@@ -114,3 +119,16 @@ class OrgCommands(commands.Cog):
             [itx.guild.get_role(role_map[x]).mention for x in select.values]
         )
         await itx.guild.get_channel(ANNOUNCEMENTS).send(mentions, embed=embed)
+
+    @org.command()
+    async def season_manager(
+        self,
+        itx: core.DoomItx,
+    ):
+        await itx.response.defer(ephemeral=True)
+        query = "SELECT * FROM tournament_seasons ORDER BY number;"
+        data = {row['number']: {"name": row['name'], "active": row['active']} async for row in self.bot.database.get(query)}
+        view = SeasonManager(itx, data)
+        await itx.edit_original_response(view=view)
+        await view.wait()
+
