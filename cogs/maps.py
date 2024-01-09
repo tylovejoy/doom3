@@ -237,7 +237,7 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.map_search)
     @app_commands.describe(**utils.map_search_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
     async def map_search(
         self,
         itx: DoomItx,

@@ -142,7 +142,7 @@ class Records(commands.Cog):
 
     @app_commands.command(**utils.leaderboard)
     @app_commands.describe(**utils.leaderboard_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
     async def view_records(
         self,
         itx: DoomItx,
@@ -254,7 +254,7 @@ class Records(commands.Cog):
 
     @app_commands.command(**utils.personal_records)
     @app_commands.describe(**utils.personal_records_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
     async def personal_records_slash(
         self,
         itx: DoomItx,
