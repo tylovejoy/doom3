@@ -13,6 +13,36 @@ if typing.TYPE_CHECKING:
 import datetime
 
 
+class SeasonsTransformer(app_commands.Transformer):
+
+    async def transform(self, itx: core.DoomItx, value: str) -> int:
+        try:
+            value = int(value)
+            return value
+        except ValueError:
+            pass
+
+        query = "SELECT name, number FROM tournament_seasons;"
+        values = {x['name']: x['number'] async for x in itx.client.database.get(query)}
+        if value not in values:
+            value = utils.fuzz_(value, values)
+        return values[value]
+
+    async def autocomplete(
+        self, itx: core.DoomItx, value: str
+    ) -> list[app_commands.Choice[str]]:
+        query = "SELECT name, number FROM tournament_seasons ORDER BY similarity(name, $1::text) DESC LIMIT 12;"
+
+        rows = [x async for x in itx.client.database.get(query, value)]
+        choices = [
+            app_commands.Choice(
+                name=f"{row['name']} (ID {row['number']})", value=row['name']
+            ) for row in rows
+        ]
+        return choices
+
+
+
 class DateTransformer(app_commands.Transformer):
     async def transform(
         self, interaction: core.DoomItx, value: str
