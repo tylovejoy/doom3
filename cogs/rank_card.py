@@ -270,16 +270,16 @@ class RankCard(commands.Cog):
         img = img.resize((width // 2, height // 2))
         return img
 
-@app_commands.command()
-@app_commands.guilds(
-    discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
-)
-@app_commands.autocomplete(season=seasons_autocomplete)
-async def xp_leaderboard(
-    self,
-    itx: core.DoomItx,
-    season: Transform[str, SeasonsTransformer] | None = None,
-):
+    @app_commands.command()
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
+    )
+    @app_commands.autocomplete(season=seasons_autocomplete)
+    async def xp_leaderboard(
+        self,
+        itx: core.DoomItx,
+        season: Transform[str, SeasonsTransformer] | None = None,
+    ):
         if season is None:
             season = self.bot.current_season
         query = """
