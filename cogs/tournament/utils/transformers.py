@@ -28,18 +28,17 @@ class SeasonsTransformer(app_commands.Transformer):
             value = utils.fuzz_(value, values)
         return values[value]
 
+    async def autocomplete(
+        self, itx: core.DoomItx, value: str
+    ) -> list[app_commands.Choice[str]]:
+        query = "SELECT name, number FROM tournament_seasons ORDER BY similarity(name, $1::text) DESC LIMIT 12;"
 
-async def seasons_autocomplete(
-    itx: core.DoomItx, value: str
-) -> list[app_commands.Choice[str]]:
-    query = "SELECT name, number FROM tournament_seasons ORDER BY similarity(name, $1::text) DESC LIMIT 12;"
-
-    choices = [
-        app_commands.Choice(
-            name=f"{row['name']} (ID {row['number']})", value=row['name']
-        ) async for row in itx.client.database.get(query, value)
-    ]
-    return choices
+        choices = [
+            app_commands.Choice(
+                name=f"{row['name']} (ID {row['number']})", value=row['name']
+            ) async for row in itx.client.database.get(query, value)
+        ]
+        return choices
 
 
 

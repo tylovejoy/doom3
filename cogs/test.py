@@ -199,19 +199,21 @@ class Test(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def xx(self, ctx: DoomCtx):
-        # msg = await ctx.send("starting")
-        # thread = await ctx.channel.create_thread(name="Test", message=msg)
-        map_name = "Petra"
-        embed = utils.DoomEmbed(
-            title="Map Submission - Confirmation",
+        embed = discord.Embed(
+            title="Tournament Information",
             description=(
-                f">>> ` Code ` FAKEST\n"
-                f"`  Map ` {map_name}\n"
-                f"` Type ` Multilevel, Hardcore\n"
-            ),
-            color=MAP_DATA.get(map_name, discord.Color.from_str("#000000")).COLOR,
-            image=MAP_DATA.get(map_name, None).IMAGE_URL,
-            thumbnail=ctx.bot.user.display_avatar.url,
+                "# Basics"
+                "To be able to take part in these tournaments, "
+                "use the role selector in this channel to get the roles you want for the tournament.\n"
+                "You can ask any questions you have in <#698004781188382811>.\n\n"
+                "At the start of each tournament, which will be announced in <#774436274542739467>, "
+                "you will get **up to four** different levels that you can play to win XP from the tournament.\n"
+                "- Time Attack (speedrunning easy levels)\n"
+                "- Mildcore (speedrunning levels that are not too hard but not too easy)\n"
+                "- Hardcore (speedrunning hard levels)\n"
+                "- Bonus (speedrunning a level that isn't only about Doomfist)\n\n"
+                "Click the buttons below to learn more."
+            )
         )
         await ctx.send(embed=embed)
 

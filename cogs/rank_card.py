@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 import utils
 import views
-from cogs.tournament.utils.transformers import SeasonsTransformer, seasons_autocomplete
+from cogs.tournament.utils.transformers import SeasonsTransformer
 
 if TYPE_CHECKING:
     import core
@@ -274,7 +274,6 @@ class RankCard(commands.Cog):
     @app_commands.guilds(
         discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
     )
-    @app_commands.autocomplete(season=seasons_autocomplete)
     async def xp_leaderboard(
         self,
         itx: core.DoomItx,

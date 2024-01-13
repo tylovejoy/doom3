@@ -16,6 +16,7 @@ from cogs.tournament.views.announcement import (
     TournamentAnnouncementModal,
     TournamentRolesDropdown,
 )
+from cogs.tournament.views.info import all_info_embeds, TournamentInfoView
 from cogs.tournament.views.seasons import SeasonManager
 from utils import DoomEmbed
 
@@ -33,12 +34,37 @@ class OrgCommands(commands.Cog):
         guild_ids=[195387617972322306, utils.GUILD_ID],
     )
 
+    @commands.command()
+    @commands.is_owner()
+    async def xxy(self, ctx):
+        embed = discord.Embed(
+            title="",
+            description=(
+                "# Tournament Information\n"
+                "## Basics\n"
+                "To be able to take part in these tournaments, "
+                "use the role selector in this channel to get the roles you want for the tournament.\n"
+                "You can ask any questions you have in <#698004781188382811>.\n\n"
+                "At the start of each tournament, which will be announced in <#774436274542739467>, "
+                "you will get **up to four** different levels that you can play to win XP from the tournament.\n"
+                "- Time Attack (speedrunning easy levels)\n"
+                "- Mildcore (speedrunning levels that are not too hard but not too easy)\n"
+                "- Hardcore (speedrunning hard levels)\n"
+                "- Bonus (speedrunning a level that isn't only about Doomfist)\n\n"
+                "Click the buttons below to learn more."
+            )
+        )
+        view = TournamentInfoView(all_info_embeds)
+        await ctx.send(embed=embed, view=view)
+
     async def cog_load(self) -> None:
         query = "SELECT number FROM tournament_seasons WHERE active = TRUE ORDER BY number DESC LIMIT 1"
         res = await self.bot.database.fetchval(query)
         if not res:
             raise RuntimeError("No tournament season found... Stopping bot.")
         self.bot.current_season = res
+
+        self.bot.add_view(TournamentInfoView(all_info_embeds))
 
     @org.command()
     async def change_rank(

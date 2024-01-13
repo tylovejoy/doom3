@@ -130,7 +130,7 @@ class MapContest(commands.Cog):
     @app_commands.guilds(
         discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
     )
-    async def view_users(
+    async def delete_map(
         self,
         itx: core.DoomItx,
         map_code: app_commands.Transform[str, utils.MapCodeTransformer],
