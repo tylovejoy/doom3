@@ -90,8 +90,10 @@ class MapContest(commands.Cog):
         await itx.response.defer()
         tournament = self.bot.current_tournament
         if not tournament:
-            await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
-            return
+            query = "SELECT MAX(id) FROM tournament"
+            tournament = self.bot.database.fetchval(query)
+            # await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
+            # return
 
         query = "SELECT map_code, user_id FROM map_contest WHERE tournament_id = $1"
         rows = [f"`{r['map_code']}`" async for r in self.bot.database.get(query, tournament.id)]
@@ -114,8 +116,10 @@ class MapContest(commands.Cog):
         await itx.response.defer()
         tournament = self.bot.current_tournament
         if not tournament:
-            await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
-            return
+            query = "SELECT MAX(id) FROM tournament"
+            tournament = self.bot.database.fetchval(query)
+            # await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
+            # return
 
         query = "SELECT user_id, map_code FROM map_contest WHERE tournament_id = $1"
         users = itx.client.all_users

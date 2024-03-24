@@ -14,6 +14,7 @@ from PIL import Image, ImageDraw, ImageFont
 import utils
 import views
 from cogs.tournament.utils.transformers import SeasonsTransformer
+from utils import NoDataOnCurrentSeason
 
 if TYPE_CHECKING:
     import core
@@ -25,6 +26,7 @@ LOGO_FILE_PATH = {
     "Diamond": "data/ranks/diamond.png",
     "Grandmaster": "data/ranks/grandmaster.png",
 }
+
 
 
 class RankCard(commands.Cog):
@@ -82,6 +84,8 @@ class RankCard(commands.Cog):
             user = itx.user
 
         search = await self._get_card_data(itx, user)
+        if not search:
+            raise NoDataOnCurrentSeason
 
         with io.BytesIO() as avatar_binary:
             await user.display_avatar.save(fp=avatar_binary)

@@ -69,6 +69,7 @@ class TournamentSubmissions(commands.Cog):
         record: float,
         category: Category,
     ):
+        await itx.response.defer()
         tournament_id = await self.get_tournament_id()
         if not tournament_id:
             raise TournamentNotActiveError
@@ -87,10 +88,10 @@ class TournamentSubmissions(commands.Cog):
         )
 
         view = views.Confirm(itx, confirm_msg="")
-        await itx.response.send_message(
-            f"{itx.user.mention}, is this correct?",
+        await itx.edit_original_response(
+            content=f"{itx.user.mention}, is this correct?",
             embed=embed,
-            file=await screenshot.to_file(filename="image.png"),
+            attachments=[await screenshot.to_file(filename="image.png")],
             view=view,
         )
         await view.wait()

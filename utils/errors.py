@@ -117,6 +117,10 @@ class NoExercisesFound(BaseParkourException, app_commands.errors.AppCommandError
     """No exercises match the given filters."""
 
 
+class NoDataOnCurrentSeason(BaseParkourException):
+    """No data found for this user during the selected season."""
+
+
 async def on_app_command_error(
     itx: DoomItx, error: app_commands.errors.CommandInvokeError
 ):

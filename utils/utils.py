@@ -159,15 +159,15 @@ async def end_tournament(data: TournamentData):
     )
 
     xp = await ExperienceCalculator(data).compute_xp()
-    users_xp = [(k, v["Total XP"]) for k, v in xp.items()]
+    users_xp = [(k, v["Total XP"], data.client.current_season) for k, v in xp.items()]
     query = """
         INSERT INTO user_xp (user_id, xp, season) 
-        VALUES ($1, $2)
-        ON CONFLICT (user_id) DO UPDATE 
+        VALUES ($1, $2, $3)
+        ON CONFLICT (user_id, season) DO UPDATE 
         SET xp = user_xp.xp + EXCLUDED.xp
         RETURNING user_xp.xp
     """
-    await data.client.database.set_many(query, users_xp, data.client.current_season)
+    await data.client.database.set_many(query, users_xp)
 
     await SpreadsheetCreator(data, xp).create()
 
