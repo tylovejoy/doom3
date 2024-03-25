@@ -47,6 +47,26 @@ class Database:
         # self.logger: logging.Logger | None = None
         self.pool = conn
 
+    async def fetch(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
+        _connection = connection or self.pool
+        await _connection.fetch(query, *args)
+
+    async def fetchval(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
+        _connection = connection or self.pool
+        await _connection.fetchval(query, *args)
+
+    async def fetchrow(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
+        _connection = connection or self.pool
+        await _connection.fetchrow(query, *args)
+
+    async def execute(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
+        _connection = connection or self.pool
+        await _connection.execute(query, *args)
+
+    async def executemany(self, query: str, args: typing.Iterable[typing.Any], connection: asyncpg.Connection | asyncpg.Pool | None = None):
+        _connection = connection or self.pool
+        await _connection.executemany(query, args)
+
     async def get(
         self,
         query: str,
