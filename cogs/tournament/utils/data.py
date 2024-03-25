@@ -156,13 +156,7 @@ class TournamentData:
 
     @property
     def mention_ids(self) -> list[int]:
-        trifecta = []
-        if (
-            "Time Attack" in self.map_data
-            and "Mildcore" in self.map_data
-            and "Hardcore" in self.map_data
-        ):
-            trifecta.append(role_map["Trifecta"])
+        trifecta = [role_map["Trifecta"]]
         base = [role_map[cat] for cat in Category.all() if cat in self.map_data]
         return base + trifecta
 

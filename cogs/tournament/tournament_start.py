@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 import typing
 
+import asyncpg
 import discord
 from discord import EntityType, PrivacyLevel, app_commands
 from discord.ext import commands
@@ -40,6 +41,11 @@ class Tournament(commands.Cog):
         end: app_commands.Transform[datetime.datetime, DateTransformer],
     ):
         await itx.response.defer(ephemeral=True)
+
+        exists = await self._check_tournament_exists()
+        if exists:
+            raise TournamentAlreadyExists
+
         end = end - discord.utils.utcnow() + start
 
         view = TournamentStartView(itx)
@@ -92,9 +98,10 @@ class Tournament(commands.Cog):
         if not confirm.value:
             return
 
-        await self.insert_tournament_db(tournament)
-
-        await self.create_discord_event(itx, tournament)
+        async with self.bot.database.pool.acquire() as con:
+            async with con.transaction():
+                await self.insert_tournament_db(tournament, con)
+                await self.create_discord_event(itx, tournament)
 
     @staticmethod
     async def create_discord_event(itx: core.DoomItx, tournament: TournamentData):
@@ -126,36 +133,36 @@ class Tournament(commands.Cog):
                 data[cat[0]] = cat[1]
         return data
 
-    async def insert_tournament_db(self, data: TournamentData):
-        if bool(
-            await self.bot.database.get_one(
-                'SELECT * FROM tournament WHERE start > now() or "end" > now()'
-            )
-        ):
-            raise TournamentAlreadyExists
+    async def _check_tournament_exists(self):
+        query = "SELECT 1 FROM tournament WHERE start > now() or \"end\" > now()"
+        return await self.bot.database.fetchval(query)
 
-        data.id = await self.bot.database.set_return_val(
-            """
-            INSERT INTO tournament (start, "end", active, bracket)
+    async def insert_tournament_db(self, data: TournamentData, connection: asyncpg.Connection):
+        query = """
+        INSERT INTO tournament (start, "end", active, bracket)
             VALUES ($1, $2, $3, $4)
             RETURNING id
-            """,
+        """
+
+        data.id = await self.bot.database.fetchval(
+            query,
             data.start,
             data.end,
             False,
             data.bracket,
+            connection=connection,
         )
 
-        await self.bot.database.set_many(
-            """
-                INSERT INTO tournament_maps (id, code, level, creator, category)
+        query = """
+            INSERT INTO tournament_maps (id, code, level, creator, category)
                 VALUES ($1, $2, $3, $4, $5)
-            """,
-            [
-                (data.id, v["code"], v["level"], v["creator"], k)
-                for k, v in data.map_data.items()
-            ],
-        )
+        """
+        args = [
+            (data.id, v["code"], v["level"], v["creator"], k)
+            for k, v in data.map_data.items()
+        ]
+        await self.bot.database.executemany(query, args, connection=connection)
+
         self.bot.current_tournament = data
 
         start_tournament_task.change_interval(time=data.start.time())
