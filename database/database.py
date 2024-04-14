@@ -53,7 +53,7 @@ class Database:
 
     async def fetchval_(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
         _connection = connection or self.pool
-        await _connection.fetchval(query, *args)
+        return await _connection.fetchval(query, *args)
 
     async def fetchrow(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
         _connection = connection or self.pool
