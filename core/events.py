@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import typing
 
+import asyncpg
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -107,11 +108,11 @@ class BotEvents(commands.Cog):
         ):
             return
 
-        query = """SELECT user_id, hidden_id FROM records WHERE message_id = $1;"""
-        row = await self.bot.database.get_one(query, payload.message_id)
+        query = "SELECT user_id, hidden_id FROM records WHERE message_id = $1;"
+        row: asyncpg.Record = await self.bot.database.fetchrow(query, payload.message_id)
 
-        is_record = bool(row.user_id)
-        is_record_queue = bool(row.hidden_id)
+        is_record = bool(row.get("user_id", None))
+        is_record_queue = bool(row.get("hidden_id", None))
 
         if not (is_record or is_record_queue):
             return
