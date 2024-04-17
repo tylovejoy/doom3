@@ -12,6 +12,7 @@ import views
 
 if TYPE_CHECKING:
     from core import DoomItx
+    import asyncpg
 
 
 _MAPS_BASE_URL = "https://bkan0n.com/assets/images/map_banners/"
@@ -158,30 +159,23 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
 
         if image := self.data.get("image", None):
             image: discord.File = await image.to_file(filename="image.png")
-
-
-        await itx.client.database.set(
-            (
-                "INSERT INTO maps "
-                '(map_name, map_type, map_code, "desc", image) '
-                "VALUES ($1, $2, $3, $4, $5); "
-            ),
-            self.data["map_name"],
-            map_types,
-            self.data["map_code"],
-            self.desc.value,
-            getattr(self.data["image"], "url", None),
-        )
-        await itx.client.database.set(
-            "INSERT INTO map_creators (map_code, user_id) VALUES ($1, $2); ",
-            self.data["map_code"],
-            itx.user.id,
-        )
-        await itx.client.database.set_many(
-            "INSERT INTO map_levels (map_code, level) VALUES ($1, $2)",
-            [(self.data["map_code"], x) for x in levels],
-        )
-
+        try:
+            async with itx.client.database.pool.acquire() as con:
+                con: asyncpg.Connection
+                async with con.transaction():
+                    await self._set_map_data(
+                        con,
+                        self.data["map_name"],
+                        map_types,
+                        self.data["map_code"],
+                        self.desc.value,
+                        getattr(self.data["image"], "url", None),
+                    )
+                    await self._set_map_creator(con, self.data["map_code"], itx.user.id)
+                    await self._set_map_levels(con, self.data["map_code"], levels)
+        except Exception as e:
+            await itx.followup.send("There was an error submitting the map. Try again later.")
+            return
         # Cache data
         itx.client.map_cache[self.data["map_code"]] = utils.MapCacheData(
             levels=levels,
@@ -221,6 +215,44 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
             "`/map-maker level edit`\n"
         )
         await itx.user.send(reminder)
+
+    @staticmethod
+    async def _set_map_data(
+        connection: asyncpg.Connection,
+        map_name: str,
+        map_types: list[str],
+        map_code: str,
+        description: str,
+        image_url: str,
+    ):
+        query = """
+            INSERT INTO maps 
+            (map_name, map_type, map_code, "desc", image) 
+            VALUES ($1, $2, $3, $4, $5); 
+        """
+        await connection.execute(
+            query,
+            map_name,
+            map_types,
+            map_code,
+            description,
+            image_url,
+        )
+
+    @staticmethod
+    async def _set_map_creator(connection: asyncpg.Connection, map_code: str, user_id: int):
+        query = "INSERT INTO map_creators (map_code, user_id) VALUES ($1, $2);"
+        await connection.execute(
+            query,
+            map_code,
+            user_id,
+        )
+
+    @staticmethod
+    async def _set_map_levels(connection: asyncpg.Connection, map_code: str, levels: list[str]):
+        query = "INSERT INTO map_levels (map_code, level) VALUES ($1, $2);"
+        _levels = [(map_code, level_name) for level_name in levels]
+        await connection.executemany(query, _levels)
 
 
 class MapTypeSelect(discord.ui.Select):
