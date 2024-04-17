@@ -124,7 +124,7 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
             return
         map_types = [x for x in view.map_type.values]
         levels = list(
-            map(str.strip, filter(lambda x: bool(x), self.levels.value.split("\n")))
+            set(map(str.strip, filter(lambda x: bool(x), self.levels.value.split("\n"))))
         )
 
         description = ""
