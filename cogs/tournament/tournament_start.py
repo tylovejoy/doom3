@@ -144,7 +144,7 @@ class Tournament(commands.Cog):
             RETURNING id
         """
 
-        data.id = await self.bot.database.fetchval_(
+        _id = await self.bot.database.fetchval_(
             query,
             data.start,
             data.end,
@@ -152,6 +152,8 @@ class Tournament(commands.Cog):
             data.bracket,
             connection=connection,
         )
+
+        data.id = _id
 
         query = """
             INSERT INTO tournament_maps (id, code, level, creator, category)
