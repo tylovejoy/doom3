@@ -110,7 +110,8 @@ class BotEvents(commands.Cog):
 
         query = "SELECT user_id, hidden_id FROM records WHERE message_id = $1;"
         row: asyncpg.Record = await self.bot.database.fetchrow(query, payload.message_id)
-
+        if not row:
+            return
         is_record = bool(row.get("user_id", None))
         is_record_queue = bool(row.get("hidden_id", None))
 
