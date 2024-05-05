@@ -190,7 +190,4 @@ async def end_tournament(data: TournamentData):
     )
     await hof_thread.send(embeds=lb_embeds, file=file)
 
-    await data.client.database.set(
-        "UPDATE tournament SET active = FALSE WHERE id = $1", data.id
-    )
     data.client.current_tournament = None

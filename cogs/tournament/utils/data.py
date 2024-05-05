@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import math
 import typing
 from typing import Literal
 
@@ -14,6 +15,8 @@ if typing.TYPE_CHECKING:
 import utils
 from cogs.tournament.utils import Categories, Category, CategoryData, Rank
 from cogs.tournament.utils.utils import role_map
+
+EMBED_LIMIT = 5
 
 rank_display = {
     Rank.GOLD: "<:gold:931317421862699118>",
@@ -183,7 +186,7 @@ class TournamentData:
         for category in ["Time Attack", "Mildcore", "Hardcore", "Bonus"]:
             if category not in self.map_data:
                 continue
-            lb_description = ""
+            lb_description = []
             hof_embed_field_value = ""
             async for record in self.client.database.get(
                 """
@@ -227,14 +230,19 @@ class TournamentData:
                 )
                 if record.rank_num <= 3:
                     hof_embed_field_value += value
-                lb_description += value
+                lb_description.append(value)
             hof_embed.add_field(
                 name=category,
                 value=hof_embed_field_value,
                 inline=False,
             )
-            temp = leaderboard_embed(lb_description, category, None)
-            print(temp.image.url)
-            lb_embeds.append(temp)
+            
+            num_of_embeds = math.ceil(len(lb_description) / EMBED_LIMIT)
+            all_embeds = []
+            for i in range(num_of_embeds):
+                _data = lb_description[i * EMBED_LIMIT: (i + 1) * EMBED_LIMIT]
+                _embed = leaderboard_embed("".join(_data), category, None)
+                all_embeds.append(_embed)
+            lb_embeds.extend(all_embeds)
 
         return hof_embed, lb_embeds

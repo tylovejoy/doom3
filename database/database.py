@@ -47,23 +47,48 @@ class Database:
         # self.logger: logging.Logger | None = None
         self.pool = conn
 
-    async def fetch(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
+    async def fetch(
+        self,
+        query: str,
+        *args: typing.Any,
+        connection: asyncpg.Connection | asyncpg.Pool | None = None,
+    ):
         _connection = connection or self.pool
-        await _connection.fetch(query, *args)
+        return await _connection.fetch(query, *args)
 
-    async def fetchval_(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
+    async def fetchval_(
+        self,
+        query: str,
+        *args: typing.Any,
+        connection: asyncpg.Connection | asyncpg.Pool | None = None,
+    ):
         _connection = connection or self.pool
         return await _connection.fetchval(query, *args)
 
-    async def fetchrow(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
+    async def fetchrow(
+        self,
+        query: str,
+        *args: typing.Any,
+        connection: asyncpg.Connection | asyncpg.Pool | None = None,
+    ):
         _connection = connection or self.pool
-        await _connection.fetchrow(query, *args)
+        return await _connection.fetchrow(query, *args)
 
-    async def execute(self, query: str, *args: typing.Any, connection: asyncpg.Connection | asyncpg.Pool | None = None):
+    async def execute(
+        self,
+        query: str,
+        *args: typing.Any,
+        connection: asyncpg.Connection | asyncpg.Pool | None = None,
+    ):
         _connection = connection or self.pool
         await _connection.execute(query, *args)
 
-    async def executemany(self, query: str, args: typing.Iterable[typing.Any], connection: asyncpg.Connection | asyncpg.Pool | None = None):
+    async def executemany(
+        self,
+        query: str,
+        args: typing.Iterable[typing.Any],
+        connection: asyncpg.Connection | asyncpg.Pool | None = None,
+    ):
         _connection = connection or self.pool
         await _connection.executemany(query, args)
 
