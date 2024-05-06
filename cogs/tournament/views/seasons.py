@@ -34,9 +34,7 @@ class SeasonManager(discord.ui.View):
     @discord.ui.button(label="Change season", style=discord.ButtonStyle.red)
     async def change_season(self, itx: DoomItx, button: discord.ui.Button):
         if self.value is None:
-            await itx.response.send_message(
-                "Please select a season from the dropdown.", ephemeral=True
-            )
+            await itx.response.send_message("Please select a season from the dropdown.", ephemeral=True)
             return
         view = Confirm(itx)
         await itx.response.send_message(

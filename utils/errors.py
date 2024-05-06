@@ -24,21 +24,15 @@ class DatabaseConnectionError(Exception):
     """Connection failed. This will be logged. Try again later."""
 
 
-class IncorrectRecordFormatError(
-    BaseParkourException, app_commands.errors.AppCommandError
-):
+class IncorrectRecordFormatError(BaseParkourException, app_commands.errors.AppCommandError):
     """Record must be in HH:MM:SS.ss format."""
 
 
-class IncorrectCodeFormatError(
-    BaseParkourException, app_commands.errors.AppCommandError
-):
+class IncorrectCodeFormatError(BaseParkourException, app_commands.errors.AppCommandError):
     """Map code must be a valid Overwatch share code."""
 
 
-class IncorrectURLFormatError(
-    BaseParkourException, app_commands.errors.AppCommandError
-):
+class IncorrectURLFormatError(BaseParkourException, app_commands.errors.AppCommandError):
     """The given URL is invalid."""
 
 
@@ -121,9 +115,7 @@ class NoDataOnCurrentSeason(BaseParkourException):
     """No data found for this user during the selected season."""
 
 
-async def on_app_command_error(
-    itx: DoomItx, error: app_commands.errors.CommandInvokeError
-):
+async def on_app_command_error(itx: DoomItx, error: app_commands.errors.CommandInvokeError):
     exception = getattr(error, "original", error)
     if isinstance(exception, utils.BaseParkourException):
         embed = utils.ErrorEmbed(description=str(exception))
@@ -142,18 +134,10 @@ async def on_app_command_error(
         await _respond(embed, itx)
         await utils.delete_interaction(itx, minutes=seconds / 60)
     else:
-        edit = (
-            itx.edit_original_response
-            if itx.response.is_done()
-            else itx.response.send_message
-        )
+        edit = itx.edit_original_response if itx.response.is_done() else itx.response.send_message
 
         embed = utils.ErrorEmbed(
-            description=(
-                "Unknown.\n"
-                "It has been logged and sent to <@141372217677053952>.\n"
-                "Please try again later."
-            ),
+            description=("Unknown.\n" "It has been logged and sent to <@141372217677053952>.\n" "Please try again later."),
             unknown=True,
         )
         await edit(
@@ -169,15 +153,9 @@ async def on_app_command_error(
         if args:
             args[-1] = "┗" + args[-1][1:]
         args_name = "**Args:**\n" + "".join(args)
-        formatted_tb = "".join(
-            traceback.format_exception(None, exception, exception.__traceback__)
-        )
+        formatted_tb = "".join(traceback.format_exception(None, exception, exception.__traceback__))
         if len(formatted_tb) < 1850:
-            await channel.send(
-                f"{command_name}{args_name}{channel_name}{user_name}\n```py\n"
-                + formatted_tb
-                + "\n```"
-            )
+            await channel.send(f"{command_name}{args_name}{channel_name}{user_name}\n```py\n" + formatted_tb + "\n```")
         else:
             await channel.send(
                 f"{command_name} {args_name} {channel_name} {user_name}",
@@ -194,9 +172,7 @@ async def on_app_command_error(
     await utils.delete_interaction(itx, minutes=15)
 
 
-async def _respond(
-    embed: discord.Embed | utils.DoomEmbed | utils.ErrorEmbed, itx: DoomItx
-):
+async def _respond(embed: discord.Embed | utils.DoomEmbed | utils.ErrorEmbed, itx: DoomItx):
     if itx.response.is_done():
         await itx.edit_original_response(
             embed=embed,

@@ -5,13 +5,7 @@ import typing
 import discord
 
 import database
-from cogs.tournament.utils.utils import (
-    TA_ROLE,
-    MC_ROLE,
-    HC_ROLE,
-    BO_ROLE,
-    TRIFECTA_ROLE,
-)
+from cogs.tournament.utils.utils import BO_ROLE, HC_ROLE, MC_ROLE, TA_ROLE, TRIFECTA_ROLE
 
 if typing.TYPE_CHECKING:
     from core import DoomItx
@@ -41,17 +35,11 @@ class ColorSelect(discord.ui.Select):
             description="Remove color role.",
         )
         for option in options:
-            self.add_option(
-                label=option["label"], value=str(option["role_id"]), emoji=option["emoji"]
-            )
+            self.add_option(label=option["label"], value=str(option["role_id"]), emoji=option["emoji"])
 
     async def callback(self, itx: DoomItx):
         await itx.response.defer()
-        all_roles = [
-            itx.guild.get_role(int(role.value))
-            for role in self.options
-            if role.value != "None"
-        ]
+        all_roles = [itx.guild.get_role(int(role.value)) for role in self.options if role.value != "None"]
         for role in all_roles:
             if role in itx.user.roles:
                 await itx.user.remove_roles(role)

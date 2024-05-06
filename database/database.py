@@ -3,7 +3,6 @@ import typing
 import asyncpg
 
 
-
 class DatabaseConnection:
     """Handles asyncronous context manager for database connection."""
 

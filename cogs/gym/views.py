@@ -92,4 +92,5 @@ class ExerciseView(discord.ui.View):
         self.exercises.options = [discord.SelectOption(label=x.name, value=str(i)) for i, x in enumerate(self.cur_page)]
         await self.itx.edit_original_response(view=self)
 
-    async def _create_embed(self): ...
+    async def _create_embed(self):
+        ...

@@ -24,9 +24,7 @@ tags_map = {
 }
 
 
-class PlaytestButton(
-    discord.ui.DynamicItem[discord.ui.Button], template=r"button:user:(?P<id>[0-9]+)"
-):
+class PlaytestButton(discord.ui.DynamicItem[discord.ui.Button], template=r"button:user:(?P<id>[0-9]+)"):
     def __init__(self, user_id: int) -> None:
         super().__init__(
             discord.ui.Button(
@@ -71,9 +69,7 @@ class Playtesting(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
 
-    @app_commands.command(
-        name="submit-playtest", description="Submit a level into playtesting."
-    )
+    @app_commands.command(name="submit-playtest", description="Submit a level into playtesting.")
     @app_commands.guilds(195387617972322306, utils.GUILD_ID)
     async def submit_playtest(
         self,
@@ -84,16 +80,11 @@ class Playtesting(commands.Cog):
         level_name: str,
     ):
         """Submit a level into playtesting."""
-        await itx.response.send_message(
-            "Sending to playtest. Please wait.", ephemeral=True
-        )
+        await itx.response.send_message("Sending to playtest. Please wait.", ephemeral=True)
         channel: discord.ForumChannel = itx.guild.get_channel(PLAYTEST_CHANNEL)
         chosen_tag = channel.get_tag(tags_map[category])
         open_tag = channel.get_tag(tags_map["Open"])
-        name = (
-            f"{map_code} - {level_name} by "
-            f"{itx.client.all_users[itx.user.id]['nickname']} [{map_name}]"
-        )
+        name = f"{map_code} - {level_name} by " f"{itx.client.all_users[itx.user.id]['nickname']} [{map_name}]"
         content = f"{itx.user.mention}, please add any additional information here.\n"
         view = discord.ui.View(timeout=None)
         view.add_item(PlaytestButton(itx.user.id))

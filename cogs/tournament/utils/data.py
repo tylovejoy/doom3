@@ -43,9 +43,7 @@ Seasons: typing.TypeAlias = dict[int, SeasonData]
 
 def base_embed(
     description: str,
-    embed_type: Literal[
-        "start", "end", "announcement", "leaderboard", "hall_of_fame", "missions"
-    ],
+    embed_type: Literal["start", "end", "announcement", "leaderboard", "hall_of_fame", "missions"],
 ) -> discord.Embed:
     embed = utils.DoomEmbed(
         title="Doomfist Parkour Tournament",
@@ -60,12 +58,8 @@ def base_embed(
 def leaderboard_embed(description: str, category: Categories, rank: Rank | None):
     embed = base_embed(description=description, embed_type="leaderboard")
     if rank:
-        embed.set_thumbnail(
-            url=f"https://bkan0n.com/assets/images/icons/{rank.lower()}.png"
-        )
-    embed.set_image(
-        url=f"https://bkan0n.com/assets/images/tournament/{category.lower().replace(' ', '_')}.png"
-    )
+        embed.set_thumbnail(url=f"https://bkan0n.com/assets/images/icons/{rank.lower()}.png")
+    embed.set_image(url=f"https://bkan0n.com/assets/images/tournament/{category.lower().replace(' ', '_')}.png")
 
     embed.colour = discord.Color.from_str(category_color[category])
     return embed
@@ -80,9 +74,7 @@ def missions_embed(announcement: str):
 
 
 def end_embed():
-    description = (
-        "**The round has ended!**\n" "Stay tuned for the next announcement!\n\n"
-    )
+    description = "**The round has ended!**\n" "Stay tuned for the next announcement!\n\n"
     return base_embed(description, "end")
 
 
@@ -137,19 +129,11 @@ class TournamentData:
 
     @property
     def start_formatted(self) -> str:
-        return (
-            discord.utils.format_dt(self.start, style="R")
-            + "\n"
-            + discord.utils.format_dt(self.start, style="F")
-        )
+        return discord.utils.format_dt(self.start, style="R") + "\n" + discord.utils.format_dt(self.start, style="F")
 
     @property
     def end_formatted(self) -> str:
-        return (
-            discord.utils.format_dt(self.end, style="R")
-            + "\n"
-            + discord.utils.format_dt(self.end, style="F")
-        )
+        return discord.utils.format_dt(self.end, style="R") + "\n" + discord.utils.format_dt(self.end, style="F")
 
     @property
     def dates(self):
@@ -165,8 +149,7 @@ class TournamentData:
         map_info = ""
         for cat, data in self.map_data.items():
             map_info += (
-                self.client.get_guild(utils.GUILD_ID).get_role(role_map[cat]).mention
-                + "\n"
+                self.client.get_guild(utils.GUILD_ID).get_role(role_map[cat]).mention + "\n"
                 f"**Code:** {data['code']}\n"
                 f"**Level:** {data['level']}\n"
                 f"**Creator:** {data['creator']}\n"

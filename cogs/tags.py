@@ -30,16 +30,11 @@ class Tags(discord.ext.commands.GroupCog, group_name=utils.tags["name"]):
         await itx.response.defer()
         if name not in itx.client.tag_cache:
             fuzzed_options = utils.fuzz_multiple(name, itx.client.tag_cache)
-            fuzz_desc = [
-                f"{utils.NUMBER_EMOJI[i + 1]} - {x}\n"
-                for i, x in enumerate(fuzzed_options)
-            ]
+            fuzz_desc = [f"{utils.NUMBER_EMOJI[i + 1]} - {x}\n" for i, x in enumerate(fuzzed_options)]
 
             embed = utils.DoomEmbed(
                 title="Tags",
-                description=(
-                    f"Couldn't find `{name}`. Did you mean:\n" + "".join(fuzz_desc)
-                ),
+                description=(f"Couldn't find `{name}`. Did you mean:\n" + "".join(fuzz_desc)),
             )
             view = views.TagFuzzView(itx, fuzzed_options)
             await itx.edit_original_response(embed=embed, view=view)

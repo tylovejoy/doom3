@@ -28,24 +28,15 @@ class SeasonsTransformer(app_commands.Transformer):
             value = utils.fuzz_(value, values)
         return values[value]
 
-    async def autocomplete(
-        self, itx: core.DoomItx, value: str
-    ) -> list[app_commands.Choice[str]]:
+    async def autocomplete(self, itx: core.DoomItx, value: str) -> list[app_commands.Choice[str]]:
         query = "SELECT name, number FROM tournament_seasons ORDER BY similarity(name, $1::text) DESC LIMIT 12;"
         rows = await itx.client.database.fetch(query, value)
-        choices = [
-            app_commands.Choice(
-                name=f"{row['name']} (ID {row['number']})", value=row["name"]
-            )
-            async for row in rows
-        ]
+        choices = [app_commands.Choice(name=f"{row['name']} (ID {row['number']})", value=row["name"]) async for row in rows]
         return choices
 
 
 class DateTransformer(app_commands.Transformer):
-    async def transform(
-        self, interaction: core.DoomItx, value: str
-    ) -> datetime.datetime:
+    async def transform(self, interaction: core.DoomItx, value: str) -> datetime.datetime:
         return parse(value).astimezone(datetime.timezone.utc)
 
 
@@ -97,20 +88,14 @@ class BOLevelTransformer(app_commands.Transformer):
         return await map_level_autocomplete(itx, value, "bo_code")
 
 
-async def map_level_autocomplete(
-    itx: core.DoomItx, value: str, arg: str
-) -> list[app_commands.Choice[str]]:
+async def map_level_autocomplete(itx: core.DoomItx, value: str, arg: str) -> list[app_commands.Choice[str]]:
     return await cogs.autocomplete(
         value,
-        (itx.client.map_cache.get(getattr(itx.namespace, arg), {})).get(
-            "choices", None
-        ),
+        (itx.client.map_cache.get(getattr(itx.namespace, arg), {})).get("choices", None),
     )
 
 
 async def map_level_transform(itx: core.DoomItx, value: str, arg: str) -> str:
     if value not in itx.client.map_cache[getattr(itx.namespace, arg)]["levels"]:
-        value = utils.fuzz_(
-            value, itx.client.map_cache[getattr(itx.namespace, arg)]["levels"]
-        )
+        value = utils.fuzz_(value, itx.client.map_cache[getattr(itx.namespace, arg)]["levels"])
     return value

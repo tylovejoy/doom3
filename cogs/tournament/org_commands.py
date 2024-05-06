@@ -12,11 +12,8 @@ import views
 from cogs.tournament.utils import Categories_NoGen, Ranks
 from cogs.tournament.utils.errors import ModalError
 from cogs.tournament.utils.utils import ANNOUNCEMENTS, role_map
-from cogs.tournament.views.announcement import (
-    TournamentAnnouncementModal,
-    TournamentRolesDropdown,
-)
-from cogs.tournament.views.info import all_info_embeds, TournamentInfoView
+from cogs.tournament.views.announcement import TournamentAnnouncementModal, TournamentRolesDropdown
+from cogs.tournament.views.info import TournamentInfoView, all_info_embeds
 from cogs.tournament.views.seasons import SeasonManager
 from utils import DoomEmbed
 
@@ -82,9 +79,7 @@ class OrgCommands(commands.Cog):
             SET value = EXCLUDED.value;
         """
         await itx.client.database.execute(query, member.id, category, rank)
-        await itx.edit_original_response(
-            content=f"{member.mention}'s {category} rank was changed to {rank}"
-        )
+        await itx.edit_original_response(content=f"{member.mention}'s {category} rank was changed to {rank}")
 
     @org.command()
     async def xp(self, itx: core.DoomItx, member: discord.Member, xp: int):
@@ -134,16 +129,12 @@ class OrgCommands(commands.Cog):
         view = views.Confirm(modal.itx)
         view.add_item(select)
 
-        await modal.itx.edit_original_response(
-            content="Is this correct?", embed=embed, view=view
-        )
+        await modal.itx.edit_original_response(content="Is this correct?", embed=embed, view=view)
         await view.wait()
         if not view.value:
             return
 
-        mentions = "".join(
-            [itx.guild.get_role(role_map[x]).mention for x in select.values]
-        )
+        mentions = "".join([itx.guild.get_role(role_map[x]).mention for x in select.values])
         await itx.guild.get_channel(ANNOUNCEMENTS).send(mentions, embed=embed)
 
     @org.command()
@@ -154,10 +145,7 @@ class OrgCommands(commands.Cog):
         await itx.response.defer(ephemeral=True)
         query = "SELECT * FROM tournament_seasons ORDER BY number;"
         rows = await itx.client.database.fetch(query)
-        data = {
-            row["number"]: {"name": row["name"], "active": row["active"]}
-            for row in rows
-        }
+        data = {row["number"]: {"name": row["name"], "active": row["active"]} for row in rows}
         view = SeasonManager(itx, data)
         await itx.edit_original_response(view=view)
         await view.wait()

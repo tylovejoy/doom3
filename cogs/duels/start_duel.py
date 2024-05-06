@@ -10,15 +10,12 @@ from discord import EntityType, PrivacyLevel, app_commands
 from discord.ext import commands
 
 import utils
-from cogs.duels.utils.errors import PlayerAlreadyInMatch, NotEnoughXP
-from cogs.duels.utils.models import DuelMap, DuelPlayer, Duel
+from cogs.duels.utils.errors import NotEnoughXP, PlayerAlreadyInMatch
+from cogs.duels.utils.models import Duel, DuelMap, DuelPlayer
 from cogs.duels.views.ready_up import ReadyUp
 from cogs.tournament.utils import Category, CategoryData
 from cogs.tournament.utils.data import TournamentData
-from cogs.tournament.utils.end_tournament import (
-    ExperienceCalculator,
-    SpreadsheetCreator,
-)
+from cogs.tournament.utils.end_tournament import ExperienceCalculator, SpreadsheetCreator
 from cogs.tournament.utils.errors import TournamentAlreadyExists
 from cogs.tournament.utils.transformers import DateTransformer
 from cogs.tournament.views.start import TournamentStartView
@@ -49,10 +46,7 @@ class Duels(commands.Cog):
         length=[
             app_commands.Choice(name="1 Day", value="1 Day"),
         ]
-        + [
-            app_commands.Choice(name=f"{x} Days", value=f"{x} Days")
-            for x in range(2, 8)
-        ]
+        + [app_commands.Choice(name=f"{x} Days", value=f"{x} Days") for x in range(2, 8)]
     )
     async def request(
         self,
@@ -142,8 +136,7 @@ class Duels(commands.Cog):
             VALUES ($1, $2, $3, $4)
         """
         duel_info = [
-            (player.user_id, player.ready, duel_id, i)
-            for i, player in enumerate((duel.player1, duel.player2), start=1)
+            (player.user_id, player.ready, duel_id, i) for i, player in enumerate((duel.player1, duel.player2), start=1)
         ]
         await self.bot.database.executemany(
             query,

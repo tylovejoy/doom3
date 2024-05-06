@@ -99,15 +99,11 @@ class Records(commands.Cog):
         if not view.value:
             return
         new_screenshot2 = await screenshot.to_file(filename="image.png")
-        verification_msg = await itx.client.get_channel(utils.VERIFICATION_QUEUE).send(
-            embed=embed, file=new_screenshot2
-        )
+        verification_msg = await itx.client.get_channel(utils.VERIFICATION_QUEUE).send(embed=embed, file=new_screenshot2)
 
         if old_row and old_row["hidden_id"]:
             with contextlib.suppress(discord.NotFound):
-                await itx.guild.get_channel(
-                    utils.VERIFICATION_QUEUE
-                ).get_partial_message(old_row["hidden_id"]).delete()
+                await itx.guild.get_channel(utils.VERIFICATION_QUEUE).get_partial_message(old_row["hidden_id"]).delete()
 
         view = views.VerificationView()
         await verification_msg.edit(view=view)
@@ -145,9 +141,7 @@ class Records(commands.Cog):
 
     @app_commands.command(**utils.leaderboard)
     @app_commands.describe(**utils.leaderboard_args)
-    @app_commands.guilds(
-        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
-    )
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
     async def view_records(
         self,
         itx: DoomItx,
@@ -236,29 +230,21 @@ class Records(commands.Cog):
                          )    rank_num FROM final;
         """
 
-        records = await itx.client.database.fetch(
-            query, map_code, bool(level_name), level_name, verified
-        )
+        records = await itx.client.database.fetch(query, map_code, bool(level_name), level_name, verified)
         if not records:
             raise utils.NoRecordsFoundError
 
         if level_name:
-            embeds = utils.all_levels_records_embed(
-                records, f"Leaderboard - {map_code} - {level_name}", True
-            )
+            embeds = utils.all_levels_records_embed(records, f"Leaderboard - {map_code} - {level_name}", True)
         else:
-            embeds = utils.all_levels_records_embed(
-                records, f"Leaderboard - {map_code}"
-            )
+            embeds = utils.all_levels_records_embed(records, f"Leaderboard - {map_code}")
 
         view = views.Paginator(embeds, itx.user)
         await view.start(itx)
 
     @app_commands.command(**utils.personal_records)
     @app_commands.describe(**utils.personal_records_args)
-    @app_commands.guilds(
-        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
-    )
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
     async def personal_records_slash(
         self,
         itx: DoomItx,
@@ -345,9 +331,7 @@ class Records(commands.Cog):
                 query,
                 user,
             )
-            await itx.edit_original_response(
-                content=f"{res['nickname']} has **{res['amount']}** verifications!"
-            )
+            await itx.edit_original_response(content=f"{res['nickname']} has **{res['amount']}** verifications!")
         else:
             query = """
                 SELECT v.user_id,

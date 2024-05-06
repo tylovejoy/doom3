@@ -12,10 +12,7 @@ import utils
 import views
 from cogs.tournament.utils import Category, CategoryData
 from cogs.tournament.utils.data import TournamentData
-from cogs.tournament.utils.end_tournament import (
-    ExperienceCalculator,
-    SpreadsheetCreator,
-)
+from cogs.tournament.utils.end_tournament import ExperienceCalculator, SpreadsheetCreator
 from cogs.tournament.utils.errors import TournamentAlreadyExists
 from cogs.tournament.utils.transformers import DateTransformer
 from cogs.tournament.utils.utils import ANNOUNCEMENTS, CHAT
@@ -31,9 +28,7 @@ class Tournament(commands.Cog):
         self.bot = bot
 
     @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
     async def start(
         self,
         itx: core.DoomItx,
@@ -49,9 +44,7 @@ class Tournament(commands.Cog):
         end = end - discord.utils.utcnow() + start
 
         view = TournamentStartView(itx)
-        await itx.edit_original_response(
-            content="Click on the buttons to add necessary info.", view=view
-        )
+        await itx.edit_original_response(content="Click on the buttons to add necessary info.", view=view)
         await view.wait()
 
         categories = [
@@ -63,9 +56,7 @@ class Tournament(commands.Cog):
         category_data = [
             (
                 cat,
-                CategoryData(
-                    code=cat_data.code, level=cat_data.level, creator=cat_data.creator
-                ),
+                CategoryData(code=cat_data.code, level=cat_data.level, creator=cat_data.creator),
             )
             for cat, cat_data in categories
             if cat_data
@@ -82,10 +73,7 @@ class Tournament(commands.Cog):
         )
 
         embed = tournament.start_embed()
-        mentions = [
-            self.bot.get_guild(utils.GUILD_ID).get_role(_id).mention
-            for _id in tournament.mention_ids
-        ]
+        mentions = [self.bot.get_guild(utils.GUILD_ID).get_role(_id).mention for _id in tournament.mention_ids]
 
         confirm = views.Confirm(itx)
         await itx.edit_original_response(
@@ -124,9 +112,7 @@ class Tournament(commands.Cog):
         await itx.guild.get_channel(ANNOUNCEMENTS).send(event.url)
 
     @staticmethod
-    def clean_categories_input(
-        categories: list[tuple[Category, CategoryData]]
-    ) -> dict[Category, CategoryData]:
+    def clean_categories_input(categories: list[tuple[Category, CategoryData]]) -> dict[Category, CategoryData]:
         data = {}
         for cat in categories:
             if cat[1]["code"] and cat[1]["level"]:
@@ -137,9 +123,7 @@ class Tournament(commands.Cog):
         query = 'SELECT 1 FROM tournament WHERE start > now() or "end" > now()'
         return await self.bot.database.fetchval(query)
 
-    async def insert_tournament_db(
-        self, data: TournamentData, connection: asyncpg.Connection
-    ):
+    async def insert_tournament_db(self, data: TournamentData, connection: asyncpg.Connection):
         query = """
         INSERT INTO tournament (start, "end", active, bracket)
             VALUES ($1, $2, $3, $4)
@@ -161,10 +145,7 @@ class Tournament(commands.Cog):
             INSERT INTO tournament_maps (id, code, level, creator, category)
                 VALUES ($1, $2, $3, $4, $5)
         """
-        args = [
-            (data.id, v["code"], v["level"], v["creator"], k)
-            for k, v in data.map_data.items()
-        ]
+        args = [(data.id, v["code"], v["level"], v["creator"], k) for k, v in data.map_data.items()]
         await self.bot.database.executemany(query, args, connection=connection)
 
         self.bot.current_tournament = data

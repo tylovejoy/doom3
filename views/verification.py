@@ -53,9 +53,7 @@ class VerificationView(discord.ui.View):
             query,
             itx.message.id,
         )
-        original_message = await self.find_original_message(
-            itx, row["channel_id"], row["message_id"]
-        )
+        original_message = await self.find_original_message(itx, row["channel_id"], row["message_id"])
         if not original_message:
             return
 
@@ -64,9 +62,7 @@ class VerificationView(discord.ui.View):
         if verified:
             data = self.accepted(itx, row)
             await self.increment_verification_count(itx)
-            query = (
-                "UPDATE records SET verified=TRUE, hidden_id=null WHERE hidden_id=$1;"
-            )
+            query = "UPDATE records SET verified=TRUE, hidden_id=null WHERE hidden_id=$1;"
             await itx.client.database.execute(
                 query,
                 itx.message.id,
@@ -88,9 +84,7 @@ class VerificationView(discord.ui.View):
         ):
             try:
                 await user.send(
-                    "`- - - - - - - - - - - - - -`\n"
-                    + data["direct_message"]
-                    + "\n`- - - - - - - - - - - - - -`"
+                    "`- - - - - - - - - - - - - -`\n" + data["direct_message"] + "\n`- - - - - - - - - - - - - -`"
                 )
             except Exception as e:
                 itx.client.logger.info(e)
@@ -114,9 +108,7 @@ class VerificationView(discord.ui.View):
         )
 
     @staticmethod
-    async def find_original_message(
-        itx: DoomItx, channel_id: int, message_id: int
-    ) -> discord.Message | None:
+    async def find_original_message(itx: DoomItx, channel_id: int, message_id: int) -> discord.Message | None:
         """Try to fetch message from either Records channel."""
         try:
             res = await itx.guild.get_channel(channel_id).fetch_message(message_id)
@@ -138,13 +130,8 @@ class VerificationView(discord.ui.View):
         if search["video"]:
             edit = f"{utils.VERIFIED} Complete verification by {itx.user.mention}!"
         else:
-            edit = (
-                f"{utils.HALF_VERIFIED} Partial verification by {itx.user.mention}! "
-                f"No video proof supplied."
-            )
-        message = itx.guild.get_channel(search["channel_id"]).get_partial_message(
-            search["message_id"]
-        )
+            edit = f"{utils.HALF_VERIFIED} Partial verification by {itx.user.mention}! " f"No video proof supplied."
+        message = itx.guild.get_channel(search["channel_id"]).get_partial_message(search["message_id"])
         return {
             "edit": edit,
             "direct_message": (
@@ -169,9 +156,7 @@ class VerificationView(discord.ui.View):
         return {
             "edit": (f"{utils.UNVERIFIED} " f"Rejected by {itx.user.mention}!"),
             "direct_message": (
-                f"**Map Code:** {search['map_code']}\n"
-                + record
-                + f"Your record got {utils.UNVERIFIED} "
+                f"**Map Code:** {search['map_code']}\n" + record + f"Your record got {utils.UNVERIFIED} "
                 f"rejected by {itx.user.mention}!\n\n"
                 f"**Reason:** {rejection}\n\n" + ALERT
             ),

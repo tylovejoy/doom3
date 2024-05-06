@@ -9,13 +9,7 @@ from discord.ext import commands
 
 import utils
 import views
-from views.roles import (
-    ColorRolesView,
-    PronounRoles,
-    ServerRelatedPings,
-    TherapyRole,
-    TournamentRoles,
-)
+from views.roles import ColorRolesView, PronounRoles, ServerRelatedPings, TherapyRole, TournamentRoles
 
 if typing.TYPE_CHECKING:
     from .doom import Doom
@@ -75,9 +69,7 @@ class BotEvents(commands.Cog):
 
             view = ColorRolesView(colors)
             self.bot.add_view(view, message_id=960946616288813066)
-            await self.bot.get_channel(752273327749464105).get_partial_message(
-                960946616288813066
-            ).edit(view=view)
+            await self.bot.get_channel(752273327749464105).get_partial_message(960946616288813066).edit(view=view)
 
             self.bot.add_view(ServerRelatedPings(), message_id=960946617169612850)
             self.bot.add_view(PronounRoles(), message_id=960946618142699560)
@@ -93,23 +85,17 @@ class BotEvents(commands.Cog):
             return
         if payload.channel_id not in [utils.SPR_RECORDS, utils.RECORDS]:
             return
-        if payload.emoji != discord.PartialEmoji.from_str(
-            "<:upper:787788134620332063>"
-        ):
+        if payload.emoji != discord.PartialEmoji.from_str("<:upper:787788134620332063>"):
             return
         query = "SELECT user_id, hidden_id FROM records WHERE message_id = $1;"
-        row: asyncpg.Record = await self.bot.database.fetchrow(
-            query, payload.message_id
-        )
+        row: asyncpg.Record = await self.bot.database.fetchrow(query, payload.message_id)
         if not row:
             return
         is_record = bool(row.get("user_id", None))
         is_record_queue = bool(row.get("hidden_id", None))
         if not (is_record or is_record_queue):
             return
-        vote_exists = await self._check_for_existing_vote(
-            payload.message_id, payload.channel_id, payload.user_id
-        )
+        vote_exists = await self._check_for_existing_vote(payload.message_id, payload.channel_id, payload.user_id)
         if vote_exists:
             return
         query = """
@@ -121,9 +107,7 @@ class BotEvents(commands.Cog):
               AND channel_id = $2
             GROUP BY original_message_id, channel_id
         """
-        top_record_data = await self.bot.database.fetchrow(
-            query, payload.message_id, payload.channel_id
-        )
+        top_record_data = await self.bot.database.fetchrow(query, payload.message_id, payload.channel_id)
         if top_record_data is None:
             top_record_id = None
             count = 0
@@ -146,20 +130,12 @@ class BotEvents(commands.Cog):
                 content = f"{count} {self.upper_emoji_converter(count)} <#{payload.channel_id}>"
                 top_record_channel = self.bot.get_channel(utils.TOP_RECORDS)
                 if not top_record_id:
-                    await self._post_new_top_record(
-                        content, payload, top_record_channel, connection=connection
-                    )
+                    await self._post_new_top_record(content, payload, top_record_channel, connection=connection)
                 else:
-                    await top_record_channel.get_partial_message(top_record_id).edit(
-                        content=content
-                    )
+                    await top_record_channel.get_partial_message(top_record_id).edit(content=content)
 
-    async def _post_new_top_record(
-        self, content, payload, top_record_channel, /, connection: asyncpg.Connection
-    ):
-        original_msg = await self.bot.get_channel(payload.channel_id).fetch_message(
-            payload.message_id
-        )
+    async def _post_new_top_record(self, content, payload, top_record_channel, /, connection: asyncpg.Connection):
+        original_msg = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
         if not original_msg.embeds:
             # return
             ...
@@ -200,9 +176,7 @@ class BotEvents(commands.Cog):
             connection=connection,
         )
 
-    async def _check_for_existing_vote(
-        self, message_id: int, channel_id: int, user_id: int
-    ):
+    async def _check_for_existing_vote(self, message_id: int, channel_id: int, user_id: int):
         query = """
             SELECT user_id
             FROM top_records
@@ -236,12 +210,8 @@ class BotEvents(commands.Cog):
         )
 
         # Add user to cache
-        self.bot.all_users[member.id] = utils.UserCacheData(
-            nickname=member.nick, alertable=True
-        )
-        self.bot.users_choices.append(
-            app_commands.Choice(name=member.nick, value=str(member.id))
-        )
+        self.bot.all_users[member.id] = utils.UserCacheData(nickname=member.nick, alertable=True)
+        self.bot.users_choices.append(app_commands.Choice(name=member.nick, value=str(member.id)))
         self.bot.logger.debug(f"Adding user to DB/cache: {member.name}: {member.id}")
 
     @commands.Cog.listener()

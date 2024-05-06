@@ -31,9 +31,7 @@ class ConfirmButton(discord.ui.Button):
         self.view.value = True
         self.view.clear_items()
         self.view.stop()
-        await self.view.original_itx.edit_original_response(
-            content=self.view.confirm_msg, view=self.view
-        )
+        await self.view.original_itx.edit_original_response(content=self.view.confirm_msg, view=self.view)
 
 
 class RejectButton(discord.ui.Button):

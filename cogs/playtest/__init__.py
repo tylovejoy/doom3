@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .playtest import Playtesting, PlaytestButton
+from .playtest import PlaytestButton, Playtesting
 
 if TYPE_CHECKING:
     import core

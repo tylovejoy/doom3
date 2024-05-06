@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+import math
+from typing import TYPE_CHECKING, Literal
 
 from discord import app_commands
 
 import cogs
 import utils
-import math
-from typing import Literal, TYPE_CHECKING
-
 from utils import BaseParkourException
 
 if TYPE_CHECKING:
@@ -79,7 +78,6 @@ EQUIPMENT = Literal[
 
 
 class OneRepMax:
-
     @classmethod
     def formulas(cls):
         return {
@@ -127,9 +125,7 @@ class ExerciseTransformer(app_commands.Transformer):
             value = utils.fuzz_(value, itx.client.exercise_category_map)
         return value
 
-    async def autocomplete(
-        self, itx: DoomItx, value: int | float | str
-    ) -> list[app_commands.Choice[str]]:
+    async def autocomplete(self, itx: DoomItx, value: int | float | str) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(value, itx.client.exercise_names)
 
 

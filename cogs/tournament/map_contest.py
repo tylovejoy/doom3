@@ -18,9 +18,7 @@ class MapContest(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="map-contest")
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
     async def submit(
         self,
         itx: core.DoomItx,
@@ -39,21 +37,15 @@ class MapContest(commands.Cog):
         await itx.response.defer(ephemeral=True)
         tournament = self.bot.current_tournament
         if not tournament or tournament.end < discord.utils.utcnow():
-            await itx.edit_original_response(
-                content="There is no ongoing contest/tournament at this time."
-            )
+            await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
             return
 
         if itx.client.map_cache.get(map_code, None):
-            await itx.edit_original_response(
-                content="You cannot submit previously released map."
-            )
+            await itx.edit_original_response(content="You cannot submit previously released map.")
             return
 
         query = "SELECT EXISTS(SELECT 1 FROM map_contest WHERE user_id = $1 AND tournament_id = $2);"
-        contest_submission_exists = await self.bot.database.fetchval(
-            query, itx.user.id, tournament.id
-        )
+        contest_submission_exists = await self.bot.database.fetchval(query, itx.user.id, tournament.id)
         if contest_submission_exists:
             content = (
                 "You can only submit once per contest.\n\n"
@@ -81,9 +73,7 @@ class MapContest(commands.Cog):
         await self.bot.database.execute(query, itx.user.id, map_code, tournament.id)
 
     @app_commands.command(name="map-contest-list")
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
     async def view(self, itx: core.DoomItx):
         """
         Lists all map codes available in the current (or previous) map contest without user information.
@@ -108,9 +98,7 @@ class MapContest(commands.Cog):
         await itx.edit_original_response(content="\n".join(formatted))
 
     @app_commands.command(name="map-contest-list-users")
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
     async def view_users(self, itx: core.DoomItx):
         """
         Lists all map codes available in the current (or previous) map contest WITH user information.
@@ -133,17 +121,12 @@ class MapContest(commands.Cog):
         users = itx.client.all_users
         rows = await self.bot.database.fetch(query, tournament.id)
 
-        details = [
-            f"`{row['map_code']}` - {users[row['user_id']]['nickname']} ({row['user_id']})"
-            for row in rows
-        ]
+        details = [f"`{row['map_code']}` - {users[row['user_id']]['nickname']} ({row['user_id']})" for row in rows]
 
         await itx.edit_original_response(content="\n".join(details))
 
     @app_commands.command(name="map-contest-delete-code")
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
     async def delete_map(
         self,
         itx: core.DoomItx,
@@ -161,9 +144,7 @@ class MapContest(commands.Cog):
         await itx.response.defer()
         tournament = self.bot.current_tournament
         if not tournament or tournament.end < discord.utils.utcnow():
-            await itx.edit_original_response(
-                content="There is no ongoing contest/tournament at this time."
-            )
+            await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
             return
 
         view = Confirm(itx)

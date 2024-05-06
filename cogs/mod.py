@@ -111,9 +111,7 @@ class ModCommands(commands.Cog):
             ),
         )
         view = views.Confirm(itx)
-        await itx.edit_original_response(
-            content="Delete this record?", embed=embed, view=view
-        )
+        await itx.edit_original_response(content="Delete this record?", embed=embed, view=view)
         await view.wait()
 
         if not view.value:
@@ -155,9 +153,7 @@ class ModCommands(commands.Cog):
         self.bot.all_users[user]["nickname"] = nickname
         query = "UPDATE users SET nickname=$1 WHERE user_id=$2;"
         await self.bot.database.execute(query, nickname, user)
-        await itx.response.send_message(
-            f"Changing {old} ({user}) nickname to {nickname}"
-        )
+        await itx.response.send_message(f"Changing {old} ({user}) nickname to {nickname}")
 
 
 async def setup(bot: core.Doom):

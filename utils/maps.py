@@ -21,9 +21,7 @@ class MapNameTransformer(app_commands.Transformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
         return _transform(value, itx.client.map_names)
 
-    async def autocomplete(
-        self, itx: DoomItx, value: str
-    ) -> list[app_commands.Choice[str]]:
+    async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(value, itx.client.map_names_choices)
 
 
@@ -31,7 +29,5 @@ class MapTypeTransformer(app_commands.Transformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
         return _transform(value, itx.client.map_types)
 
-    async def autocomplete(
-        self, itx: DoomItx, value: str
-    ) -> list[app_commands.Choice[str]]:
+    async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]]:
         return await cogs.autocomplete(value, itx.client.map_types_choices)
