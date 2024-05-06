@@ -28,9 +28,9 @@ common_words = [
 
 
 def emojify(text: str) -> str:
-    text = text.split()
+    split_text = text.split()
     res = ""
-    for raw in text:
+    for raw in split_text:
         word = raw.lower()
         random_choice = random.random() * 100 <= 100
         is_common = word in common_words

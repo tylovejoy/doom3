@@ -115,14 +115,17 @@ class NoDataOnCurrentSeason(BaseParkourException):
     """No data found for this user during the selected season."""
 
 
-async def on_app_command_error(itx: DoomItx, error: app_commands.errors.CommandInvokeError):
+async def on_app_command_error(interaction: DoomItx, error: app_commands.errors.AppCommandError):
     exception = getattr(error, "original", error)
     if isinstance(exception, utils.BaseParkourException):
         embed = utils.ErrorEmbed(description=str(exception))
-        await _respond(embed, itx)
+        await _respond(embed, interaction)
     elif isinstance(exception, app_commands.CommandOnCooldown):
         now = discord.utils.utcnow()
-        seconds = float(re.search(r"(\d+\.\d{2})s", str(exception)).group(1))
+        search = re.search(r"(\d+\.\d{2})s", str(exception))
+        if not search:
+            return
+        seconds = float(search.group(1))
         end = now + datetime.timedelta(seconds=seconds)
         embed = utils.ErrorEmbed(
             description=(
@@ -131,10 +134,10 @@ async def on_app_command_error(itx: DoomItx, error: app_commands.errors.CommandI
                 "This message will be deleted at the same time."
             )
         )
-        await _respond(embed, itx)
-        await utils.delete_interaction(itx, minutes=seconds / 60)
+        await _respond(embed, interaction)
+        await utils.delete_interaction(interaction, minutes=seconds / 60)
     else:
-        edit = itx.edit_original_response if itx.response.is_done() else itx.response.send_message
+        edit = interaction.edit_original_response if interaction.response.is_done() else interaction.response.send_message
 
         embed = utils.ErrorEmbed(
             description=("Unknown.\n" "It has been logged and sent to <@141372217677053952>.\n" "Please try again later."),
@@ -144,16 +147,17 @@ async def on_app_command_error(itx: DoomItx, error: app_commands.errors.CommandI
             embed=embed,
         )
 
-        channel = itx.client.get_channel(849878847310528523)
-
-        command_name = f"**Command:** `{itx.command.name}`\n"
-        channel_name = f"**Channel:** `{itx.channel}`\n"
-        user_name = f"**User:** `{itx.user}`"
-        args = [f"┣ **{k}:** `{v}`\n" for k, v in itx.namespace.__dict__.items()]
+        channel = interaction.client.get_channel(849878847310528523)
+        assert interaction.command
+        command_name = f"**Command:** `{interaction.command.name}`\n"
+        channel_name = f"**Channel:** `{interaction.channel}`\n"
+        user_name = f"**User:** `{interaction.user}`"
+        args = [f"┣ **{k}:** `{v}`\n" for k, v in interaction.namespace.__dict__.items()]
         if args:
             args[-1] = "┗" + args[-1][1:]
         args_name = "**Args:**\n" + "".join(args)
         formatted_tb = "".join(traceback.format_exception(None, exception, exception.__traceback__))
+        assert isinstance(channel, discord.TextChannel)
         if len(formatted_tb) < 1850:
             await channel.send(f"{command_name}{args_name}{channel_name}{user_name}\n```py\n" + formatted_tb + "\n```")
         else:
@@ -169,7 +173,7 @@ async def on_app_command_error(itx: DoomItx, error: app_commands.errors.CommandI
                     filename="error.log",
                 ),
             )
-    await utils.delete_interaction(itx, minutes=15)
+    await utils.delete_interaction(interaction, minutes=15)
 
 
 async def _respond(embed: discord.Embed | utils.DoomEmbed | utils.ErrorEmbed, itx: DoomItx):

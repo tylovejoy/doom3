@@ -51,6 +51,7 @@ class BotEvents(commands.Cog):
         Args:
             self: Bot instance
         """
+        assert self.bot.user
         app_info = await self.bot.application_info()
         self.bot.logger.info(
             f"{ASCII_LOGO}"
@@ -67,20 +68,18 @@ class BotEvents(commands.Cog):
             for row in queue:
                 self.bot.add_view(views.VerificationView(), message_id=row["hidden_id"])
 
-            view = ColorRolesView(colors)
-            self.bot.add_view(view, message_id=960946616288813066)
-            await self.bot.get_channel(752273327749464105).get_partial_message(960946616288813066).edit(view=view)
-
-            self.bot.add_view(ServerRelatedPings(), message_id=960946617169612850)
-            self.bot.add_view(PronounRoles(), message_id=960946618142699560)
-            self.bot.add_view(TherapyRole(), message_id=1005874559037231284)
-            self.bot.add_view(TournamentRoles(), message_id=1096968488544911491)
+            self.bot.add_view(ColorRolesView(colors))
+            self.bot.add_view(ServerRelatedPings())
+            self.bot.add_view(PronounRoles())
+            self.bot.add_view(TherapyRole())
+            self.bot.add_view(TournamentRoles())
 
             self.bot.logger.debug(f"Added persistent views.")
             self.bot.persistent_views_added = True
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        assert self.bot.user
         if payload.user_id == self.bot.user.id:
             return
         if payload.channel_id not in [utils.SPR_RECORDS, utils.RECORDS]:
@@ -132,10 +131,13 @@ class BotEvents(commands.Cog):
                 if not top_record_id:
                     await self._post_new_top_record(content, payload, top_record_channel, connection=connection)
                 else:
+                    assert isinstance(top_record_channel, discord.TextChannel)
                     await top_record_channel.get_partial_message(top_record_id).edit(content=content)
 
     async def _post_new_top_record(self, content, payload, top_record_channel, /, connection: asyncpg.Connection):
-        original_msg = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+        channel = self.bot.get_channel(payload.channel_id)
+        assert isinstance(channel, discord.TextChannel)
+        original_msg = await channel.fetch_message(payload.message_id)
         if not original_msg.embeds:
             # return
             ...
@@ -157,7 +159,7 @@ class BotEvents(commands.Cog):
         user_id: int,
         message_id: int,
         channel_id: int,
-        top_record_id: int,
+        top_record_id: int | None,
         /,
         connection: asyncpg.Connection,
     ):
@@ -208,24 +210,17 @@ class BotEvents(commands.Cog):
             member.id,
             member.name[:25],
         )
-
+        if not (self.bot.all_users and self.bot.users_choices):
+            return
         # Add user to cache
-        self.bot.all_users[member.id] = utils.UserCacheData(nickname=member.nick, alertable=True)
-        self.bot.users_choices.append(app_commands.Choice(name=member.nick, value=str(member.id)))
+        self.bot.all_users[member.id] = utils.UserCacheData(nickname=member.display_name, alertable=True)
+        self.bot.users_choices.append(app_commands.Choice(name=member.display_name, value=str(member.id)))
         self.bot.logger.debug(f"Adding user to DB/cache: {member.name}: {member.id}")
 
     @commands.Cog.listener()
-    async def on_guild_join(self, guild: discord.Guild):
-        # members = [(member.id, member.name[:25]) for member in guild.members]
-        # await self.bot.database.set_many(
-        #     "INSERT INTO users (user_id, nickname, alertable) VALUES ($1, $2, true)",
-        #     [(_id, nick) for _id, nick in members],
-        # )
-        ...
-
-    @commands.Cog.listener()
     async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
-        if before.id not in self.bot.keep_alives:
+
+        if self.bot.keep_alives and before.id not in self.bot.keep_alives:
             return
 
         if after.archived and not after.locked:

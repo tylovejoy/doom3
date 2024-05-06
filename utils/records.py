@@ -35,13 +35,14 @@ class MapCodeTransformer(app_commands.Transformer):
 
 class MapCodeAutoTransformer(MapCodeTransformer):
     async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]]:
+        assert itx.client.map_codes_choices
         return await cogs.autocomplete(value, itx.client.map_codes_choices)
 
 
 class MapCodeRecordsTransformer(MapCodeAutoTransformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
         value = value.upper().replace("O", "0").lstrip().rstrip()
-
+        assert itx.client.map_cache
         if value not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
 
@@ -53,11 +54,13 @@ class MapCodeRecordsTransformer(MapCodeAutoTransformer):
 
 class MapLevelTransformer(app_commands.Transformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
+        assert itx.client.map_cache
         if value not in itx.client.map_cache[itx.namespace.map_code.upper()]["levels"]:
             value = utils.fuzz_(value, itx.client.map_cache[itx.namespace.map_code.upper()]["levels"])
         return value
 
     async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]]:
+        assert itx.client.map_cache
         return await cogs.autocomplete(
             value,
             (itx.client.map_cache.get(itx.namespace.map_code.upper(), {})).get("choices", None),

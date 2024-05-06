@@ -1,22 +1,18 @@
 from __future__ import annotations
 
 import logging
-import typing
 
+import aiohttp
 import asyncpg
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 import cogs
+import database
 from cogs.tournament.utils.data import TournamentData
 from core.translations import DoomTranslator
 from utils import MapCacheData, UserCacheData
-
-if typing.TYPE_CHECKING:
-    import aiohttp
-
-    import database
 
 log = logging.getLogger(__name__)
 
@@ -25,11 +21,11 @@ class Doom(commands.Bot):
     """Doom bot class inherited from commands.Bot."""
 
     pool: asyncpg.Pool
+    database: database.Database
+    session: aiohttp.ClientSession
 
-    def __init__(self, *, session: aiohttp.ClientSession = None, db: database.Database = None) -> None:
+    def __init__(self) -> None:
         super().__init__("?", intents=self._generate_intents(), help_command=None)
-        self.session = session
-        self.database = db
         self.logger = log
         # self.database.logger = self.logger
         # Caches
@@ -77,30 +73,6 @@ class Doom(commands.Bot):
         for ext in cogs.EXTENSIONS + ["jishaku", "core.events"]:
             self.logger.info(f"Loading {ext}...")
             await self.load_extension(ext)
-
-    @staticmethod
-    def _setup_logging() -> logging.Logger:
-        """
-        The _setup_logging function sets up the logging module for use with Discord.
-        It sets the log level to INFO and creates a StreamHandler that prints to stdout.
-        The formatter is set to display the name of the logger,
-        its level, and its message.
-
-        Returns:
-            The logger object
-        """
-        logger = logging.getLogger("discord")
-        logger.setLevel(logging.INFO)
-
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(
-            logging.Formatter(
-                "{asctime} | {levelname: <8} | " "{module}:{funcName}:{lineno} - {message}",
-                style="{",
-            )
-        )
-        logger.addHandler(console_handler)
-        return logger
 
     @staticmethod
     def _generate_intents() -> discord.Intents:

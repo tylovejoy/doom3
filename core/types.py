@@ -8,5 +8,5 @@ from discord.ext import commands
 if typing.TYPE_CHECKING:
     import core
 
-    DoomItx = discord.Interaction[core.Doom]
-    DoomCtx = commands.Context[core.Doom]
+    DoomItx: typing.TypeAlias = discord.Interaction[core.Doom]
+    DoomCtx: typing.TypeAlias = commands.Context[core.Doom]
