@@ -1,9 +1,7 @@
-import logging
 import typing
 
 import asyncpg
 
-import utils
 
 
 class DatabaseConnection:
