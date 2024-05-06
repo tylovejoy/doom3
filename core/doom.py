@@ -20,6 +20,7 @@ if typing.TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
+
 class Doom(commands.Bot):
     """Doom bot class inherited from commands.Bot."""
 
