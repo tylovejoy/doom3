@@ -37,13 +37,21 @@ class Test(commands.Cog):
         user_to_ignore_5: discord.Member | None,
     ):
         await itx.response.send_message("Purging.", ephemeral=True)
-        users = [user_to_ignore_1, user_to_ignore_2, user_to_ignore_3, user_to_ignore_4, user_to_ignore_5]
+        users = [
+            user_to_ignore_1,
+            user_to_ignore_2,
+            user_to_ignore_3,
+            user_to_ignore_4,
+            user_to_ignore_5,
+        ]
         ignored = [u for u in users if u]
 
         def check(m: discord.Message):
             return m.author not in ignored
 
-        messages: list[discord.Message] = await itx.channel.purge(limit=count, check=check, before=itx.created_at, reason=reason)
+        messages: list[discord.Message] = await itx.channel.purge(
+            limit=count, check=check, before=itx.created_at, reason=reason
+        )
         print(messages)
         applicable_users = set(u.author for u in messages)
         users_str = [f"{u.name} ({u.id})" for u in applicable_users]
@@ -86,11 +94,10 @@ class Test(commands.Cog):
             "# This thread will never show images and some emojis among other non-text content. "
             "Use this as a quick overview.\n\n"
             "The attached file will display more information.",
-            file=transcript_file
+            file=transcript_file,
         )
         for s in all_strings:
             await thread.send(s)
-
 
     @app_commands.command()
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
@@ -112,7 +119,18 @@ class Test(commands.Cog):
 
         await itx.response.send_message("Intervening.", ephemeral=True)
 
-        all_users = [user, user_2, user_3, user_4, user_5, user_6, user_7, user_8, user_9, user_10]
+        all_users = [
+            user,
+            user_2,
+            user_3,
+            user_4,
+            user_5,
+            user_6,
+            user_7,
+            user_8,
+            user_9,
+            user_10,
+        ]
         users = set(u for u in all_users if u)
         users_str = [f"{u.name} ({u.id})" for u in users]
 
@@ -132,8 +150,7 @@ class Test(commands.Cog):
         for u in users:
             await u.send(timeout_notice(name=u.name))
             await u.timeout(
-                datetime.timedelta(hours=1),
-                reason=f"Cool off for an hour. {reason}"
+                datetime.timedelta(hours=1), reason=f"Cool off for an hour. {reason}"
             )
 
         content = (
@@ -213,7 +230,7 @@ class Test(commands.Cog):
                 "- Hardcore (speedrunning hard levels)\n"
                 "- Bonus (speedrunning a level that isn't only about Doomfist)\n\n"
                 "Click the buttons below to learn more."
-            )
+            ),
         )
         await ctx.send(embed=embed)
 

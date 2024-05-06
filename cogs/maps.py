@@ -209,9 +209,11 @@ class Maps(commands.Cog):
         )
         itx.client.map_cache[map_code]["choices"] = list(
             map(
-                lambda x: app_commands.Choice(name=new_level_name, value=new_level_name)
-                if x.name == level_name
-                else x,
+                lambda x: (
+                    app_commands.Choice(name=new_level_name, value=new_level_name)
+                    if x.name == level_name
+                    else x
+                ),
                 itx.client.map_cache[map_code]["choices"],
             )
         )
@@ -237,15 +239,18 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.map_search)
     @app_commands.describe(**utils.map_search_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
+    )
     async def map_search(
         self,
         itx: DoomItx,
         map_type: app_commands.Transform[str, utils.MapTypeTransformer] | None = None,
         map_name: app_commands.Transform[str, utils.MapNameTransformer] | None = None,
         creator: app_commands.Transform[int, utils.UserTransformer] | None = None,
-        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer]
-        | None = None,
+        map_code: (
+            app_commands.Transform[str, utils.MapCodeAutoTransformer] | None
+        ) = None,
     ) -> None:
         await itx.response.defer(ephemeral=True)
 

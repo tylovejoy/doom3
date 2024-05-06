@@ -39,15 +39,21 @@ class MapContest(commands.Cog):
         await itx.response.defer(ephemeral=True)
         tournament = self.bot.current_tournament
         if not tournament or tournament.end < discord.utils.utcnow():
-            await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
+            await itx.edit_original_response(
+                content="There is no ongoing contest/tournament at this time."
+            )
             return
 
         if itx.client.map_cache.get(map_code, None):
-            await itx.edit_original_response(content="You cannot submit previously released map.")
+            await itx.edit_original_response(
+                content="You cannot submit previously released map."
+            )
             return
 
         query = "SELECT EXISTS(SELECT 1 FROM map_contest WHERE user_id = $1 AND tournament_id = $2);"
-        contest_submission_exists = await self.bot.database.fetchval(query, itx.user.id, tournament.id)
+        contest_submission_exists = await self.bot.database.fetchval(
+            query, itx.user.id, tournament.id
+        )
         if contest_submission_exists:
             content = (
                 "You can only submit once per contest.\n\n"
@@ -155,7 +161,9 @@ class MapContest(commands.Cog):
         await itx.response.defer()
         tournament = self.bot.current_tournament
         if not tournament or tournament.end < discord.utils.utcnow():
-            await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
+            await itx.edit_original_response(
+                content="There is no ongoing contest/tournament at this time."
+            )
             return
 
         view = Confirm(itx)

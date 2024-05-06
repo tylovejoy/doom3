@@ -9,8 +9,15 @@ from discord.ext import commands
 import cogs
 import database
 import utils
-from cogs.gym.utils import Units, OneRepMax, DuplicateExercise, ExerciseDoesntExist, BODY_PARTS, EQUIPMENT, \
-    ExerciseTransformer
+from cogs.gym.utils import (
+    Units,
+    OneRepMax,
+    DuplicateExercise,
+    ExerciseDoesntExist,
+    BODY_PARTS,
+    EQUIPMENT,
+    ExerciseTransformer,
+)
 from cogs.gym.views import ExerciseView
 
 if TYPE_CHECKING:
@@ -65,7 +72,6 @@ class Gym(commands.Cog):
         weight: float,
         unit: Units,
         reps: int,
-
     ):
         """
         Calculate your one rep maximum weight
@@ -90,10 +96,7 @@ class Gym(commands.Cog):
         for formula, method in OneRepMax.formulas().items():
             max_kg = round(method(kg, reps), 2)
             max_lb = self._convert_kg_to_lb(max_kg)
-            res += (
-                f"- {formula} formula:\n"
-                f"  - ≈ {max_kg} kg / {max_lb} lb.\n"
-            )
+            res += f"- {formula} formula:\n" f"  - ≈ {max_kg} kg / {max_lb} lb.\n"
         await interaction.response.send_message(res)
 
     @app_commands.command(name="add-pr")
@@ -129,7 +132,9 @@ class Gym(commands.Cog):
             raise ExerciseDoesntExist
         await itx.edit_original_response(content=content)
 
-    async def _one_rep_max_pr_submit(self, exercise: str, itx: DoomItx, unit: str, weight: float) -> str:
+    async def _one_rep_max_pr_submit(
+        self, exercise: str, itx: DoomItx, unit: str, weight: float
+    ) -> str:
         if unit == "lb":
             kg = self._convert_lb_to_kg(weight)
             lb = weight
@@ -188,7 +193,9 @@ class Gym(commands.Cog):
 
     @app_commands.command()
     @commands.is_owner()
-    async def add_exercise(self, itx: DoomItx, name: str, category: Literal["Max", "Reps", "Time"]):
+    async def add_exercise(
+        self, itx: DoomItx, name: str, category: Literal["Max", "Reps", "Time"]
+    ):
         if name in itx.client.exercise_category_map:
             raise DuplicateExercise
         await itx.response.send_message(f"Added {name} to exercise list.")
@@ -228,10 +235,10 @@ class Gym(commands.Cog):
         category = itx.client.exercise_category_map[exercise]
         leaderboard = f"# {exercise} Leaderboard\n"
         for position, record in enumerate(prs, start=1):
-            user_data = itx.client.all_users.get(record['user_id'], {})
+            user_data = itx.client.all_users.get(record["user_id"], {})
             name = user_data.get("nickname", "Unknown User")
             if category == "Max":
-                lb = self._convert_kg_to_lb(float(record['value']))
+                lb = self._convert_kg_to_lb(float(record["value"]))
                 leaderboard += f"{position}. {name} - {record['value']} kg / {lb} lb\n"
             elif category == "Reps":
                 leaderboard += f"{position}. {name} - {int(record['value'])} reps\n"
@@ -265,7 +272,9 @@ class Gym(commands.Cog):
                 ($3::text IS NULL OR name = $3::text)
             ORDER BY name;
         """
-        search = await itx.client.database.fetch(query, location, equipment, exercise_name)
+        search = await itx.client.database.fetch(
+            query, location, equipment, exercise_name
+        )
 
         if not search:
             raise utils.NoExercisesFound

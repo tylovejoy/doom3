@@ -57,9 +57,7 @@ def base_embed(
     return embed
 
 
-def leaderboard_embed(
-    description: str, category: Categories, rank: Rank | None
-):
+def leaderboard_embed(description: str, category: Categories, rank: Rank | None):
     embed = base_embed(description=description, embed_type="leaderboard")
     if rank:
         embed.set_thumbnail(
@@ -234,11 +232,11 @@ class TournamentData:
                 value=hof_embed_field_value,
                 inline=False,
             )
-            
+
             num_of_embeds = math.ceil(len(lb_description) / EMBED_LIMIT)
             all_embeds = []
             for i in range(num_of_embeds):
-                _data = lb_description[i * EMBED_LIMIT: (i + 1) * EMBED_LIMIT]
+                _data = lb_description[i * EMBED_LIMIT : (i + 1) * EMBED_LIMIT]
                 _embed = leaderboard_embed("".join(_data), category, None)
                 all_embeds.append(_embed)
             lb_embeds.extend(all_embeds)

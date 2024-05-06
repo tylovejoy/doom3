@@ -68,7 +68,6 @@ bracket_embed = discord.Embed(
         "That also includes the tournament missions. "
         "If you lose in the winners bracket and make it back to winners your multiplier is reset. "
         "Losers bracket does not get a multiplier.\n\n"
-
         "> Round 1 -> **1.0x** multiplier\n"
         "> Round 2 -> **1.1x** multiplier\n"
         "> Round 3 -> **1.2x** multiplier\n"
@@ -85,15 +84,12 @@ ranks_embed = discord.Embed(
         "- Diamond (Middle)\n"
         "- Grandmaster (Top)\n"
         "* This is in each category. So, you may be Gold in Hardcore but Grandmaster in Time Attack.\n\n"
-
         "Currently, Tournament Orgs decide on which rank each player will have. "
         "Criteria for the ranks depend on one's records over time versus how the leaderboard does."
         "Depending on your performance, you may go up or down a rank at a Tournament Orgs discretion.\n\n"
-
         "The top time in the Gold leaderboard is awarded the same amount of points as Grandmaster, "
         "barring completed missions. "
         "XP will be better spread across the board and let different skill levels compete.\n\n"
-
         "If you think you're in the wrong rank, you could always contact an org to reconsider your rank.\n\n"
         "If you're unsure what your rank is, ask any online org."
     )

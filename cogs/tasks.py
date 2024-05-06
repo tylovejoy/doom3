@@ -132,8 +132,7 @@ class Tasks(commands.Cog):
         query = "SELECT * FROM all_map_names ORDER BY 1;"
         rows = await self.bot.database.fetch(query)
         self.bot.map_names_choices = [
-            app_commands.Choice(name=row["name"], value=row["name"])
-            for row in rows
+            app_commands.Choice(name=row["name"], value=row["name"]) for row in rows
         ]
         self.bot.map_names = [row.name for row in self.bot.map_names_choices]
         logger.debug("Map names cached.")
@@ -145,8 +144,7 @@ class Tasks(commands.Cog):
         rows = await self.bot.database.fetch(query)
 
         self.bot.map_types_choices = [
-            app_commands.Choice(name=row["name"], value=row["name"])
-            for row in rows
+            app_commands.Choice(name=row["name"], value=row["name"]) for row in rows
         ]
         self.bot.map_types = [row.name for row in self.bot.map_types_choices]
         logger.debug("Map types cached.")
@@ -158,7 +156,9 @@ class Tasks(commands.Cog):
         query = "SELECT name, type FROM all_exercises ORDER BY 1;"
         rows = await self.bot.database.fetch(query)
         for row in rows:
-            self.bot.exercise_names.append(app_commands.Choice(name=row["name"], value=row["name"]))
+            self.bot.exercise_names.append(
+                app_commands.Choice(name=row["name"], value=row["name"])
+            )
             self.bot.exercise_category_map[row["name"]] = row["type"]
 
     @tasks.loop(hours=24, count=1)
@@ -166,8 +166,7 @@ class Tasks(commands.Cog):
         query = "SELECT * FROM exercises ORDER BY 1;"
         rows = await self.bot.database.fetch(query)
         self.bot.exercise_names_search = [
-            app_commands.Choice(name=row["name"], value=row["name"])
-            for row in rows
+            app_commands.Choice(name=row["name"], value=row["name"]) for row in rows
         ]
 
     @tasks.loop(hours=24, count=1)
@@ -211,7 +210,9 @@ class Tasks(commands.Cog):
         rows = await self.bot.database.fetch(query)
         for row in rows:
             self.bot.tag_cache.append(row["name"])
-            self.bot.tag_choices.append(app_commands.Choice(name=row["name"], value=row["name"]))
+            self.bot.tag_choices.append(
+                app_commands.Choice(name=row["name"], value=row["name"])
+            )
 
     @tasks.loop(hours=24, count=1)
     async def cache_keep_alives(self):

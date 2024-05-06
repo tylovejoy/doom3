@@ -105,9 +105,9 @@ class Records(commands.Cog):
 
         if old_row and old_row["hidden_id"]:
             with contextlib.suppress(discord.NotFound):
-                await itx.guild.get_channel(utils.VERIFICATION_QUEUE).get_partial_message(
-                    old_row["hidden_id"]
-                ).delete()
+                await itx.guild.get_channel(
+                    utils.VERIFICATION_QUEUE
+                ).get_partial_message(old_row["hidden_id"]).delete()
 
         view = views.VerificationView()
         await verification_msg.edit(view=view)
@@ -145,7 +145,9 @@ class Records(commands.Cog):
 
     @app_commands.command(**utils.leaderboard)
     @app_commands.describe(**utils.leaderboard_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
+    )
     async def view_records(
         self,
         itx: DoomItx,
@@ -234,7 +236,9 @@ class Records(commands.Cog):
                          )    rank_num FROM final;
         """
 
-        records = await itx.client.database.fetch(query, map_code, bool(level_name), level_name, verified)
+        records = await itx.client.database.fetch(
+            query, map_code, bool(level_name), level_name, verified
+        )
         if not records:
             raise utils.NoRecordsFoundError
 
@@ -252,7 +256,9 @@ class Records(commands.Cog):
 
     @app_commands.command(**utils.personal_records)
     @app_commands.describe(**utils.personal_records_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
+    @app_commands.guilds(
+        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
+    )
     async def personal_records_slash(
         self,
         itx: DoomItx,

@@ -99,5 +99,4 @@ class ExerciseView(discord.ui.View):
         ]
         await self.itx.edit_original_response(view=self)
 
-    async def _create_embed(self):
-        ...
+    async def _create_embed(self): ...

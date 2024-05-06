@@ -125,7 +125,9 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
             return
         map_types = [x for x in view.map_type.values]
         levels = list(
-            set(map(str.strip, filter(lambda x: bool(x), self.levels.value.split("\n"))))
+            set(
+                map(str.strip, filter(lambda x: bool(x), self.levels.value.split("\n")))
+            )
         )
 
         description = ""
@@ -175,7 +177,9 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
                     await self._set_map_creator(con, self.data["map_code"], itx.user.id)
                     await self._set_map_levels(con, self.data["map_code"], levels)
         except Exception as e:
-            await itx.followup.send("There was an error submitting the map. Try again later.")
+            await itx.followup.send(
+                "There was an error submitting the map. Try again later."
+            )
             return
         # Cache data
         itx.client.map_cache[self.data["map_code"]] = utils.MapCacheData(
@@ -190,7 +194,9 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         embed.title = f"New Map by {self.data['creator_name']}"
         embed.remove_field(0)
 
-        new_map = await itx.guild.get_channel(utils.NEW_MAPS).send(embed=embed, file=image)
+        new_map = await itx.guild.get_channel(utils.NEW_MAPS).send(
+            embed=embed, file=image
+        )
 
         if new_map.attachments:
             query = "UPDATE maps SET image = $2 WHERE map_code = $1;"
@@ -242,7 +248,9 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         )
 
     @staticmethod
-    async def _set_map_creator(connection: asyncpg.Connection, map_code: str, user_id: int):
+    async def _set_map_creator(
+        connection: asyncpg.Connection, map_code: str, user_id: int
+    ):
         query = "INSERT INTO map_creators (map_code, user_id) VALUES ($1, $2);"
         await connection.execute(
             query,
@@ -251,7 +259,9 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         )
 
     @staticmethod
-    async def _set_map_levels(connection: asyncpg.Connection, map_code: str, levels: list[str]):
+    async def _set_map_levels(
+        connection: asyncpg.Connection, map_code: str, levels: list[str]
+    ):
         query = "INSERT INTO map_levels (map_code, level) VALUES ($1, $2);"
         _levels = [(map_code, level_name) for level_name in levels]
         await connection.executemany(query, _levels)

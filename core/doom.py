@@ -21,6 +21,7 @@ if typing.TYPE_CHECKING:
 
 class Doom(commands.Bot):
     """Doom bot class inherited from commands.Bot."""
+
     pool: asyncpg.Pool
 
     def __init__(

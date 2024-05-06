@@ -133,7 +133,6 @@ class ExerciseTransformer(app_commands.Transformer):
         return await cogs.autocomplete(value, itx.client.exercise_names)
 
 
-
 class DuplicateExercise(BaseParkourException):
     """This exercise already exists."""
 

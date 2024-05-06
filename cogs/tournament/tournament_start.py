@@ -134,10 +134,12 @@ class Tournament(commands.Cog):
         return data
 
     async def _check_tournament_exists(self):
-        query = "SELECT 1 FROM tournament WHERE start > now() or \"end\" > now()"
+        query = 'SELECT 1 FROM tournament WHERE start > now() or "end" > now()'
         return await self.bot.database.fetchval(query)
 
-    async def insert_tournament_db(self, data: TournamentData, connection: asyncpg.Connection):
+    async def insert_tournament_db(
+        self, data: TournamentData, connection: asyncpg.Connection
+    ):
         query = """
         INSERT INTO tournament (start, "end", active, bracket)
             VALUES ($1, $2, $3, $4)

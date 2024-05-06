@@ -52,7 +52,7 @@ class OrgCommands(commands.Cog):
                 "- Hardcore (speedrunning hard levels)\n"
                 "- Bonus (speedrunning a level that isn't only about Doomfist)\n\n"
                 "Click the buttons below to learn more."
-            )
+            ),
         )
         view = TournamentInfoView(all_info_embeds)
         await ctx.send(embed=embed, view=view)
@@ -154,8 +154,10 @@ class OrgCommands(commands.Cog):
         await itx.response.defer(ephemeral=True)
         query = "SELECT * FROM tournament_seasons ORDER BY number;"
         rows = await itx.client.database.fetch(query)
-        data = {row['number']: {"name": row['name'], "active": row['active']} for row in rows}
+        data = {
+            row["number"]: {"name": row["name"], "active": row["active"]}
+            for row in rows
+        }
         view = SeasonManager(itx, data)
         await itx.edit_original_response(view=view)
         await view.wait()
-

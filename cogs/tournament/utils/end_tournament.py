@@ -84,11 +84,15 @@ class ExperienceCalculator:
             WHERE date_rank = 1
             ORDER BY r.category, value, record;
         """
-        rows = await self._tournament.client.database.fetch(query, self._tournament.client.current_tournament.id)
+        rows = await self._tournament.client.database.fetch(
+            query, self._tournament.client.current_tournament.id
+        )
         for row in rows:
             await self._create_xp_row(row)
 
-            value = self._lb_xp_formula(row["category"], row["record"], row["top_record"])
+            value = self._lb_xp_formula(
+                row["category"], row["record"], row["top_record"]
+            )
 
             self._xp[row["user_id"]][row["category"]] += value
             self._xp[row["user_id"]]["Total XP"] += value
@@ -162,10 +166,14 @@ class ExperienceCalculator:
             FROM distinct_values t
                      LEFT JOIN top_recs tr ON tr.category = t.category AND tr.rank = t.rank;
         """
-        rows = await self._tournament.client.database.fetch(query, self._tournament.client.current_tournament.id)
+        rows = await self._tournament.client.database.fetch(
+            query, self._tournament.client.current_tournament.id
+        )
         for row in rows:
             await self._create_xp_row(row)
-            self._xp[row["user_id"]]["Mission Total XP"] += MISSION_POINTS[row["difficulty"]]
+            self._xp[row["user_id"]]["Mission Total XP"] += MISSION_POINTS[
+                row["difficulty"]
+            ]
             self._xp[row["user_id"]]["Total XP"] += MISSION_POINTS[row["difficulty"]]
             self._xp[row["user_id"]][row["difficulty"]] += 1
 
@@ -219,7 +227,9 @@ class ExperienceCalculator:
             FROM top_three
             WHERE amount >= $2;
         """
-        rows = await self._tournament.client.database.fetch(query, self._tournament.id, target)
+        rows = await self._tournament.client.database.fetch(
+            query, self._tournament.id, target
+        )
         for row in rows:
             self._add_general_xp(row["user_id"])
 
@@ -276,7 +286,9 @@ class SpreadsheetCreator:
                      record)
             SELECT * FROM recs WHERE date_rank = 1;    
         """
-        self._records = await self._tournament.client.database.fetch(query, self._tournament.id)
+        self._records = await self._tournament.client.database.fetch(
+            query, self._tournament.id
+        )
         self._split_ranks()
 
     def _split_ranks(self):

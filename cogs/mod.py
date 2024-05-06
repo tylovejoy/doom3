@@ -154,9 +154,7 @@ class ModCommands(commands.Cog):
         old = self.bot.all_users[user]["nickname"]
         self.bot.all_users[user]["nickname"] = nickname
         query = "UPDATE users SET nickname=$1 WHERE user_id=$2;"
-        await self.bot.database.execute(
-            query, nickname, user
-        )
+        await self.bot.database.execute(query, nickname, user)
         await itx.response.send_message(
             f"Changing {old} ({user}) nickname to {nickname}"
         )

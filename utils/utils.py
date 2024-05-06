@@ -138,17 +138,13 @@ async def start_tournament(data: TournamentData):
         reason="Tournament Ended.",
     )
     query = "UPDATE tournament SET active=TRUE WHERE id=$1;"
-    await data.client.database.execute(
-        query, data.id
-    )
+    await data.client.database.execute(query, data.id)
 
 
 async def end_tournament(data: TournamentData):
     guild = data.client.get_guild(utils.GUILD_ID)
     query = "UPDATE tournament SET active=FALSE WHERE id=$1;"
-    await data.client.database.execute(
-        query, data.id
-    )
+    await data.client.database.execute(query, data.id)
     remove_perms = guild.get_channel(TOURNAMENT_SUBMISSIONS).overwrites_for(
         guild.default_role
     )

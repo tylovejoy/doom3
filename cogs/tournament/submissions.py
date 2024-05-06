@@ -33,10 +33,14 @@ class TournamentSubmissions(commands.Cog):
             INSERT INTO tournament_records (user_id, category, record, tournament_id, screenshot)
             VALUES ($1, $2, $3, (SELECT id FROM tournament WHERE active = TRUE LIMIT 1), $4)
         """
-        await self.bot.database.execute(query, user_id, category, record, screenshot_url)
+        await self.bot.database.execute(
+            query, user_id, category, record, screenshot_url
+        )
 
     async def get_tournament_id(self) -> int:
-        tournament_id_if_exists = self.bot.current_tournament and self.bot.current_tournament.id
+        tournament_id_if_exists = (
+            self.bot.current_tournament and self.bot.current_tournament.id
+        )
         query = "SELECT id FROM tournament WHERE active = TRUE;"
         fetch_id_if_needed = self.bot.database.fetchval(query)
         return tournament_id_if_exists or await fetch_id_if_needed

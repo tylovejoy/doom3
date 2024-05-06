@@ -64,7 +64,9 @@ class VerificationView(discord.ui.View):
         if verified:
             data = self.accepted(itx, row)
             await self.increment_verification_count(itx)
-            query = "UPDATE records SET verified=TRUE, hidden_id=null WHERE hidden_id=$1;"
+            query = (
+                "UPDATE records SET verified=TRUE, hidden_id=null WHERE hidden_id=$1;"
+            )
             await itx.client.database.execute(
                 query,
                 itx.message.id,
@@ -140,7 +142,9 @@ class VerificationView(discord.ui.View):
                 f"{utils.HALF_VERIFIED} Partial verification by {itx.user.mention}! "
                 f"No video proof supplied."
             )
-        message = itx.guild.get_channel(search.channel_id).get_partial_message(search.message_id)
+        message = itx.guild.get_channel(search.channel_id).get_partial_message(
+            search.message_id
+        )
         return {
             "edit": edit,
             "direct_message": (

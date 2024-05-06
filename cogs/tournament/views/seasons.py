@@ -34,7 +34,9 @@ class SeasonManager(discord.ui.View):
     @discord.ui.button(label="Change season", style=discord.ButtonStyle.red)
     async def change_season(self, itx: DoomItx, button: discord.ui.Button):
         if self.value is None:
-            await itx.response.send_message("Please select a season from the dropdown.", ephemeral=True)
+            await itx.response.send_message(
+                "Please select a season from the dropdown.", ephemeral=True
+            )
             return
         view = Confirm(itx)
         await itx.response.send_message(
@@ -62,7 +64,6 @@ class SeasonManager(discord.ui.View):
             f"All XP has been reset. Don't worry, the old XP amounts and leaderboard are still saved!"
         )
 
-
     # Delete season
     # @discord.ui.button(label="New season", style=discord.ButtonStyle.red)
     # async def delete_season(self, itx: DoomItx, button: discord.ui.Button):
@@ -85,7 +86,8 @@ class SeasonsDropdown(discord.ui.Select[SeasonManager]):
                 label=f"{k} | {v['name']}",
                 value=str(k),
                 emoji="✅" if v["active"] else None,
-            ) for k, v in data.items()
+            )
+            for k, v in data.items()
         ]
 
     def add_season(self, name: str, number: int):
@@ -101,11 +103,11 @@ class SeasonsDropdown(discord.ui.Select[SeasonManager]):
         self.options = self._build_options(self.data)
 
     def get_season_name(self, number: int):
-        return self.data[number]['name']
+        return self.data[number]["name"]
 
 
 class AddSeasonModal(discord.ui.Modal, title="Add New Season"):
-    name = discord.ui.TextInput(label='Season Name')
+    name = discord.ui.TextInput(label="Season Name")
     number: int | None = None
 
     async def on_submit(self, itx: DoomItx):

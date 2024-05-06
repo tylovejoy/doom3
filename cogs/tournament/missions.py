@@ -210,13 +210,13 @@ class Missions(commands.Cog):
                      difficulty != 'Hard',
                      difficulty != 'Expert'
         """
-        missions = await itx.client.database.fetch(query, itx.client.current_tournament.id)
+        missions = await itx.client.database.fetch(
+            query, itx.client.current_tournament.id
+        )
         if not missions:
             raise NoMissionExists
 
-        embed = missions_embed(
-            self.pretty_missions(missions)
-        )
+        embed = missions_embed(self.pretty_missions(missions))
         view = views.Confirm(itx)
         dropdown = TournamentRolesDropdown()
         view.add_item(dropdown)

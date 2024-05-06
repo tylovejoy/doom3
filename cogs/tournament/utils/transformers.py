@@ -14,7 +14,6 @@ import datetime
 
 
 class SeasonsTransformer(app_commands.Transformer):
-
     async def transform(self, itx: core.DoomItx, value: str) -> int:
         try:
             value = int(value)
@@ -36,11 +35,11 @@ class SeasonsTransformer(app_commands.Transformer):
         rows = await itx.client.database.fetch(query, value)
         choices = [
             app_commands.Choice(
-                name=f"{row['name']} (ID {row['number']})", value=row['name']
-            ) async for row in rows
+                name=f"{row['name']} (ID {row['number']})", value=row["name"]
+            )
+            async for row in rows
         ]
         return choices
-
 
 
 class DateTransformer(app_commands.Transformer):

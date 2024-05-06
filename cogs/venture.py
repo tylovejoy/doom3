@@ -33,10 +33,17 @@ class VentureRedirect(commands.Cog):
         if "venture" not in message.content.lower():
             return  # Only concerned with Venture references
 
-        if message.channel.id in [689703945924247558, 689704042393501756]:  # lounge/videos
+        if message.channel.id in [
+            689703945924247558,
+            689704042393501756,
+        ]:  # lounge/videos
             bucket = self.general_cd.get_bucket(message)
             retry_after = bucket.update_rate_limit()
-        elif message.channel.id in [754026577758519548, utils.SPR_RECORDS, utils.RECORDS]:  # help/records
+        elif message.channel.id in [
+            754026577758519548,
+            utils.SPR_RECORDS,
+            utils.RECORDS,
+        ]:  # help/records
             bucket = self.help_cd.get_bucket(message)
             retry_after = bucket.update_rate_limit()
         else:

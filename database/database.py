@@ -91,5 +91,3 @@ class Database:
     ):
         _connection = connection or self.pool
         await _connection.executemany(query, args)
-
-

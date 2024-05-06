@@ -28,7 +28,6 @@ LOGO_FILE_PATH = {
 }
 
 
-
 class RankCard(commands.Cog):
     def __init__(self, bot: core.Doom):
         self.bot = bot
@@ -305,7 +304,9 @@ class RankCard(commands.Cog):
                 embed_list.append(embed)
                 embed = utils.DoomEmbed(title="XP Leaderboard")
         if not embed_list:
-            await itx.edit_original_response(content="The XP Leaderboard for this season is currently empty.")
+            await itx.edit_original_response(
+                content="The XP Leaderboard for this season is currently empty."
+            )
             return
         view = views.Paginator(embed_list, itx.user)
         await view.start(itx)
