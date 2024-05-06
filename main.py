@@ -2,6 +2,7 @@ import asyncio
 import os
 
 import aiohttp
+import discord.utils
 
 import core
 import database
@@ -12,6 +13,7 @@ async def main() -> None:
     The main function is the entry point of the program.
     It creates a bot instance and runs it.
     """
+    discord.utils.setup_logging()
     async with aiohttp.ClientSession() as session:
         async with database.DatabaseConnection(
             f"postgres://"

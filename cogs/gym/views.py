@@ -37,9 +37,7 @@ class ExerciseView(discord.ui.View):
         embed = utils.DoomEmbed(
             title=selected.name,
             description=(
-                f"Location: {selected.location}\n"
-                f"Target Muscle: {selected.target}\n"
-                f"Equipment: {selected.equipment}\n"
+                f"Location: {selected.location}\n" f"Target Muscle: {selected.target}\n" f"Equipment: {selected.equipment}\n"
             ),
             image=selected.url,
         )
@@ -90,13 +88,8 @@ class ExerciseView(discord.ui.View):
         await self.wait()
 
     async def _set_options(self):
-        self.cur_page = self.all[
-            (self.page_num + 1) * 10 - 10 : (self.page_num + 1) * 10
-        ]
-        self.exercises.options = [
-            discord.SelectOption(label=x.name, value=str(i))
-            for i, x in enumerate(self.cur_page)
-        ]
+        self.cur_page = self.all[(self.page_num + 1) * 10 - 10 : (self.page_num + 1) * 10]
+        self.exercises.options = [discord.SelectOption(label=x.name, value=str(i)) for i, x in enumerate(self.cur_page)]
         await self.itx.edit_original_response(view=self)
 
     async def _create_embed(self): ...
