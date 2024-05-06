@@ -132,24 +132,24 @@ class VerificationView(discord.ui.View):
         """Data for verified records."""
 
         record = (
-            f"**Record:** {utils.pretty_record(search.record)} "
-            f"{utils.VERIFIED if search.video else utils.HALF_VERIFIED}"
+            f"**Record:** {utils.pretty_record(search['record'])} "
+            f"{utils.VERIFIED if search['video'] else utils.HALF_VERIFIED}"
         )
-        if search.video:
+        if search["video"]:
             edit = f"{utils.VERIFIED} Complete verification by {itx.user.mention}!"
         else:
             edit = (
                 f"{utils.HALF_VERIFIED} Partial verification by {itx.user.mention}! "
                 f"No video proof supplied."
             )
-        message = itx.guild.get_channel(search.channel_id).get_partial_message(
-            search.message_id
+        message = itx.guild.get_channel(search["channel_id"]).get_partial_message(
+            search["message_id"]
         )
         return {
             "edit": edit,
             "direct_message": (
-                f"**Map Code:** {search.map_code}\n"
-                f"**Level:** {search.level_name}\n"
+                f"**Map Code:** {search['map_code']}\n"
+                f"**Level:** {search['level_name']}\n"
                 + record
                 + f"\nVerified by {itx.user.mention}!\n{message.jump_url}\n\n"
                 + ALERT
@@ -164,12 +164,12 @@ class VerificationView(discord.ui.View):
     ) -> dict[str, str]:
         """Data for rejected records."""
 
-        record = f"**Record:** {utils.pretty_record(search.record)}\n"
+        record = f"**Record:** {utils.pretty_record(search['record'])}\n"
 
         return {
             "edit": (f"{utils.UNVERIFIED} " f"Rejected by {itx.user.mention}!"),
             "direct_message": (
-                f"**Map Code:** {search.map_code}\n"
+                f"**Map Code:** {search['map_code']}\n"
                 + record
                 + f"Your record got {utils.UNVERIFIED} "
                 f"rejected by {itx.user.mention}!\n\n"

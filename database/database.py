@@ -54,7 +54,7 @@ class Database:
         connection: asyncpg.Connection | asyncpg.Pool | None = None,
     ):
         _connection = connection or self.pool
-        return await _connection.fetch(query, *args)
+        return await _connection.fetch(query, *args, record_class=DotRecord)
 
     async def fetchval(
         self,
@@ -72,7 +72,7 @@ class Database:
         connection: asyncpg.Connection | asyncpg.Pool | None = None,
     ):
         _connection = connection or self.pool
-        return await _connection.fetchrow(query, *args)
+        return await _connection.fetchrow(query, *args, record_class=DotRecord)
 
     async def execute(
         self,

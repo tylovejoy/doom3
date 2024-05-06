@@ -233,22 +233,22 @@ class Missions(commands.Cog):
 
     def pretty_missions(self, missions: list[DotRecord]):
         description = "__**Missions**__\n"
-        cur_category = missions[0].category
-        if missions[0].code:
-            map_data = f"({missions[0].code} - {missions[0].level})"
+        cur_category = missions[0]["category"]
+        if missions[0]["code"]:
+            map_data = f"({missions[0]['code']} - {missions[0]['level']})"
         else:
             map_data = ""
         mission_text = ""
         for mission in missions:
-            if mission.category not in cur_category:
+            if mission["category"] not in cur_category:
                 description += f"\n**{cur_category} {map_data}**\n"
                 description += mission_text
                 mission_text = ""
-                cur_category = mission.category
-                map_data = f"({mission.code} - {mission.level})"
+                cur_category = mission["category"]
+                map_data = f"({mission['code']} - {mission['level']})"
 
             mission_text += self.format_missions(
-                mission.difficulty, mission.type, mission.target, mission.extra_target
+                mission["difficulty"], mission["type"], mission["target"], mission["extra_target"]
             )
         if mission_text:
             description += f"\n**{cur_category} {map_data}**\n"

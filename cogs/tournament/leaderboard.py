@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import typing
 
+import asyncpg
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -75,10 +76,10 @@ class TournamentLeaderboards(commands.Cog):
         )
         for i, record in enumerate(records):
             embed.add_field(
-                name=f"{utils.make_ordinal(i + 1)} - {record.nickname} {rank_display[record.value]}",
+                name=f"{utils.make_ordinal(i + 1)} - {record['nickname']} {rank_display[record['value']]}",
                 value=(
-                    f"> *Record:* {pretty_record(record.record)}\n"
-                    f"> [Screenshot]({record.screenshot})\n\n"
+                    f"> *Record:* {pretty_record(record['record'])}\n"
+                    f"> [Screenshot]({record['screenshot']})\n\n"
                 ),
                 inline=False,
             )

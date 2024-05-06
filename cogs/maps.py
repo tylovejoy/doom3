@@ -385,14 +385,14 @@ class Maps(commands.Cog):
         embed = utils.DoomEmbed(title="Map Search")
         for i, _map in enumerate(maps):
             embed.add_description_field(
-                name=f"{_map.map_code}",
+                name=f"{_map['map_code']}",
                 value=(
-                    self.display_official(_map.official)
-                    + f"┣ `Rating` {utils.create_stars(_map.rating)}\n"
-                    f"┣ `Creator` {discord.utils.escape_markdown(_map.creators)}\n"
-                    f"┣ `Map` {_map.map_name}\n"
-                    f"┣ `Type` {_map.map_type}\n"
-                    f"┗ `Description` {_map.desc}"
+                    self.display_official(_map["official"])
+                    + f"┣ `Rating` {utils.create_stars(_map['rating'])}\n"
+                    f"┣ `Creator` {discord.utils.escape_markdown(_map['creators'])}\n"
+                    f"┣ `Map` {_map['map_name']}\n"
+                    f"┣ `Type` {_map['map_type']}\n"
+                    f"┗ `Description` {_map['desc']}"
                 ),
             )
             if utils.split_nth_conditional(i, 10, maps):
@@ -405,20 +405,20 @@ class Maps(commands.Cog):
     ) -> utils.Embed | utils.DoomEmbed:
         embed = utils.DoomEmbed(title="Map Search")
         embed.add_description_field(
-            name=f"{_map.map_code}",
+            name=f"{_map['map_code']}",
             value=(
-                self.display_official(_map.official)
-                + f"┣ `Rating` {utils.create_stars(_map.rating)}\n"
-                f"┣ `Creator` {discord.utils.escape_markdown(_map.creators)}\n"
-                f"┣ `Map` {_map.map_name}\n"
-                f"┣ `Type` {_map.map_type}\n"
-                f"┗ `Description` {_map.desc}"
+                self.display_official(_map['official'])
+                + f"┣ `Rating` {utils.create_stars(_map['rating'])}\n"
+                f"┣ `Creator` {discord.utils.escape_markdown(_map['creators'])}\n"
+                f"┣ `Map` {_map['map_name']}\n"
+                f"┣ `Type` {_map['map_type']}\n"
+                f"┗ `Description` {_map['desc']}"
             ),
         )
         if level:
             embed.add_field(
                 name="Random Level",
-                value=f"{_map.level} - {utils.create_stars(_map.avg_rating)}",
+                value=f"{_map['level']} - {utils.create_stars(_map['avg_rating'])}",
             )
         return embed
 

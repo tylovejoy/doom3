@@ -164,39 +164,39 @@ def all_levels_records_embed(
     embed_list = []
     embed = utils.DoomEmbed(title=title)
     for i, record in enumerate(records):
-        if record.tournament:
+        if record["tournament"]:
             description = (
-                f"┣ `Name` {record.nickname}\n"
-                f"┗ `Record` [{pretty_record(record.record)}]"
-                f"({record.screenshot}) "
+                f"┣ `Name` {record['nickname']}\n"
+                f"┗ `Record` [{pretty_record(record['record'])}]"
+                f"({record['screenshot']}) "
                 f"{utils.TROPHY}\n"
             )
-        elif not record.video:
+        elif not record["video"]:
             description = (
-                f"┣ `Name` {record.nickname}\n"
-                f"┗ `Record` [{pretty_record(record.record)}]"
-                f"({record.screenshot}) "
+                f"┣ `Name` {record['nickname']}\n"
+                f"┗ `Record` [{pretty_record(record['record'])}]"
+                f"({record['screenshot']}) "
                 f"{utils.HALF_VERIFIED}\n"
             )
         else:
             description = (
-                f"┣ `Name` {record.nickname}\n"
-                f"┣ `Record` [{pretty_record(record.record)}]"
-                f"({record.screenshot}) "
+                f"┣ `Name` {record['nickname']}\n"
+                f"┣ `Record` [{pretty_record(record['record'])}]"
+                f"({record['screenshot']}) "
                 f"{utils.VERIFIED}\n "
-                f"┗ `Video` [Link]({record.video})\n"
+                f"┗ `Video` [Link]({record['video']})\n"
             )
         embed.add_field(
             name=(
-                f"{utils.PLACEMENTS.get(record.rank_num, '')} {make_ordinal(record.rank_num)}"
+                f"{utils.PLACEMENTS.get(record['rank_num'], '')} {make_ordinal(record['rank_num'])}"
                 if single
-                else record.level_name
+                else record["level_name"]
             ),
             value=description,
             inline=False,
         )
         if utils.split_nth_conditional(i, 9, records):
-            embed = utils.set_embed_thumbnail_maps(record.map_name, embed)
+            embed = utils.set_embed_thumbnail_maps(record["map_name"], embed)
             embed_list.append(embed)
             embed = utils.DoomEmbed(title=title)
     return embed_list
@@ -209,24 +209,24 @@ def pr_records_embed(
     embed_list = []
     embed = utils.DoomEmbed(title=title)
     description = ""
-    cur_code = f"{records[0].map_name} by {records[0].creators} ({records[0].map_code})"
+    cur_code = f"{records[0]['map_name']} by {records[0]['creators']} ({records[0]['map_code']})"
     for i, record in enumerate(records):
-        if cur_code != f"{record.map_name} by {record.creators} ({record.map_code})":
+        if cur_code != f"{record['map_name']} by {record['creators']} ({record['map_code']})":
             cur_code, description = _add_pr_field(cur_code, description, embed, record)
-        if not record.video:
+        if not record["video"]:
             description += (
-                f"┣ `Level` ***{record.level_name}***\n"
-                f"┣ `Record` [{pretty_record(record.record)}]"
-                f"({record.screenshot}) "
+                f"┣ `Level` ***{record['level_name']}***\n"
+                f"┣ `Record` [{pretty_record(record['record'])}]"
+                f"({record['screenshot']}) "
                 f"{utils.HALF_VERIFIED}\n┃\n"
             )
         else:
             description += (
-                f"┣ `Level` ***{record.level_name}***\n"
-                f"┣ `Record` [{pretty_record(record.record)}]"
-                f"({record.screenshot})"
+                f"┣ `Level` ***{record['level_name']}***\n"
+                f"┣ `Record` [{pretty_record(record['record'])}]"
+                f"({record['screenshot']})"
                 f"{utils.VERIFIED}\n "
-                f"┣ `Video` [Link]({record.video})\n┃\n"
+                f"┣ `Video` [Link]({record['video']})\n┃\n"
             )
         if utils.split_nth_conditional(i, 9, records):
             cur_code, description = _add_pr_field(cur_code, description, embed, record)
@@ -247,7 +247,7 @@ def _add_pr_field(
         inline=False,
     )
     description = ""
-    cur_code = f"{record.map_name} by {record.creators} ({record.map_code})"
+    cur_code = f"{record['map_name']} by {record['creators']} ({record['map_code']})"
     return cur_code, description
 
 

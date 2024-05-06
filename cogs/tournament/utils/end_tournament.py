@@ -106,10 +106,10 @@ class ExperienceCalculator:
     def _lb_xp_formula(
         category: Categories, record: decimal.Decimal, top_record: decimal.Decimal
     ) -> int:
-        record = float(record)
-        top_record = float(top_record)
+        _record = float(record)
+        _top_record = float(top_record)
         multi = XP_MULTIPLIER[category]
-        formula = (1 - (record - top_record) / (multi * top_record)) * 2500
+        formula = (1 - (_record - _top_record) / (multi * _top_record)) * 2500
 
         if formula < 100:
             return 100
@@ -293,7 +293,7 @@ class SpreadsheetCreator:
 
     def _split_ranks(self):
         for record in self._records:
-            self._split_records[record.rank][record.category].append(record)
+            self._split_records[record["rank"]][record["category"]].append(record)
 
     def _init_workbook(self):
         grandmaster = self._workbook.add_worksheet(name="Grandmaster")
@@ -390,15 +390,15 @@ class SpreadsheetCreator:
                     worksheet.write(
                         row_idx,
                         COLUMN_MAPPER[category][0],
-                        f"{record.nickname} ({record.user_id})",
+                        f"{record['nickname']} ({record['user_id']})",
                     )
                     worksheet.write(
                         row_idx,
                         COLUMN_MAPPER[category][1],
-                        record.record,
+                        record["record"],
                     )
                     worksheet.write(
                         row_idx,
                         COLUMN_MAPPER[category][2],
-                        self._xp[record.user_id][category],
+                        self._xp[record["user_id"]][category],
                     )

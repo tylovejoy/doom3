@@ -42,7 +42,7 @@ class ColorSelect(discord.ui.Select):
         )
         for option in options:
             self.add_option(
-                label=option.label, value=str(option.role_id), emoji=option.emoji
+                label=option["label"], value=str(option["role_id"]), emoji=option["emoji"]
             )
 
     async def callback(self, itx: DoomItx):

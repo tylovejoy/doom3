@@ -79,38 +79,38 @@ class Tasks(commands.Cog):
         maps = await self.bot.database.fetch(query, tournament["id"])
 
         map_data = {
-            row.category: CategoryData(
-                code=row.code, level=row.level, creator=row.creator
+            row["category"]: CategoryData(
+                code=row["code"], level=row["level"], creator=row["creator"]
             )
             for row in maps
         }
 
         self.bot.current_tournament = TournamentData(
             client=self.bot,
-            title=tournament.title,
-            start=tournament.start,
-            end=tournament.end,
-            bracket=tournament.bracket,
+            title=tournament["title"],
+            start=tournament["start"],
+            end=tournament["end"],
+            bracket=tournament["bracket"],
             data=map_data,
-            id_=tournament.id,
+            id_=tournament["id"],
         )
 
-        if tournament.needs_start_task:
+        if tournament["needs_start_task"]:
             utils.start_tournament_task.change_interval(
                 time=self.bot.current_tournament.start.time()
             )
             utils.start_tournament_task.start(self.bot.current_tournament)
 
-        if tournament.needs_end_task:
+        if tournament["needs_end_task"]:
             utils.end_tournament_task.change_interval(
                 time=self.bot.current_tournament.end.time()
             )
             utils.end_tournament_task.start(self.bot.current_tournament)
 
-        if tournament.needs_start_now:
+        if tournament["needs_start_now"]:
             await utils.start_tournament(self.bot.current_tournament)
 
-        if tournament.needs_end_now:
+        if tournament["needs_end_now"]:
             await utils.end_tournament(self.bot.current_tournament)
 
         logger.debug("Tournament cached.")
