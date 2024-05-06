@@ -46,14 +46,14 @@ class Tags(discord.ext.commands.GroupCog, group_name=utils.tags["name"]):
             await view.wait()
 
             return
-
-        tag = await itx.client.database.get_one(
-            "SELECT * FROM tags WHERE name=$1",
+        query = "SELECT * FROM tags WHERE name=$1;"
+        tag = await itx.client.database.fetchrow(
+            query,
             name,
         )
 
-        value = discord.utils.escape_mentions(tag.value).replace(r"\n", "\n")
-        await itx.edit_original_response(content=f"**{tag.name}**\n\n{value}")
+        value = discord.utils.escape_mentions(tag["value"]).replace(r"\n", "\n")
+        await itx.edit_original_response(content=f"**{tag['name']}**\n\n{value}")
 
     @app_commands.command(**utils.create_tag)
     async def create(self, itx: DoomItx):

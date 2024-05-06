@@ -129,7 +129,7 @@ class Duels(commands.Cog):
             VALUES ($1, $2, $3, $4, $5) 
             RETURNING id;
         """
-        duel_id = await self.bot.database.set_return_val(
+        duel_id = await self.bot.database.fetchval(
             query,
             duel.thread.thread.id,
             duel.thread.message.id,
@@ -141,19 +141,20 @@ class Duels(commands.Cog):
             INSERT INTO user_duels (user_id, ready, duel_id, num) 
             VALUES ($1, $2, $3, $4)
         """
-        await self.bot.database.set_many(
+        duel_info = [
+            (player.user_id, player.ready, duel_id, i)
+            for i, player in enumerate((duel.player1, duel.player2), start=1)
+        ]
+        await self.bot.database.executemany(
             query,
-            [
-                (player.user_id, player.ready, duel_id, i)
-                for i, player in enumerate((duel.player1, duel.player2), start=1)
-            ],
+            duel_info,
         )
 
     async def _check_if_in_match(self, player1: int, player2: int):
         query = """
             SELECT 1 FROM user_duels WHERE (user_id = $1 or user_id = $2) AND result = 0 LIMIT 1;
         """
-        return bool(await self.bot.database.get_one(query, player1, player2))
+        return bool(await self.bot.database.fetchrow(query, player1, player2))
 
     async def _check_xp(self, player1: int, player2: int, wager: int):
         query = """
@@ -162,8 +163,8 @@ class Duels(commands.Cog):
         SELECT p1_xp, p2_xp FROM
              p1 JOIN p2 ON p1.id = p2.id
         """
-        row = await self.bot.database.get_one(query, player1, player2, wager)
-        return False if not row else all((row.p1_xp, row.p2_xp))
+        row = await self.bot.database.fetchrow(query, player1, player2, wager)
+        return False if not row else all((row["p1_xp"], row["p2_xp"]))
 
     async def _get_random_map(self):
         query = """

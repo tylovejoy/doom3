@@ -43,8 +43,9 @@ class ModCommands(commands.Cog):
             return
 
         self.bot.keep_alives.append(thread.id)
-        await self.bot.database.set(
-            "INSERT INTO keep_alives (thread_id) VALUES ($1)",
+        query = "INSERT INTO keep_alives (thread_id) VALUES ($1);"
+        await self.bot.database.execute(
+            query,
             thread.id,
         )
         await itx.response.send_message(
@@ -63,8 +64,9 @@ class ModCommands(commands.Cog):
             return
 
         self.bot.keep_alives.remove(thread.id)
-        await self.bot.database.set(
-            "DELETE FROM keep_alives WHERE thread_id = $1;",
+        query = "DELETE FROM keep_alives WHERE thread_id = $1;"
+        await self.bot.database.execute(
+            query,
             thread.id,
         )
         await itx.response.send_message(
@@ -82,29 +84,30 @@ class ModCommands(commands.Cog):
         level_name: app_commands.Transform[str, utils.MapLevelTransformer],
     ):
         await itx.response.defer(ephemeral=True)
-        record = await self.bot.database.get_one(
-            """
+        query = """
             WITH all_user_records AS (
                 SELECT *, rank() OVER (ORDER BY inserted_at DESC) as latest FROM records r 
                 LEFT JOIN users u on r.user_id = u.user_id 
                 WHERE r.user_id = $1 AND map_code = $2 AND level_name = $3
             )
             SELECT * FROM all_user_records WHERE latest = 1
-            """,
+        """
+        row = await self.bot.database.fetchrow(
+            query,
             user.id,
             map_code,
             level_name,
         )
-        if not record:
+        if not row:
             raise utils.NoRecordsFoundError
 
         embed = utils.DoomEmbed(
             title="Delete Record",
             description=(
-                f"`Name` {record.nickname}\n"
-                f"`Code` {record.map_code}\n"
-                f"`Level` {record.level_name}\n"
-                f"`Record` {utils.pretty_record(record.record)}\n"
+                f"`Name` {row['nickname']}\n"
+                f"`Code` {row['map_code']}\n"
+                f"`Level` {row['level_name']}\n"
+                f"`Record` {utils.pretty_record(row['record'])}\n"
             ),
         )
         view = views.Confirm(itx)
@@ -115,9 +118,7 @@ class ModCommands(commands.Cog):
 
         if not view.value:
             return
-
-        await self.bot.database.set(
-            """
+        query = """
               WITH
                 latest AS (
                   SELECT max(inserted_at)
@@ -134,7 +135,9 @@ class ModCommands(commands.Cog):
              AND map_code = $2
              AND level_name = $3
              AND inserted_at = latest
-            """,
+        """
+        await self.bot.database.execute(
+            query,
             user.id,
             map_code,
             level_name,
@@ -150,8 +153,9 @@ class ModCommands(commands.Cog):
     ):
         old = self.bot.all_users[user]["nickname"]
         self.bot.all_users[user]["nickname"] = nickname
-        await self.bot.database.set(
-            "UPDATE users SET nickname=$1 WHERE user_id=$2", nickname, user
+        query = "UPDATE users SET nickname=$1 WHERE user_id=$2;"
+        await self.bot.database.execute(
+            query, nickname, user
         )
         await itx.response.send_message(
             f"Changing {old} ({user}) nickname to {nickname}"

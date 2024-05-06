@@ -23,7 +23,8 @@ class SeasonsTransformer(app_commands.Transformer):
             pass
 
         query = "SELECT name, number FROM tournament_seasons;"
-        values = {x['name']: x['number'] async for x in itx.client.database.get(query)}
+        rows = await itx.client.database.fetch(query)
+        values = {row["name"]: row["number"] for row in rows}
         if value not in values:
             value = utils.fuzz_(value, values)
         return values[value]
@@ -32,11 +33,11 @@ class SeasonsTransformer(app_commands.Transformer):
         self, itx: core.DoomItx, value: str
     ) -> list[app_commands.Choice[str]]:
         query = "SELECT name, number FROM tournament_seasons ORDER BY similarity(name, $1::text) DESC LIMIT 12;"
-
+        rows = await itx.client.database.fetch(query, value)
         choices = [
             app_commands.Choice(
                 name=f"{row['name']} (ID {row['number']})", value=row['name']
-            ) async for row in itx.client.database.get(query, value)
+            ) async for row in rows
         ]
         return choices
 

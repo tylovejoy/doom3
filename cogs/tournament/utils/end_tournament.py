@@ -84,15 +84,14 @@ class ExperienceCalculator:
             WHERE date_rank = 1
             ORDER BY r.category, value, record;
         """
-        async for row in self._tournament.client.database.get(
-            query, self._tournament.client.current_tournament.id
-        ):
+        rows = await self._tournament.client.database.fetch(query, self._tournament.client.current_tournament.id)
+        for row in rows:
             await self._create_xp_row(row)
 
-            value = self._lb_xp_formula(row.category, row.record, row.top_record)
+            value = self._lb_xp_formula(row["category"], row["record"], row["top_record"])
 
-            self._xp[row.user_id][row.category] += value
-            self._xp[row.user_id]["Total XP"] += value
+            self._xp[row["user_id"]][row["category"]] += value
+            self._xp[row["user_id"]]["Total XP"] += value
 
     async def _create_xp_row(self, row):
         if not self._xp.get(row.user_id, None):
@@ -163,38 +162,37 @@ class ExperienceCalculator:
             FROM distinct_values t
                      LEFT JOIN top_recs tr ON tr.category = t.category AND tr.rank = t.rank;
         """
-        async for row in self._tournament.client.database.get(
-            query, self._tournament.client.current_tournament.id
-        ):
+        rows = await self._tournament.client.database.fetch(query, self._tournament.client.current_tournament.id)
+        for row in rows:
             await self._create_xp_row(row)
-            self._xp[row.user_id]["Mission Total XP"] += MISSION_POINTS[row.difficulty]
-            self._xp[row.user_id]["Total XP"] += MISSION_POINTS[row.difficulty]
-            self._xp[row.user_id][row.difficulty] += 1
+            self._xp[row["user_id"]]["Mission Total XP"] += MISSION_POINTS[row["difficulty"]]
+            self._xp[row["user_id"]]["Total XP"] += MISSION_POINTS[row["difficulty"]]
+            self._xp[row["user_id"]][row["difficulty"]] += 1
 
     async def _compute_general_missions(self):
         query = """
             SELECT type, target, extra_target FROM tournament_missions WHERE id = $1 AND category = 'General';
         """
 
-        general_mission = await self._tournament.client.database.get_one(
+        general_mission = await self._tournament.client.database.fetchrow(
             query, self._tournament.id
         )
 
         if not general_mission:
             return
 
-        if general_mission.type == MissionType.XP_THRESHOLD:
+        if general_mission["type"] == MissionType.XP_THRESHOLD:
             for user_id, xp in self._xp.items():
-                if xp["Total XP"] >= general_mission.target:
+                if xp["Total XP"] >= general_mission["target"]:
                     self._add_general_xp(user_id)
 
-        elif general_mission.type == MissionType.MISSION_THRESHOLD:
+        elif general_mission["type"] == MissionType.MISSION_THRESHOLD:
             for user_id, data in self._xp.items():
-                if data[general_mission.extra_target] >= general_mission.target:
+                if data[general_mission["extra_target"]] >= general_mission["target"]:
                     self._add_general_xp(user_id)
 
-        elif general_mission.type == MissionType.TOP_PLACEMENT:
-            await self._compute_top_placement(general_mission.target)
+        elif general_mission["type"] == MissionType.TOP_PLACEMENT:
+            await self._compute_top_placement(general_mission["target"])
 
     async def _compute_top_placement(self, target: int):
         query = """
@@ -221,10 +219,9 @@ class ExperienceCalculator:
             FROM top_three
             WHERE amount >= $2;
         """
-        async for row in self._tournament.client.database.get(
-            query, self._tournament.id, target
-        ):
-            self._add_general_xp(row.user_id)
+        rows = await self._tournament.client.database.fetch(query, self._tournament.id, target)
+        for row in rows:
+            self._add_general_xp(row["user_id"])
 
     def _add_general_xp(self, user_id: int):
         self._xp[user_id]["Mission Total XP"] += MISSION_POINTS[
@@ -279,12 +276,7 @@ class SpreadsheetCreator:
                      record)
             SELECT * FROM recs WHERE date_rank = 1;    
         """
-        self._records = [
-            record
-            async for record in self._tournament.client.database.get(
-                query, self._tournament.id
-            )
-        ]
+        self._records = await self._tournament.client.database.fetch(query, self._tournament.id)
         self._split_ranks()
 
     def _split_ranks(self):

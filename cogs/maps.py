@@ -55,9 +55,9 @@ class Maps(commands.Cog):
 
         if creator not in itx.client.map_cache[map_code]["user_ids"]:
             raise utils.CreatorDoesntExist
-
-        await itx.client.database.set(
-            "DELETE FROM map_creators WHERE map_code = $1 AND user_id = $2;",
+        query = "DELETE FROM map_creators WHERE map_code = $1 AND user_id = $2;"
+        await itx.client.database.execute(
+            query,
             map_code,
             creator,
         )
@@ -84,9 +84,9 @@ class Maps(commands.Cog):
 
         if creator in itx.client.map_cache[map_code]["user_ids"]:
             raise utils.CreatorAlreadyExists
-
-        await itx.client.database.set(
-            "INSERT INTO map_creators (map_code, user_id) VALUES ($1, $2)",
+        query = "INSERT INTO map_creators (map_code, user_id) VALUES ($1, $2)"
+        await itx.client.database.execute(
+            query,
             map_code,
             creator,
         )
@@ -116,9 +116,9 @@ class Maps(commands.Cog):
         await view.wait()
         if not view.value:
             return
-
-        await itx.client.database.set(
-            "INSERT INTO map_levels (map_code, level) VALUES ($1, $2)",
+        query = "INSERT INTO map_levels (map_code, level) VALUES ($1, $2);"
+        await itx.client.database.execute(
+            query,
             map_code,
             new_level_name,
         )
@@ -143,9 +143,9 @@ class Maps(commands.Cog):
         await view.wait()
         if not view.value:
             return
-
-        await itx.client.database.set(
-            "DELETE FROM map_levels WHERE map_code=$1 AND level=$2",
+        query = "DELETE FROM map_levels WHERE map_code=$1 AND level=$2;"
+        await itx.client.database.execute(
+            query,
             map_code,
             level_name,
         )
@@ -193,9 +193,9 @@ class Maps(commands.Cog):
         await view.wait()
         if not view.value:
             return
-
-        await itx.client.database.set(
-            "UPDATE map_levels SET level=$3 WHERE map_code=$1 AND level=$2",
+        query = "UPDATE map_levels SET level=$3 WHERE map_code=$1 AND level=$2;"
+        await itx.client.database.execute(
+            query,
             map_code,
             level_name,
             new_level_name,
@@ -248,11 +248,8 @@ class Maps(commands.Cog):
         | None = None,
     ) -> None:
         await itx.response.defer(ephemeral=True)
-        maps = []
 
-        async for _map in itx.client.database.get(
-            textwrap.dedent(
-                f"""
+        query = f"""
             WITH valid_ratings AS (
                 SELECT mr.map_code, level, rating, mr.user_id, level_name 
                 FROM map_level_ratings mr
@@ -291,14 +288,13 @@ class Maps(commands.Cog):
             GROUP BY map_code, map_type, map_name, "desc", official, creators, creators_ids, image
             ORDER BY map_code
             """
-            ),
+        maps = await itx.client.database.fetch(
+            query,
             map_type,
             map_name,
             map_code,
             creator,
-        ):
-            _map: database.DotRecord
-            maps.append(_map)
+        )
         if not maps:
             raise utils.NoMapsFoundError
         embeds = self.create_map_embeds(maps)
@@ -368,7 +364,7 @@ class Maps(commands.Cog):
         """
         embed = utils.DoomEmbed(title="Map Search")
         embed.set_thumbnail(url=None)
-        _map = await itx.client.database.get_one(query)
+        _map = await itx.client.database.fetchrow(query)
         if not _map:
             raise utils.NoMapsFoundError
         embed = self.create_random_map_embeds(_map, random_level)
@@ -480,9 +476,9 @@ class Maps(commands.Cog):
 
         if not view.value:
             return
-
-        await itx.client.database.set(
-            "INSERT INTO guides (map_code, url) VALUES ($1, $2)",
+        query = "INSERT INTO guides (map_code, url) VALUES ($1, $2);"
+        await itx.client.database.execute(
+            query,
             map_code,
             url,
         )
@@ -492,93 +488,14 @@ class Maps(commands.Cog):
         await itx.response.defer(ephemeral=True)
         if map_code not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
-        guides = [
-            x
-            async for x in itx.client.database.get(
-                "SELECT url FROM guides WHERE map_code=$1",
-                map_code,
-            )
-        ]
-        guides = [x.url for x in guides]
-        return guides
+        query = "SELECT url FROM guides WHERE map_code=$1"
+        guides = await itx.client.database.fetch(
+            query,
+            map_code,
+        )
+        return [x["url"] for x in guides]
 
 
 async def setup(bot):
     """Add Cog to Discord bot."""
     await bot.add_cog(Maps(bot))
-
-
-query = """
-WITH all_tournament_records AS (SELECT user_id,
-                                               inserted_at,
-                                               record,
-                                               screenshot,
-                                               code                                                          as map_code,
-                                               level                                                         as level_name,
-                                               RANK() OVER (partition by user_id, code order by inserted_at) as latest
-                                        FROM tournament_records tr
-                                                 LEFT JOIN tournament_maps tm on tr.category = tm.category
-                                            AND tr.tournament_id = tm.id),
-             _tournament_records AS (SELECT user_id,
-                                            record,
-                                            screenshot,
-                                            map_code,
-                                            level_name,
-                                            inserted_at,
-                                            true as verified,
-                                            null as video
-                                     FROM all_tournament_records
-                                     WHERE latest = 1),
-             combined_t_all_records AS (SELECT user_id,
-                                               map_code,
-                                               level_name,
-                                               record,
-                                               screenshot,
-                                               video,
-                                               verified,
-                                               inserted_at,
-                                               true as tournament
-                                        FROM _tournament_records _tr
-                                        UNION
-                                        DISTINCT
-                                        (SELECT user_id,
-                                                map_code,
-                                                level_name,
-                                                record,
-                                                screenshot,
-                                                video,
-                                                verified,
-                                                inserted_at,
-                                                false as tournament
-                                         FROM records))
-        SELECT *
-        FROM (SELECT u.nickname,
-                     level_name,
-                     record,
-                     screenshot,
-                     video,
-                     tournament,
-                     verified,
-                     r.map_code,
-                     m.map_name,
-                     rank() OVER (
-                         partition by r.map_code, r.user_id, level_name
-                         order by inserted_at
-                         ) as latest,
-                     RANK() OVER (
-                         PARTITION BY level_name
-                         ORDER BY record
-                         )    rank_num
-              FROM combined_t_all_records r
-                       LEFT JOIN users u on r.user_id = u.user_id
-                       LEFT JOIN maps m on m.map_code = r.map_code) as ranks
-        WHERE map_code = $1
-          AND ($4::boolean IS FALSE OR video is not null)
-          AND ($2::boolean IS NOT NULL OR rank_num = 1)
-          AND ($3::text IS NULL OR level_name = $3)
-          AND latest = 1
-          AND verified = TRUE
-        ORDER BY substr(level_name, 1, 5) <> 'Level', level_name, record;
-
-
-"""

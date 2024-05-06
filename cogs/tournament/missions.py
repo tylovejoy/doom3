@@ -70,9 +70,9 @@ class Missions(commands.Cog):
             raise MismatchedMissionCategoryType
 
         target, extra = self.validate_target(mission_type, target)
-
-        old_mission = await itx.client.database.get_one(
-            "SELECT * FROM tournament_missions WHERE category = $1 AND difficulty = $2 and id = $3",
+        query = "SELECT * FROM tournament_missions WHERE category=$1 AND difficulty=$2 and id=$3;"
+        old_mission = await itx.client.database.fetchrow(
+            query,
             category,
             difficulty,
             itx.client.current_tournament.id,
@@ -96,14 +96,14 @@ class Missions(commands.Cog):
         await view.wait()
         if not view.value:
             return
-
-        await itx.client.database.set(
-            """
+        query = """
             INSERT INTO tournament_missions (id, type, target, difficulty, category, extra_target) 
             VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (id, category, difficulty)
             DO UPDATE SET target = EXCLUDED.target, type = EXCLUDED.type
-            """,
+        """
+        await itx.client.database.execute(
+            query,
             itx.client.current_tournament.id,
             mission_type,
             target,
@@ -148,8 +148,9 @@ class Missions(commands.Cog):
             raise TournamentNotActiveError
 
         await itx.response.defer(ephemeral=True)
-        mission = await itx.client.database.get_one(
-            "SELECT * FROM tournament_missions WHERE category = $1 AND difficulty = $2 and id = $3",
+        query = "SELECT * FROM tournament_missions WHERE category=$1 AND difficulty=$2 and id=$3;"
+        mission = await itx.client.database.fetchrow(
+            query,
             category,
             difficulty,
             itx.client.current_tournament.id,
@@ -163,17 +164,17 @@ class Missions(commands.Cog):
                 "Are you sure you want to delete this mission?\n\n"
                 f"**Category: **{category}\n"
                 f"**Difficulty: ** {difficulty}\n"
-                f"**Type: ** {mission.type}\n"
-                f"**Target: ** {mission.target}\n"
+                f"**Type: ** {mission['type']}\n"
+                f"**Target: ** {mission['target']}\n"
             ),
             view=view,
         )
         await view.wait()
         if not view.value:
             return
-
-        await itx.client.database.set(
-            "DELETE FROM tournament_missions WHERE category = $1 AND difficulty = $2 and id = $3",
+        query = "DELETE FROM tournament_missions WHERE category = $1 AND difficulty = $2 and id = $3;"
+        await itx.client.database.execute(
+            query,
             category,
             difficulty,
             itx.client.current_tournament.id,
@@ -209,12 +210,7 @@ class Missions(commands.Cog):
                      difficulty != 'Hard',
                      difficulty != 'Expert'
         """
-        missions = [
-            x
-            async for x in itx.client.database.get(
-                query, itx.client.current_tournament.id
-            )
-        ]
+        missions = await itx.client.database.fetch(query, itx.client.current_tournament.id)
         if not missions:
             raise NoMissionExists
 

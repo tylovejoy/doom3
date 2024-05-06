@@ -50,9 +50,9 @@ class SeasonManager(discord.ui.View):
         if not view.value:
             return
         query = "UPDATE tournament_seasons SET active = FALSE WHERE active = TRUE;"
-        await itx.client.database.set(query)
+        await itx.client.database.execute(query)
         query = "UPDATE tournament_seasons SET active = TRUE WHERE number = $1;"
-        await itx.client.database.set(query, self.value)
+        await itx.client.database.execute(query, self.value)
         self.dropdown.activate_season(self.value)
         itx.client.current_season = self.value
         await itx.edit_original_response(view=self)
@@ -117,4 +117,4 @@ class AddSeasonModal(discord.ui.Modal, title="Add New Season"):
         )
         await view.wait()
         query = "INSERT INTO tournament_seasons (name) VALUES ($1) RETURNING number;"
-        self.number = await itx.client.database.set_return_val(query, self.name.value)
+        self.number = await itx.client.database.fetchval(query, self.name.value)

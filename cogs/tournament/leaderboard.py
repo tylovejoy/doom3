@@ -59,7 +59,7 @@ class TournamentLeaderboards(commands.Cog):
             FROM all_records
             WHERE date_rank = 1;
         """
-        records = [x async for x in self.bot.database.get(query, category, rank)]
+        records = await self.bot.database.fetch(query, category, rank)
         if not records:
             raise utils.NoRecordsFoundError
         embeds = self._split_records(records, category, rank)

@@ -155,7 +155,7 @@ class RankCard(commands.Cog):
                 WHERE all_positions.user_id = $1
                 GROUP BY all_positions.user_id, xp, pos, "Time Attack", "Mildcore", "Hardcore", "Bonus", wins, losses, nickname
         """
-        return await itx.client.database.get_one(query, user.id, season)
+        return await itx.client.database.fetchrow(query, user.id, season)
 
     def _create_card(self, avatar_binary, search, user):
         name = f"{user.name[:18]}#{user.discriminator}"
@@ -294,12 +294,11 @@ class RankCard(commands.Cog):
         await itx.response.defer(ephemeral=True)
         embed = utils.DoomEmbed(title=f"XP Leaderboard - {season}")
         embed_list = []
-        records = [row async for row in itx.client.database.get(query, season)]
-
+        records = await itx.client.database.fetch(query, season)
         for i, record in enumerate(records):
             embed.add_field(
-                name=f"{utils.make_ordinal(record.rank)} - {record.nickname}",
-                value=f"XP: {record.xp}",
+                name=f"{utils.make_ordinal(record['rank'])} - {record['nickname']}",
+                value=f"XP: {record['xp']}",
                 inline=False,
             )
             if utils.split_nth_conditional(i, 9, records):

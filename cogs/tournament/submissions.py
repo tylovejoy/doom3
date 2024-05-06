@@ -33,26 +33,26 @@ class TournamentSubmissions(commands.Cog):
             INSERT INTO tournament_records (user_id, category, record, tournament_id, screenshot)
             VALUES ($1, $2, $3, (SELECT id FROM tournament WHERE active = TRUE LIMIT 1), $4)
         """
-        await self.bot.database.set(query, user_id, category, record, screenshot_url)
+        await self.bot.database.execute(query, user_id, category, record, screenshot_url)
 
     async def get_tournament_id(self) -> int:
-        return (
-            self.bot.current_tournament and self.bot.current_tournament.id
-        ) or await self.bot.database.fetchval(
-            "SELECT id FROM tournament WHERE active = TRUE;"
-        )
+        tournament_id_if_exists = self.bot.current_tournament and self.bot.current_tournament.id
+        query = "SELECT id FROM tournament WHERE active = TRUE;"
+        fetch_id_if_needed = self.bot.database.fetchval(query)
+        return tournament_id_if_exists or await fetch_id_if_needed
 
     async def get_old_record(
         self, user_id: int, category: Category, tournament_id: int
     ):
-        return await self.bot.database.fetchval(
-            """
+        query = """
             SELECT record, rank()
                 over (order by inserted_at DESC) as date_rank FROM tournament_records 
             WHERE user_id = $1 AND
             category = $2 AND 
             tournament_id = $3;
-            """,
+        """
+        return await self.bot.database.fetchval(
+            query,
             user_id,
             category,
             tournament_id,
@@ -204,15 +204,15 @@ class TournamentSubmissions(commands.Cog):
             return
 
         query = """
-        DELETE
-        FROM tournament_records
-        WHERE user_id = $1
-          AND tournament_id = $3
-          AND category = $2
-          AND inserted_at = (SELECT max(inserted_at) as inserted_at
-                               FROM tournament_records
-                               WHERE user_id = $1
-                                 AND tournament_id = $3
-                                 AND category = $2)
+            DELETE
+            FROM tournament_records
+            WHERE user_id = $1
+              AND tournament_id = $3
+              AND category = $2
+              AND inserted_at = (SELECT max(inserted_at) as inserted_at
+                                   FROM tournament_records
+                                   WHERE user_id = $1
+                                     AND tournament_id = $3
+                                     AND category = $2);
         """
-        await itx.client.database.set(query, user.id, category, tournament_id)
+        await itx.client.database.execute(query, user.id, category, tournament_id)

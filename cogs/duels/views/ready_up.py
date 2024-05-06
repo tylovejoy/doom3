@@ -54,10 +54,8 @@ class ReadyUpButton(discord.ui.Button):
         self.emoji = "✔️" if self.ready else "✖️"
 
     async def _update_db(self):
-        query = """
-            UPDATE user_duels SET ready = $1 WHERE duel_id = $2 AND user_id = $3;
-        """
-        await self.view.duel.client.database.set(
+        query = "UPDATE user_duels SET ready = $1 WHERE duel_id = $2 AND user_id = $3;"
+        await self.view.duel.client.database.execute(
             query,
             self.ready,
             self.view.duel.id,

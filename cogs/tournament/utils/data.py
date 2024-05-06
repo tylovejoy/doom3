@@ -188,47 +188,45 @@ class TournamentData:
                 continue
             lb_description = []
             hof_embed_field_value = ""
-            async for record in self.client.database.get(
-                """
-                    WITH t_records AS (SELECT tr.user_id, record, coalesce(ur.value, 'Unranked') as value, tr.category, screenshot, inserted_at
-                                       FROM tournament_records tr
-                                                LEFT JOIN user_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
-                                       WHERE tournament_id = $1),
-                         ranks AS (SELECT user_id,
-                                          record,
-                                          value,
-                                          category,
-                                          screenshot,
-                                          rank() OVER (
-                                           PARTITION BY user_id, category
-                                            ORDER BY inserted_at DESC
-                                          ) as latest
-                                   FROM t_records)
-                    SELECT r.user_id, nickname, record, value , category, screenshot, latest,
-                    
-                                          rank() OVER (
-                                              PARTITION BY category
-                                              ORDER BY record
-                                              ) rank_num
-                    FROM ranks r
-                    LEFT JOIN users u ON r.user_id = u.user_id
-                    WHERE category = $2 
-                    AND latest = 1
-                    ORDER BY category != 'Time Attack',
-                             category != 'Mildcore',
-                             category != 'Hardcore',
-                             category != 'Bonus',
+            query = """
+                WITH t_records AS (SELECT tr.user_id, record, coalesce(ur.value, 'Unranked') as value, tr.category, screenshot, inserted_at
+                                   FROM tournament_records tr
+                                            LEFT JOIN user_ranks ur on tr.user_id = ur.user_id and tr.category = ur.category
+                                   WHERE tournament_id = $1),
+                     ranks AS (SELECT user_id,
+                                      record,
+                                      value,
+                                      category,
+                                      screenshot,
+                                      rank() OVER (
+                                       PARTITION BY user_id, category
+                                        ORDER BY inserted_at DESC
+                                      ) as latest
+                               FROM t_records)
+                SELECT r.user_id, nickname, record, value , category, screenshot, latest,
+                
+                                      rank() OVER (
+                                          PARTITION BY category
+                                          ORDER BY record
+                                          ) rank_num
+                FROM ranks r
+                LEFT JOIN users u ON r.user_id = u.user_id
+                WHERE category = $2 
+                AND latest = 1
+                ORDER BY category != 'Time Attack',
+                         category != 'Mildcore',
+                         category != 'Hardcore',
+                         category != 'Bonus',
                              rank_num
-                """,
-                self.id,
-                category,
-            ):
+            """
+            rows = await self.client.database.fetch(query, self.id, category)
+            for row in rows:
                 value = (
-                    f"`{make_ordinal(record.rank_num)}` - "
-                    f"{record.nickname} - [{pretty_record(record.record)}]({record.screenshot}) "
-                    f"{rank_display[record.value]}\n"
+                    f"`{make_ordinal(row['rank_num'])}` - "
+                    f"{row['nickname']} - [{pretty_record(row['record'])}]({row['screenshot']}) "
+                    f"{rank_display[row['value']]}\n"
                 )
-                if record.rank_num <= 3:
+                if row.rank_num <= 3:
                     hof_embed_field_value += value
                 lb_description.append(value)
             hof_embed.add_field(

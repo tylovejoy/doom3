@@ -48,37 +48,41 @@ class VerificationView(discord.ui.View):
         rejection: str | None = None,
     ):
         """Verify a record."""
-        row = await itx.client.database.get_one(
-            "SELECT * FROM records WHERE hidden_id=$1",
+        query = "SELECT * FROM records WHERE hidden_id=$1"
+        row = await itx.client.database.fetchrow(
+            query,
             itx.message.id,
         )
         original_message = await self.find_original_message(
-            itx, row.channel_id, row.message_id
+            itx, row["channel_id"], row["message_id"]
         )
         if not original_message:
             return
 
-        user = itx.guild.get_member(row.user_id)
+        user = itx.guild.get_member(row["user_id"])
 
         if verified:
             data = self.accepted(itx, row)
             await self.increment_verification_count(itx)
-            await itx.client.database.set(
-                "UPDATE records SET verified = TRUE, hidden_id = null WHERE hidden_id = $1;",
+            query = "UPDATE records SET verified=TRUE, hidden_id=null WHERE hidden_id=$1;"
+            await itx.client.database.execute(
+                query,
                 itx.message.id,
             )
         else:
             data = self.rejected(itx, row, rejection)
-            await itx.client.database.set(
-                "DELETE FROM records WHERE user_id = $1 AND map_code = $2 AND level_name = $3",
-                row.user_id,
-                row.map_code,
-                row.level_name,
+            query = "DELETE FROM records WHERE user_id=$1 AND map_code=$2 AND level_name=$3;"
+            await itx.client.database.execute(
+                query,
+                row["user_id"],
+                row["map_code"],
+                row["level_name"],
             )
         await original_message.edit(content=data["edit"])
+        query = "SELECT alertable FROM users WHERE user_id=$1;"
         if await itx.client.database.fetchval(
-            "SELECT alertable FROM users WHERE user_id=$1",
-            row.user_id,
+            query,
+            row["user_id"],
         ):
             try:
                 await user.send(
@@ -96,13 +100,14 @@ class VerificationView(discord.ui.View):
 
     @staticmethod
     async def increment_verification_count(itx: DoomItx):
-        await itx.client.database.set(
-            """
+        query = """
             INSERT INTO verification_counts (user_id, amount)
             VALUES ($1, 1)
             ON CONFLICT (user_id)
                 DO UPDATE SET amount = verification_counts.amount + 1;
-            """,
+        """
+        await itx.client.database.execute(
+            query,
             itx.user.id,
         )
 

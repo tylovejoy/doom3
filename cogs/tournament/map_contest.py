@@ -46,8 +46,9 @@ class MapContest(commands.Cog):
             await itx.edit_original_response(content="You cannot submit previously released map.")
             return
 
-        query = "SELECT EXISTS(SELECT 1 FROM map_contest WHERE user_id = $1 AND tournament_id = $2)"
-        if await self.bot.database.fetchval(query, itx.user.id, tournament.id):
+        query = "SELECT EXISTS(SELECT 1 FROM map_contest WHERE user_id = $1 AND tournament_id = $2);"
+        contest_submission_exists = await self.bot.database.fetchval(query, itx.user.id, tournament.id)
+        if contest_submission_exists:
             content = (
                 "You can only submit once per contest.\n\n"
                 "Do you to overwrite your previous submission with map code: `{map_code}`**`?"
@@ -69,9 +70,9 @@ class MapContest(commands.Cog):
               (user_id, map_code, tournament_id)
             VALUES
               ($1, $2, $3)
-                ON CONFLICT (user_id, tournament_id) DO UPDATE SET map_code = $2
+                ON CONFLICT (user_id, tournament_id) DO UPDATE SET map_code = $2;
         """
-        await self.bot.database.set(query, itx.user.id, map_code, tournament.id)
+        await self.bot.database.execute(query, itx.user.id, map_code, tournament.id)
 
     @app_commands.command(name="map-contest-list")
     @app_commands.guilds(
@@ -95,9 +96,10 @@ class MapContest(commands.Cog):
             # await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
             # return
 
-        query = "SELECT map_code, user_id FROM map_contest WHERE tournament_id = $1"
-        rows = [f"`{r['map_code']}`" async for r in self.bot.database.get(query, tournament.id)]
-        await itx.edit_original_response(content="\n".join(rows))
+        query = "SELECT map_code, user_id FROM map_contest WHERE tournament_id=$1;"
+        rows = await self.bot.database.fetch(query, tournament.id)
+        formatted = [f"`{row['map_code']}`" for row in rows]
+        await itx.edit_original_response(content="\n".join(formatted))
 
     @app_commands.command(name="map-contest-list-users")
     @app_commands.guilds(
@@ -116,16 +118,18 @@ class MapContest(commands.Cog):
         await itx.response.defer()
         tournament = self.bot.current_tournament
         if not tournament:
-            query = "SELECT MAX(id) FROM tournament"
+            query = "SELECT MAX(id) FROM tournament;"
             tournament = self.bot.database.fetchval(query)
             # await itx.edit_original_response(content="There is no ongoing contest/tournament at this time.")
             # return
 
-        query = "SELECT user_id, map_code FROM map_contest WHERE tournament_id = $1"
+        query = "SELECT user_id, map_code FROM map_contest WHERE tournament_id=$1;"
         users = itx.client.all_users
+        rows = await self.bot.database.fetch(query, tournament.id)
+
         details = [
             f"`{row['map_code']}` - {users[row['user_id']]['nickname']} ({row['user_id']})"
-            async for row in self.bot.database.get(query, tournament.id)
+            for row in rows
         ]
 
         await itx.edit_original_response(content="\n".join(details))
@@ -163,5 +167,5 @@ class MapContest(commands.Cog):
         if not view.value:
             return
 
-        query = "DELETE FROM map_contest WHERE tournament_id = $1 AND map_code = $2"
-        await self.bot.database.set(query, tournament.id, map_code)
+        query = "DELETE FROM map_contest WHERE tournament_id = $1 AND map_code = $2;"
+        await self.bot.database.execute(query, tournament.id, map_code)

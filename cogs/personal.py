@@ -52,8 +52,9 @@ class Personal(commands.Cog):
         value: typing.Literal["On", "Off"],
     ):
         value_bool = value == "On"
-        await itx.client.database.set(
-            "UPDATE users SET alertable=$1 WHERE user_id=$2",
+        query = "UPDATE users SET alertable=$1 WHERE user_id=$2;"
+        await itx.client.database.execute(
+            query,
             value_bool,
             itx.user.id,
         )
@@ -73,8 +74,9 @@ class Personal(commands.Cog):
             f"Changing your nick name from {itx.client.all_users[itx.user.id]['nickname']} to {nickname}",
             ephemeral=True,
         )
-        await itx.client.database.set(
-            "UPDATE users SET nickname=$2 WHERE user_id=$1",
+        query = "UPDATE users SET nickname=$2 WHERE user_id=$1;"
+        await itx.client.database.execute(
+            query,
             itx.user.id,
             nickname,
         )
@@ -132,7 +134,8 @@ class Personal(commands.Cog):
         await view.wait()
         if not view.value:
             return
-        await itx.client.database.set("INSERT INTO insults (value) VALUES ($1)", insult)
+        query = "INSERT INTO insults (value) VALUES ($1);"
+        await itx.client.database.execute(query, insult)
         itx.client.insults.append(insult)
 
     @app_commands.command(**utils.increase)

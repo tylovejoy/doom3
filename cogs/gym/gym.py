@@ -192,8 +192,9 @@ class Gym(commands.Cog):
         if name in itx.client.exercise_category_map:
             raise DuplicateExercise
         await itx.response.send_message(f"Added {name} to exercise list.")
-        await itx.client.database.set(
-            "INSERT INTO all_exercises (name, type) VALUES ($1, $2)",
+        query = "INSERT INTO all_exercises (name, type) VALUES ($1, $2);"
+        await itx.client.database.execute(
+            query,
             name,
             category,
         )
@@ -256,22 +257,15 @@ class Gym(commands.Cog):
             # TODO: Random.
             return
 
-        search = [
-            x
-            async for x in itx.client.database.get(
-                """
-                SELECT * FROM exercises 
-                WHERE 
-                    ($1::text IS NULL OR location = $1::text) AND
-                    ($2::text IS NULL OR equipment = $2::text) AND
-                    ($3::text IS NULL OR name = $3::text)
-                ORDER BY name;
-                """,
-                location,
-                equipment,
-                exercise_name,
-            )
-        ]
+        query = """
+            SELECT * FROM exercises 
+            WHERE 
+                ($1::text IS NULL OR location = $1::text) AND
+                ($2::text IS NULL OR equipment = $2::text) AND
+                ($3::text IS NULL OR name = $3::text)
+            ORDER BY name;
+        """
+        search = await itx.client.database.fetch(query, location, equipment, exercise_name)
 
         if not search:
             raise utils.NoExercisesFound

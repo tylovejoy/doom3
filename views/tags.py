@@ -22,18 +22,12 @@ class TagFuzzView(discord.ui.View):
         ]
 
     @discord.ui.select()
-    async def matches(self, itx: DoomItx, select: discord.SelectMenu):
+    async def matches(self, itx: DoomItx, select: discord.ui.Select):
         await itx.response.defer()
-        tag = [
-            x
-            async for x in itx.client.database.get(
-                "SELECT * FROM tags WHERE name=$1",
-                select.values[0],
-            )
-        ][0]
-
+        query = "SELECT * FROM tags WHERE name=$1;"
+        tag = await itx.client.database.fetchrow(query, select.values[0])
         await itx.edit_original_response(
-            content=f"**{tag.name}**\n\n{tag.value}", view=None, embed=None
+            content=f"**{tag['name']}**\n\n{tag['value']}", view=None, embed=None
         )
 
 
@@ -49,9 +43,9 @@ class TagCreate(discord.ui.Modal, title="Create Tag"):
         await view.wait()
         if not view.value:
             return
-
-        await itx.client.database.set(
-            "INSERT INTO tags (name, value) VALUES ($1, $2);",
+        query = "INSERT INTO tags (name, value) VALUES ($1, $2);"
+        await itx.client.database.execute(
+            query,
             self.name.value,
             self.value.value,
         )

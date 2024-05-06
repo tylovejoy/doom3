@@ -193,8 +193,9 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         new_map = await itx.guild.get_channel(utils.NEW_MAPS).send(embed=embed, file=image)
 
         if new_map.attachments:
-            await itx.client.database.set(
-                "UPDATE maps SET image = $2 WHERE map_code = $1;",
+            query = "UPDATE maps SET image = $2 WHERE map_code = $1;"
+            await itx.client.database.execute(
+                query,
                 self.data["map_code"],
                 new_map.attachments[0].url,
             )

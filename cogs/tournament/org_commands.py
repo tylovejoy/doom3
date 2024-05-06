@@ -58,7 +58,7 @@ class OrgCommands(commands.Cog):
         await ctx.send(embed=embed, view=view)
 
     async def cog_load(self) -> None:
-        query = "SELECT number FROM tournament_seasons WHERE active = TRUE ORDER BY number DESC LIMIT 1"
+        query = "SELECT number FROM tournament_seasons WHERE active = TRUE ORDER BY number DESC LIMIT 1;"
         res = await self.bot.database.fetchval(query)
         if not res:
             raise RuntimeError("No tournament season found... Stopping bot.")
@@ -79,9 +79,9 @@ class OrgCommands(commands.Cog):
             INSERT INTO user_ranks (user_id, category, value) 
             VALUES ($1, $2, $3)
             ON CONFLICT (user_id, category) DO UPDATE 
-            SET value = EXCLUDED.value
+            SET value = EXCLUDED.value;
         """
-        await itx.client.database.set(query, member.id, category, rank)
+        await itx.client.database.execute(query, member.id, category, rank)
         await itx.edit_original_response(
             content=f"{member.mention}'s {category} rank was changed to {rank}"
         )
@@ -96,7 +96,7 @@ class OrgCommands(commands.Cog):
             SET xp = user_xp.xp + EXCLUDED.xp
             RETURNING user_xp.xp
         """
-        total = await itx.client.database.set_return_val(query, member.id, xp)
+        total = await itx.client.database.fetchval(query, member.id, xp)
         pre_total = total - xp
         await itx.edit_original_response(
             content=f"{member.mention} was given {xp} XP. \nNew total: {total}\n Previous total: {pre_total}."
@@ -153,7 +153,8 @@ class OrgCommands(commands.Cog):
     ):
         await itx.response.defer(ephemeral=True)
         query = "SELECT * FROM tournament_seasons ORDER BY number;"
-        data = {row['number']: {"name": row['name'], "active": row['active']} async for row in self.bot.database.get(query)}
+        rows = await itx.client.database.fetch(query)
+        data = {row['number']: {"name": row['name'], "active": row['active']} for row in rows}
         view = SeasonManager(itx, data)
         await itx.edit_original_response(view=view)
         await view.wait()

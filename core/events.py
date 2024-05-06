@@ -65,21 +65,13 @@ class BotEvents(commands.Cog):
             f"Owner: {app_info.owner}\n"
         )
         if not self.bot.persistent_views_added:
-            colors = [
-                x
-                async for x in self.bot.database.get(
-                    "SELECT * FROM colors ORDER BY sort_order;",
-                )
-            ]
+            query = "SELECT * FROM colors ORDER BY sort_order;"
+            colors = await self.bot.database.fetch(query)
 
-            queue = [
-                x.hidden_id
-                async for x in self.bot.database.get(
-                    "SELECT hidden_id FROM records WHERE hidden_id is not null;",
-                )
-            ]
-            for x in queue:
-                self.bot.add_view(views.VerificationView(), message_id=x)
+            query = "SELECT hidden_id FROM records WHERE hidden_id is not null;"
+            queue = await self.bot.database.fetch(query)
+            for row in queue:
+                self.bot.add_view(views.VerificationView(), message_id=row["hidden_id"])
 
             view = ColorRolesView(colors)
             self.bot.add_view(view, message_id=960946616288813066)
@@ -219,7 +211,7 @@ class BotEvents(commands.Cog):
               AND user_id = $3
             LIMIT 1;
         """
-        row = await self.bot.database.get_one(query, message_id, channel_id, user_id)
+        row = await self.bot.database.fetchrow(query, message_id, channel_id, user_id)
         return row
 
     @staticmethod
@@ -236,8 +228,9 @@ class BotEvents(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         # Add user to DB
-        await self.bot.database.set(
-            "INSERT INTO users VALUES ($1, $2, true) ON CONFLICT DO NOTHING;",
+        query = "INSERT INTO users VALUES ($1, $2, true) ON CONFLICT DO NOTHING;"
+        await self.bot.database.execute(
+            query,
             member.id,
             member.name[:25],
         )

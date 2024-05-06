@@ -56,18 +56,19 @@ class Records(commands.Cog):
         if level_name not in itx.client.map_cache[map_code]["levels"]:
             raise utils.InvalidMapLevelError
 
-        old_row = await itx.client.database.get_one(
-            """
-                SELECT record, hidden_id FROM records r 
-                LEFT OUTER JOIN maps m on r.map_code = m.map_code
-                WHERE r.map_code = $1 AND level_name = $2 AND user_id = $3
-                ORDER BY inserted_at DESC
-            """,
+        query = """
+            SELECT record, hidden_id FROM records r 
+            LEFT OUTER JOIN maps m on r.map_code = m.map_code
+            WHERE r.map_code = $1 AND level_name = $2 AND user_id = $3
+            ORDER BY inserted_at DESC
+        """
+        old_row = await itx.client.database.fetchrow(
+            query,
             map_code,
             level_name,
             itx.user.id,
         )
-        if old_row and old_row.record < record:
+        if old_row and old_row["record"] < record:
             raise utils.RecordNotFasterError
 
         user = itx.client.all_users[itx.user.id]
@@ -102,21 +103,22 @@ class Records(commands.Cog):
             embed=embed, file=new_screenshot2
         )
 
-        if old_row and old_row.hidden_id:
+        if old_row and old_row["hidden_id"]:
             with contextlib.suppress(discord.NotFound):
                 await itx.guild.get_channel(utils.VERIFICATION_QUEUE).get_partial_message(
-                    old_row.hidden_id
+                    old_row["hidden_id"]
                 ).delete()
 
         view = views.VerificationView()
         await verification_msg.edit(view=view)
-        await itx.client.database.set(
-            """
+        query = """
             INSERT INTO records
             (map_code, user_id, level_name, record, screenshot,
             video, message_id, channel_id, hidden_id) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            """,
+        """
+        await itx.client.database.execute(
+            query,
             map_code,
             itx.user.id,
             level_name,
@@ -128,12 +130,13 @@ class Records(commands.Cog):
             verification_msg.id,
         )
         if rating:
-            await itx.client.database.set(
-                """
+            query = """
                 INSERT INTO map_level_ratings (map_code, level, rating, user_id) 
                 VALUES ($1, $2, $3, $4)
                 ON CONFLICT (map_code, level, user_id) DO UPDATE SET rating = excluded.rating 
-                """,
+            """
+            await itx.client.database.execute(
+                query,
                 map_code,
                 level_name,
                 rating,
@@ -231,12 +234,7 @@ class Records(commands.Cog):
                          )    rank_num FROM final;
         """
 
-        records = [
-            x
-            async for x in itx.client.database.get(
-                query, map_code, bool(level_name), level_name, verified
-            )
-        ]
+        records = await itx.client.database.fetch(query, map_code, bool(level_name), level_name, verified)
         if not records:
             raise utils.NoRecordsFoundError
 
@@ -311,7 +309,7 @@ class Records(commands.Cog):
         ORDER BY map_code, substr(level_name, 1, 5) <> 'Level', level_name;
 
         """
-        records = [x async for x in itx.client.database.get(query, user.id, wr_only)]
+        records = await itx.client.database.fetch(query, user.id, wr_only)
         if not records:
             raise utils.NoRecordsFoundError
         embeds = utils.pr_records_embed(
@@ -331,23 +329,21 @@ class Records(commands.Cog):
     ):
         await itx.response.defer(ephemeral=True)
         if user:
-            res = await itx.client.database.get_one(
-                """
+            query = """
                 SELECT v.user_id, amount, nickname
                 FROM verification_counts v
                          LEFT JOIN users u on v.user_id = u.user_id
                 WHERE v.user_id = $1;
-                """,
+            """
+            res = await itx.client.database.fetchrow(
+                query,
                 user,
             )
             await itx.edit_original_response(
-                content=f"{res.nickname} has **{res.amount}** verifications!"
+                content=f"{res['nickname']} has **{res['amount']}** verifications!"
             )
         else:
-            res = [
-                x
-                async for x in itx.client.database.get(
-                    """
+            query = """
                 SELECT v.user_id,
                        amount,
                        nickname,
@@ -357,12 +353,11 @@ class Records(commands.Cog):
                 FROM verification_counts v
                          LEFT JOIN users u on v.user_id = u.user_id
                 ORDER BY amount DESC;
-                """,
-                )
-            ]
+            """
+            res = await itx.client.database.fetch(query)
             leaderboard = ""
             for placement, record in enumerate(res):
-                leaderboard += f"`{utils.make_ordinal(record.rank):^6}` `{record.amount:^6}` `{record.nickname}`\n"
+                leaderboard += f"`{utils.make_ordinal(record['rank']):^6}` `{record['amount']:^6}` `{record['nickname']}`\n"
 
             await itx.edit_original_response(content=leaderboard)
 
