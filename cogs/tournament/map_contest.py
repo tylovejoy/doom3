@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import utils
+from config import CONFIG
 from views import Confirm
 
 if typing.TYPE_CHECKING:
@@ -18,7 +19,7 @@ class MapContest(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="map-contest")
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def submit(
         self,
         itx: core.DoomItx,
@@ -73,7 +74,7 @@ class MapContest(commands.Cog):
         await self.bot.database.execute(query, itx.user.id, map_code, tournament.id)
 
     @app_commands.command(name="map-contest-list")
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def view(self, itx: core.DoomItx):
         """
         Lists all map codes available in the current (or previous) map contest without user information.
@@ -98,7 +99,7 @@ class MapContest(commands.Cog):
         await itx.edit_original_response(content="\n".join(formatted))
 
     @app_commands.command(name="map-contest-list-users")
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def view_users(self, itx: core.DoomItx):
         """
         Lists all map codes available in the current (or previous) map contest WITH user information.
@@ -126,7 +127,7 @@ class MapContest(commands.Cog):
         await itx.edit_original_response(content="\n".join(details))
 
     @app_commands.command(name="map-contest-delete-code")
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def delete_map(
         self,
         itx: core.DoomItx,

@@ -11,6 +11,7 @@ import views
 from cogs.tournament.utils import Categories_NoGen, Category
 from cogs.tournament.utils.errors import TournamentNotActiveError
 from cogs.tournament.utils.utils import ORG_CHAT, ORGANIZER
+from config import CONFIG
 
 if typing.TYPE_CHECKING:
     import core
@@ -23,7 +24,7 @@ class TournamentSubmissions(commands.Cog):
     tournament = app_commands.Group(
         name="tournament",
         description="tournament",
-        guild_ids=[195387617972322306, utils.GUILD_ID],
+        guild_ids=[CONFIG["GUILD_ID"]],
     )
 
     async def insert_record(self, category: Category, user_id: int, screenshot_url: str, record: float):
@@ -111,7 +112,7 @@ class TournamentSubmissions(commands.Cog):
             )
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def ta(
         self,
         itx: core.DoomItx,
@@ -121,7 +122,7 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.TIME_ATTACK)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def mc(
         self,
         itx: core.DoomItx,
@@ -131,7 +132,7 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.MILDCORE)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def hc(
         self,
         itx: core.DoomItx,
@@ -141,7 +142,7 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.HARDCORE)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def bo(
         self,
         itx: core.DoomItx,

@@ -7,6 +7,7 @@ from typing import Literal
 
 import discord.utils
 
+from config import CONFIG
 from utils import make_ordinal, pretty_record
 
 if typing.TYPE_CHECKING:
@@ -149,7 +150,7 @@ class TournamentData:
         map_info = ""
         for cat, data in self.map_data.items():
             map_info += (
-                self.client.get_guild(utils.GUILD_ID).get_role(role_map[cat]).mention + "\n"
+                self.client.get_guild(CONFIG["GUILD_ID"]).get_role(role_map[cat]).mention + "\n"
                 f"**Code:** {data['code']}\n"
                 f"**Level:** {data['level']}\n"
                 f"**Creator:** {data['creator']}\n"

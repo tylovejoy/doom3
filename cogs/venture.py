@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 
 import utils
+from config import CONFIG
 
 if TYPE_CHECKING:
     import core
@@ -41,8 +42,8 @@ class VentureRedirect(commands.Cog):
             retry_after = bucket.update_rate_limit()
         elif message.channel.id in [
             754026577758519548,
-            utils.SPR_RECORDS,
-            utils.RECORDS,
+            CONFIG["SPR_RECORDS"],
+            CONFIG["RECORDS"],
         ]:  # help/records
             bucket = self.help_cd.get_bucket(message)
             retry_after = bucket.update_rate_limit()

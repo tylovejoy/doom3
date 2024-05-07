@@ -15,6 +15,7 @@ from cogs.tournament.utils.utils import ANNOUNCEMENTS, role_map
 from cogs.tournament.views.announcement import TournamentAnnouncementModal, TournamentRolesDropdown
 from cogs.tournament.views.info import TournamentInfoView, all_info_embeds
 from cogs.tournament.views.seasons import SeasonManager
+from config import CONFIG
 from utils import DoomEmbed
 
 if TYPE_CHECKING:
@@ -28,7 +29,7 @@ class OrgCommands(commands.Cog):
     org = app_commands.Group(
         name="org",
         description="org only commands",
-        guild_ids=[195387617972322306, utils.GUILD_ID],
+        guild_ids=[CONFIG["GUILD_ID"]],
     )
 
     @commands.command()

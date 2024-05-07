@@ -19,6 +19,7 @@ from cogs.tournament.utils.end_tournament import ExperienceCalculator, Spreadshe
 from cogs.tournament.utils.errors import TournamentAlreadyExists
 from cogs.tournament.utils.transformers import DateTransformer
 from cogs.tournament.views.start import TournamentStartView
+from config import CONFIG
 from utils import start_tournament_task
 
 if typing.TYPE_CHECKING:
@@ -38,7 +39,7 @@ class Duels(commands.Cog):
     duel = app_commands.Group(
         name="duel",
         description="duel",
-        guild_ids=[195387617972322306, utils.GUILD_ID],
+        guild_ids=[CONFIG["GUILD_ID"]],
     )
 
     @duel.command()

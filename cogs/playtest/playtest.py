@@ -8,6 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import utils
+from config import CONFIG
 
 if TYPE_CHECKING:
     import core
@@ -70,7 +71,7 @@ class Playtesting(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="submit-playtest", description="Submit a level into playtesting.")
-    @app_commands.guilds(195387617972322306, utils.GUILD_ID)
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def submit_playtest(
         self,
         itx: core.DoomItx,

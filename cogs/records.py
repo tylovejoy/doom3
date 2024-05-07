@@ -9,6 +9,7 @@ from discord.ext import commands
 
 import utils
 import views
+from config import CONFIG
 
 if typing.TYPE_CHECKING:
     import core
@@ -24,20 +25,20 @@ class Records(commands.Cog):
             app_commands.ContextMenu(
                 **utils.personal_records_c,
                 callback=self.pr_context_callback,
-                guild_ids=[utils.GUILD_ID],
+                guild_ids=[CONFIG["GUILD_ID"]],
             )
         )
         self.bot.tree.add_command(
             app_commands.ContextMenu(
                 **utils.world_records_c,
                 callback=self.wr_context_callback,
-                guild_ids=[utils.GUILD_ID],
+                guild_ids=[CONFIG["GUILD_ID"]],
             )
         )
 
     @app_commands.command(**utils.submit_record)
     @app_commands.describe(**utils.submit_record_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     @app_commands.choices(rating=utils.ALL_STARS_CHOICES)
     async def submit_record(
         self,
@@ -99,11 +100,11 @@ class Records(commands.Cog):
         if not view.value:
             return
         new_screenshot2 = await screenshot.to_file(filename="image.png")
-        verification_msg = await itx.client.get_channel(utils.VERIFICATION_QUEUE).send(embed=embed, file=new_screenshot2)
+        verification_msg = await itx.client.get_channel(CONFIG["VERIFICATION_QUEUE"]).send(embed=embed, file=new_screenshot2)
 
         if old_row and old_row["hidden_id"]:
             with contextlib.suppress(discord.NotFound):
-                await itx.guild.get_channel(utils.VERIFICATION_QUEUE).get_partial_message(old_row["hidden_id"]).delete()
+                await itx.guild.get_channel(CONFIG["VERIFICATION_QUEUE"]).get_partial_message(old_row["hidden_id"]).delete()
 
         view = views.VerificationView()
         await verification_msg.edit(view=view)
@@ -141,7 +142,7 @@ class Records(commands.Cog):
 
     @app_commands.command(**utils.leaderboard)
     @app_commands.describe(**utils.leaderboard_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def view_records(
         self,
         itx: DoomItx,
@@ -244,7 +245,7 @@ class Records(commands.Cog):
 
     @app_commands.command(**utils.personal_records)
     @app_commands.describe(**utils.personal_records_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def personal_records_slash(
         self,
         itx: DoomItx,
@@ -313,7 +314,7 @@ class Records(commands.Cog):
 
     @app_commands.command(name="verification-stats")
     @app_commands.describe(**utils.u_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def verification_stats(
         self,
         itx: DoomItx,
