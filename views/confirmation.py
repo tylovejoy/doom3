@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import discord
 
 import utils
+from config import CONFIG
 
 if TYPE_CHECKING:
     from core import DoomItx
@@ -15,7 +16,7 @@ class ConfirmButton(discord.ui.Button):
     def __init__(self, disabled=False):
         super().__init__(
             label="Yes, the information entered is correct.",
-            emoji=utils.VERIFIED_EMOJI,
+            emoji=CONFIG["VERIFIED"],
             style=discord.ButtonStyle.green,
             disabled=disabled,
         )
@@ -38,7 +39,7 @@ class RejectButton(discord.ui.Button):
     def __init__(self):
         super().__init__(
             label="No, the information entered is not correct.",
-            emoji=utils.UNVERIFIED_EMOJI,
+            emoji=CONFIG["UNVERIFIED"],
             style=discord.ButtonStyle.red,
         )
 

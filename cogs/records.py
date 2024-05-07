@@ -76,7 +76,7 @@ class Records(commands.Cog):
 
         view = views.Confirm(
             itx,
-            f"{utils.TIME} Waiting for verification...\n",
+            "⌛ Waiting for verification...\n",
         )
         new_screenshot = await screenshot.to_file(filename="image.png")
 

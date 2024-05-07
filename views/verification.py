@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 
 import discord
 
+from config import CONFIG
+
 if TYPE_CHECKING:
     from core import DoomItx
 
@@ -125,12 +127,12 @@ class VerificationView(discord.ui.View):
 
         record = (
             f"**Record:** {utils.pretty_record(search['record'])} "
-            f"{utils.VERIFIED if search['video'] else utils.HALF_VERIFIED}"
+            f"{CONFIG['VERIFIED'] if search['video'] else CONFIG['HALF_VERIFIED']}"
         )
         if search["video"]:
-            edit = f"{utils.VERIFIED} Complete verification by {itx.user.mention}!"
+            edit = f"{CONFIG['VERIFIED']} Complete verification by {itx.user.mention}!"
         else:
-            edit = f"{utils.HALF_VERIFIED} Partial verification by {itx.user.mention}! " f"No video proof supplied."
+            edit = f"{CONFIG['HALF_VERIFIED']} Partial verification by {itx.user.mention}! " f"No video proof supplied."
         message = itx.guild.get_channel(search["channel_id"]).get_partial_message(search["message_id"])
         return {
             "edit": edit,
@@ -154,9 +156,9 @@ class VerificationView(discord.ui.View):
         record = f"**Record:** {utils.pretty_record(search['record'])}\n"
 
         return {
-            "edit": (f"{utils.UNVERIFIED} " f"Rejected by {itx.user.mention}!"),
+            "edit": (f"{CONFIG['UNVERIFIED']} " f"Rejected by {itx.user.mention}!"),
             "direct_message": (
-                f"**Map Code:** {search['map_code']}\n" + record + f"Your record got {utils.UNVERIFIED} "
+                f"**Map Code:** {search['map_code']}\n" + record + f"Your record got {CONFIG['UNVERIFIED']} "
                 f"rejected by {itx.user.mention}!\n\n"
                 f"**Reason:** {rejection}\n\n" + ALERT
             ),

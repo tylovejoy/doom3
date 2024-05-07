@@ -2,28 +2,6 @@ import math
 
 import discord
 
-VERIFIED = "<:_:1042541867469910056>"
-HALF_VERIFIED = "<:_:1042541868723998871>"
-UNVERIFIED = "<:_:1042541865821556746>"
-TROPHY = "🏆"
-
-TIME = "⌛"
-
-VERIFIED_EMOJI = discord.PartialEmoji.from_str(VERIFIED)
-HALF_VERIFIED_EMOJI = discord.PartialEmoji.from_str(HALF_VERIFIED)
-UNVERIFIED_EMOJI = discord.PartialEmoji.from_str(UNVERIFIED)
-
-FIRST = "<:_:1043226244575142018>"
-SECOND = "<:_:1043226243463659540>"
-THIRD = "<:_:1043226242335391794>"
-
-PLACEMENTS = {
-    1: FIRST,
-    2: SECOND,
-    3: THIRD,
-}
-
-
 STAR = "★"
 EMPTY_STAR = "☆"
 
