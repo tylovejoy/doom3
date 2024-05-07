@@ -9,6 +9,7 @@ from discord.ext import commands
 import cogs
 import utils
 import views
+from config import CONFIG
 
 if typing.TYPE_CHECKING:
     import core
@@ -54,7 +55,7 @@ class Tags(discord.ext.commands.GroupCog, group_name=utils.tags["name"]):
     async def create(self, itx: DoomItx):
         if (
             itx.guild.get_role(959433020664868907) not in itx.user.roles
-            and itx.guild.get_role(utils.STAFF) not in itx.user.roles
+            and itx.guild.get_role(CONFIG["STAFF"]) not in itx.user.roles
         ):
             raise utils.NoPermissionsError
         modal = views.TagCreate()
@@ -65,7 +66,6 @@ async def setup(bot: core.Doom):
     await bot.add_cog(
         Tags(bot),
         guilds=[
-            discord.Object(id=utils.GUILD_ID),
-            discord.Object(id=195387617972322306),
+            discord.Object(id=CONFIG["GUILD_ID"]),
         ],
     )

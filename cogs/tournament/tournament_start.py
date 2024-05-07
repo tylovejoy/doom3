@@ -17,6 +17,7 @@ from cogs.tournament.utils.errors import TournamentAlreadyExists
 from cogs.tournament.utils.transformers import DateTransformer
 from cogs.tournament.utils.utils import ANNOUNCEMENTS, CHAT
 from cogs.tournament.views.start import TournamentStartView
+from config import CONFIG
 from utils import start_tournament_task
 
 if typing.TYPE_CHECKING:
@@ -28,7 +29,7 @@ class Tournament(commands.Cog):
         self.bot = bot
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def start(
         self,
         itx: core.DoomItx,
@@ -73,7 +74,7 @@ class Tournament(commands.Cog):
         )
 
         embed = tournament.start_embed()
-        mentions = [self.bot.get_guild(utils.GUILD_ID).get_role(_id).mention for _id in tournament.mention_ids]
+        mentions = [self.bot.get_guild(CONFIG["GUILD_ID"]).get_role(_id).mention for _id in tournament.mention_ids]
 
         confirm = views.Confirm(itx)
         await itx.edit_original_response(

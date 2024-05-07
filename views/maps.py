@@ -9,6 +9,7 @@ from discord import app_commands
 import utils
 import utils.utils
 import views
+from config import CONFIG
 
 if TYPE_CHECKING:
     import asyncpg
@@ -178,7 +179,7 @@ class MapSubmit(discord.ui.Modal, title="MapSubmit"):
         embed.title = f"New Map by {self.data['creator_name']}"
         embed.remove_field(0)
 
-        new_map = await itx.guild.get_channel(utils.NEW_MAPS).send(embed=embed, file=image)
+        new_map = await itx.guild.get_channel(CONFIG["NEW_MAPS"]).send(embed=embed, file=image)
 
         if new_map.attachments:
             query = "UPDATE maps SET image = $2 WHERE map_code = $1;"

@@ -13,6 +13,7 @@ from discord.app_commands import locale_str as _T
 from discord.ext import commands
 
 import utils
+from config import CONFIG
 from views import MAP_DATA
 
 if typing.TYPE_CHECKING:
@@ -22,7 +23,7 @@ if typing.TYPE_CHECKING:
 
 class Test(commands.Cog):
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def purge(
         self,
         itx: DoomItx,
@@ -98,7 +99,7 @@ class Test(commands.Cog):
             await thread.send(s)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def intervene(
         self,
         itx: DoomItx,
@@ -238,7 +239,7 @@ class Test(commands.Cog):
         await ctx.message.delete()
 
     @app_commands.command(name=_T("testing123"))
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     # @app_commands.describe(user=_T("The user to bonk."))
     async def bonk(self, interaction: DoomItx, user: discord.User):
         await interaction.response.send_message(f":hammer: {user.mention}", ephemeral=True)

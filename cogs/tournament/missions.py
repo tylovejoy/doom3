@@ -19,6 +19,7 @@ from cogs.tournament.utils.errors import (
 )
 from cogs.tournament.utils.utils import ANNOUNCEMENTS, role_map
 from cogs.tournament.views.announcement import TournamentRolesDropdown
+from config import CONFIG
 from database import DotRecord
 from utils import pretty_record, time_convert
 
@@ -33,7 +34,7 @@ class Missions(commands.Cog):
     missions = app_commands.Group(
         name="missions",
         description="Missions",
-        guild_ids=[195387617972322306, utils.GUILD_ID],
+        guild_ids=[CONFIG["GUILD_ID"]],
     )
 
     @missions.command()
