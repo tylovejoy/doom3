@@ -48,9 +48,7 @@ class TournamentStartView(discord.ui.View):
         self.added = False
         self.confirm_msg = "Confirmed"
 
-    @discord.ui.button(
-        label="Bracket Toggle Off", style=discord.ButtonStyle.grey, row=0
-    )
+    @discord.ui.button(label="Bracket Toggle Off", style=discord.ButtonStyle.grey, row=0)
     async def bracket_toggle(
         self,
         itx: discord.Interaction,
@@ -58,11 +56,7 @@ class TournamentStartView(discord.ui.View):
     ):
         await itx.response.defer(ephemeral=True)
         self.bracket = not self.bracket
-        toggles = (
-            ("On", discord.ButtonStyle.blurple)
-            if self.bracket
-            else ("Off", discord.ButtonStyle.grey)
-        )
+        toggles = ("On", discord.ButtonStyle.blurple) if self.bracket else ("Off", discord.ButtonStyle.grey)
         button.label = f"Bracket Toggle {toggles[0]}"
         button.style = toggles[1]
         await self.original_itx.edit_original_response(view=self)
@@ -117,12 +111,7 @@ class TournamentStartView(discord.ui.View):
 
     async def enable_accept_button(self):
         """Enable confirm button when other buttons are pressed."""
-        if any(
-            [
-                x is discord.ButtonStyle.green
-                for x in [self.bo.style, self.ta.style, self.mc.style, self.hc.style]
-            ]
-        ):
+        if any([x is discord.ButtonStyle.green for x in [self.bo.style, self.ta.style, self.mc.style, self.hc.style]]):
             if not self.added:
                 self.added = True
                 self.add_item(self.confirm_button)

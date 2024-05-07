@@ -35,9 +35,7 @@ class DoomEmbed(discord.Embed):
     def add_description_field(self, name: str, value: str):
         if not self.description:
             self.description = ""
-        self.description += (
-            f"```ansi\n\u001b[1;37m{name}\n```{value}\n"  # \u001b[{format};{color}m
-        )
+        self.description += f"```ansi\n\u001b[1;37m{name}\n```{value}\n"  # \u001b[{format};{color}m
 
 
 class ErrorEmbed(DoomEmbed):
@@ -64,9 +62,7 @@ class ErrorEmbed(DoomEmbed):
             self.set_footer(text="If you have any questions, message nebula#6662")
 
 
-def set_embed_thumbnail_maps(
-    map_name: str, embed: discord.Embed
-) -> discord.Embed | DoomEmbed:
+def set_embed_thumbnail_maps(map_name: str, embed: discord.Embed) -> discord.Embed | DoomEmbed:
     """
     The embed_thumbnail_setter function takes a map name
     and an embed object as parameters.
@@ -86,9 +82,7 @@ def set_embed_thumbnail_maps(
 def record_embed(data: dict[str, typing.Any]) -> DoomEmbed:
     if not data.get("video", None):
         description = (
-            f"┣ `   Code ` {data['map_code']}\n"
-            f"┣ `  Level ` {data['map_level']}\n"
-            f"┗ ` Record ` {data['record']}\n"
+            f"┣ `   Code ` {data['map_code']}\n" f"┣ `  Level ` {data['map_level']}\n" f"┗ ` Record ` {data['record']}\n"
         )
     else:
         description = (

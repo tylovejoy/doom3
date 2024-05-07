@@ -7,14 +7,7 @@ import typing
 
 import xlsxwriter
 
-from cogs.tournament.utils import (
-    BaseXP,
-    Categories,
-    Category,
-    MissionDifficulty,
-    MissionType,
-    Rank,
-)
+from cogs.tournament.utils import BaseXP, Categories, Category, MissionDifficulty, MissionType, Rank
 from cogs.tournament.utils.data import TournamentData
 from database import DotRecord
 
@@ -84,15 +77,11 @@ class ExperienceCalculator:
             WHERE date_rank = 1
             ORDER BY r.category, value, record;
         """
-        rows = await self._tournament.client.database.fetch(
-            query, self._tournament.client.current_tournament.id
-        )
+        rows = await self._tournament.client.database.fetch(query, self._tournament.client.current_tournament.id)
         for row in rows:
             await self._create_xp_row(row)
 
-            value = self._lb_xp_formula(
-                row["category"], row["record"], row["top_record"]
-            )
+            value = self._lb_xp_formula(row["category"], row["record"], row["top_record"])
 
             self._xp[row["user_id"]][row["category"]] += value
             self._xp[row["user_id"]]["Total XP"] += value
@@ -103,9 +92,7 @@ class ExperienceCalculator:
             self._xp[row.user_id]["nickname"] = row.nickname
 
     @staticmethod
-    def _lb_xp_formula(
-        category: Categories, record: decimal.Decimal, top_record: decimal.Decimal
-    ) -> int:
+    def _lb_xp_formula(category: Categories, record: decimal.Decimal, top_record: decimal.Decimal) -> int:
         _record = float(record)
         _top_record = float(top_record)
         multi = XP_MULTIPLIER[category]
@@ -166,14 +153,10 @@ class ExperienceCalculator:
             FROM distinct_values t
                      LEFT JOIN top_recs tr ON tr.category = t.category AND tr.rank = t.rank;
         """
-        rows = await self._tournament.client.database.fetch(
-            query, self._tournament.client.current_tournament.id
-        )
+        rows = await self._tournament.client.database.fetch(query, self._tournament.client.current_tournament.id)
         for row in rows:
             await self._create_xp_row(row)
-            self._xp[row["user_id"]]["Mission Total XP"] += MISSION_POINTS[
-                row["difficulty"]
-            ]
+            self._xp[row["user_id"]]["Mission Total XP"] += MISSION_POINTS[row["difficulty"]]
             self._xp[row["user_id"]]["Total XP"] += MISSION_POINTS[row["difficulty"]]
             self._xp[row["user_id"]][row["difficulty"]] += 1
 
@@ -182,9 +165,7 @@ class ExperienceCalculator:
             SELECT type, target, extra_target FROM tournament_missions WHERE id = $1 AND category = 'General';
         """
 
-        general_mission = await self._tournament.client.database.fetchrow(
-            query, self._tournament.id
-        )
+        general_mission = await self._tournament.client.database.fetchrow(query, self._tournament.id)
 
         if not general_mission:
             return
@@ -227,16 +208,12 @@ class ExperienceCalculator:
             FROM top_three
             WHERE amount >= $2;
         """
-        rows = await self._tournament.client.database.fetch(
-            query, self._tournament.id, target
-        )
+        rows = await self._tournament.client.database.fetch(query, self._tournament.id, target)
         for row in rows:
             self._add_general_xp(row["user_id"])
 
     def _add_general_xp(self, user_id: int):
-        self._xp[user_id]["Mission Total XP"] += MISSION_POINTS[
-            MissionDifficulty.GENERAL
-        ]
+        self._xp[user_id]["Mission Total XP"] += MISSION_POINTS[MissionDifficulty.GENERAL]
         self._xp[user_id]["Total XP"] += MISSION_POINTS[MissionDifficulty.GENERAL]
         self._xp[user_id]["General"] = 1
 
@@ -286,9 +263,7 @@ class SpreadsheetCreator:
                      record)
             SELECT * FROM recs WHERE date_rank = 1;    
         """
-        self._records = await self._tournament.client.database.fetch(
-            query, self._tournament.id
-        )
+        self._records = await self._tournament.client.database.fetch(query, self._tournament.id)
         self._split_ranks()
 
     def _split_ranks(self):
@@ -315,21 +290,13 @@ class SpreadsheetCreator:
     def _format_sheets(self):
         for worksheet in self._rank_worksheets:
             # Rank titles
-            merge_format = self._workbook.add_format(
-                {"align": "center", "bg_color": "#93c47d", "border": 1}
-            )
+            merge_format = self._workbook.add_format({"align": "center", "bg_color": "#93c47d", "border": 1})
             worksheet.merge_range("A1:C1", "Time Attack", merge_format)
-            merge_format = self._workbook.add_format(
-                {"align": "center", "bg_color": "#ff9900", "border": 1}
-            )
+            merge_format = self._workbook.add_format({"align": "center", "bg_color": "#ff9900", "border": 1})
             worksheet.merge_range("E1:G1", "Mildcore", merge_format)
-            merge_format = self._workbook.add_format(
-                {"align": "center", "bg_color": "#ff0000", "border": 1}
-            )
+            merge_format = self._workbook.add_format({"align": "center", "bg_color": "#ff0000", "border": 1})
             worksheet.merge_range("I1:K1", "Hardcore", merge_format)
-            merge_format = self._workbook.add_format(
-                {"align": "center", "bg_color": "#ffff00", "border": 1}
-            )
+            merge_format = self._workbook.add_format({"align": "center", "bg_color": "#ffff00", "border": 1})
             worksheet.merge_range("M1:O1", "Bonus", merge_format)
             # Name, Time, Points titles
             worksheet.write_row(
@@ -358,9 +325,7 @@ class SpreadsheetCreator:
         )
 
         self._missions_worksheet.set_column_pixels(0, 19, width=105)
-        self._missions_worksheet.set_column(
-            1, 5, cell_format=self._workbook.add_format({"align": "center"})
-        )
+        self._missions_worksheet.set_column(1, 5, cell_format=self._workbook.add_format({"align": "center"}))
 
     def _write_mission_data(self):
         for i, (user_id, data) in enumerate(self._xp.items(), start=2):
@@ -378,9 +343,7 @@ class SpreadsheetCreator:
                     data["Total XP"],
                 ],
             )
-        self._missions_worksheet.set_column(
-            1, 5, cell_format=self._workbook.add_format({"align": "center"})
-        )
+        self._missions_worksheet.set_column(1, 5, cell_format=self._workbook.add_format({"align": "center"}))
 
     def _write_leaderboards(self):
         for rank, categories in self._split_records.items():

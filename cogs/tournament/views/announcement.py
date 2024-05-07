@@ -9,9 +9,7 @@ if TYPE_CHECKING:
     import core
 
 
-class TournamentAnnouncementModal(
-    discord.ui.Modal, title="Tournament Announcement Wizard"
-):
+class TournamentAnnouncementModal(discord.ui.Modal, title="Tournament Announcement Wizard"):
     def __init__(self) -> None:
         super().__init__()
         self.title_ = TextInput(label="Title")

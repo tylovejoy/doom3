@@ -24,9 +24,7 @@ class Personal(commands.Cog):
     length = 0
 
     async def cog_check(self, ctx: DoomCtx) -> bool:
-        return (
-            ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239
-        )  # Spam-friendly
+        return ctx.channel.id == 882243150419197952 or ctx.guild.id == 968553235239559239  # Spam-friendly
 
     @commands.command()
     async def joe_army(self, ctx: DoomCtx):
@@ -35,10 +33,7 @@ class Personal(commands.Cog):
         l_hulk = "<:joehulk:1105236434660630598>"
         r_hulk = "<:joehulkR:1105236430697021491>"
         running = "<a:runningjoe:1105236437290455132>"
-        message = (
-            f"{flag}{salute * 3}{l_hulk * 3}{running * 3}{r_hulk * 3}{salute * 3}{flag}\n"
-            * 4
-        )
+        message = f"{flag}{salute * 3}{l_hulk * 3}{running * 3}{r_hulk * 3}{salute * 3}{flag}\n" * 4
 
         await ctx.send(message)
         await ctx.message.delete(delay=2)
@@ -84,24 +79,18 @@ class Personal(commands.Cog):
 
     @app_commands.command(**utils.brug_mode)
     @app_commands.describe(**utils.fun_args)
-    @app_commands.guilds(
-        discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
-    )
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
     async def brug_mode(self, itx: DoomItx, text: str):
         await itx.response.send_message(utils.emojify(text)[:2000])
 
     @app_commands.command(**utils.uwufier)
     @app_commands.describe(**utils.fun_args)
-    @app_commands.guilds(
-        discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
-    )
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
     async def uwufier(self, itx: DoomItx, text: str):
         await itx.response.send_message(utils.uwuify(text)[:2000])
 
     @app_commands.command(**utils.blarg)
-    @app_commands.guilds(
-        discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239)
-    )
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
     async def blarg(self, itx: DoomItx):
         await itx.response.send_message("BLARG")
 
@@ -125,9 +114,7 @@ class Personal(commands.Cog):
             return
         view = views.Confirm(itx)
         await itx.response.send_message(
-            f"**Is this correct?**\n"
-            f"**Preview:**\n\n"
-            f"{itx.user.display_name}{insult}",
+            f"**Is this correct?**\n" f"**Preview:**\n\n" f"{itx.user.display_name}{insult}",
             ephemeral=True,
             view=view,
         )

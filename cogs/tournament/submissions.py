@@ -10,7 +10,7 @@ import utils
 import views
 from cogs.tournament.utils import Categories_NoGen, Category
 from cogs.tournament.utils.errors import TournamentNotActiveError
-from cogs.tournament.utils.utils import ORGANIZER, ORG_CHAT
+from cogs.tournament.utils.utils import ORG_CHAT, ORGANIZER
 
 if typing.TYPE_CHECKING:
     import core
@@ -26,28 +26,20 @@ class TournamentSubmissions(commands.Cog):
         guild_ids=[195387617972322306, utils.GUILD_ID],
     )
 
-    async def insert_record(
-        self, category: Category, user_id: int, screenshot_url: str, record: float
-    ):
+    async def insert_record(self, category: Category, user_id: int, screenshot_url: str, record: float):
         query = """
             INSERT INTO tournament_records (user_id, category, record, tournament_id, screenshot)
             VALUES ($1, $2, $3, (SELECT id FROM tournament WHERE active = TRUE LIMIT 1), $4)
         """
-        await self.bot.database.execute(
-            query, user_id, category, record, screenshot_url
-        )
+        await self.bot.database.execute(query, user_id, category, record, screenshot_url)
 
     async def get_tournament_id(self) -> int:
-        tournament_id_if_exists = (
-            self.bot.current_tournament and self.bot.current_tournament.id
-        )
+        tournament_id_if_exists = self.bot.current_tournament and self.bot.current_tournament.id
         query = "SELECT id FROM tournament WHERE active = TRUE;"
         fetch_id_if_needed = self.bot.database.fetchval(query)
         return tournament_id_if_exists or await fetch_id_if_needed
 
-    async def get_old_record(
-        self, user_id: int, category: Category, tournament_id: int
-    ):
+    async def get_old_record(self, user_id: int, category: Category, tournament_id: int):
         query = """
             SELECT record, rank()
                 over (order by inserted_at DESC) as date_rank FROM tournament_records 
@@ -119,9 +111,7 @@ class TournamentSubmissions(commands.Cog):
             )
 
     @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
     async def ta(
         self,
         itx: core.DoomItx,
@@ -131,9 +121,7 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.TIME_ATTACK)
 
     @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
     async def mc(
         self,
         itx: core.DoomItx,
@@ -143,9 +131,7 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.MILDCORE)
 
     @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
     async def hc(
         self,
         itx: core.DoomItx,
@@ -155,9 +141,7 @@ class TournamentSubmissions(commands.Cog):
         await self.submission(itx, screenshot, record, Category.HARDCORE)
 
     @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID)
-    )
+    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
     async def bo(
         self,
         itx: core.DoomItx,
@@ -187,11 +171,7 @@ class TournamentSubmissions(commands.Cog):
         if not tournament_id:
             raise TournamentNotActiveError
 
-        if (
-            user
-            and user != itx.user
-            and itx.guild.get_role(ORGANIZER) not in itx.user.roles
-        ):
+        if user and user != itx.user and itx.guild.get_role(ORGANIZER) not in itx.user.roles:
             raise utils.NoPermissionsError
 
         if not user:

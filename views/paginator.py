@@ -89,22 +89,14 @@ class Paginator(discord.ui.View):
         self.page_number.label = f"{self._curr_page + 1}/{len(self.pages)}"
         try:
             if isinstance(self.pages[0], str):
-                await itx.response.edit_message(
-                    content=self.pages[self._curr_page], view=self
-                )
+                await itx.response.edit_message(content=self.pages[self._curr_page], view=self)
             else:
-                await itx.response.edit_message(
-                    embed=self.pages[self._curr_page], view=self
-                )
+                await itx.response.edit_message(embed=self.pages[self._curr_page], view=self)
         except discord.errors.InteractionResponded:
             if isinstance(self.pages[0], str):
-                await itx.edit_original_response(
-                    content=self.pages[self._curr_page], view=self
-                )
+                await itx.edit_original_response(content=self.pages[self._curr_page], view=self)
             else:
-                await itx.edit_original_response(
-                    embed=self.pages[self._curr_page], view=self
-                )
+                await itx.edit_original_response(embed=self.pages[self._curr_page], view=self)
 
     @discord.ui.button(label="...")
     async def page_number(

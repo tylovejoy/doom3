@@ -8,9 +8,7 @@ from discord import app_commands
 if typing.TYPE_CHECKING:
     from core import DoomItx
 
-EXTENSIONS = [
-    module.name for module in pkgutil.iter_modules(__path__, f"{__package__}.")
-]
+EXTENSIONS = [module.name for module in pkgutil.iter_modules(__path__, f"{__package__}.")]
 
 
 def case_ignore_compare(string1: str | None, string2: str | None) -> bool:
@@ -40,19 +38,13 @@ async def autocomplete(
     return response
 
 
-async def exercise_name_autocomplete(
-    itx: DoomItx, current: str
-) -> list[app_commands.Choice[str]]:
+async def exercise_name_autocomplete(itx: DoomItx, current: str) -> list[app_commands.Choice[str]]:
     return await autocomplete(current, itx.client.exercise_names)
 
 
-async def tags_autocomplete(
-    itx: DoomItx, current: str
-) -> list[app_commands.Choice[str]]:
+async def tags_autocomplete(itx: DoomItx, current: str) -> list[app_commands.Choice[str]]:
     return await autocomplete(current, itx.client.tag_choices)
 
 
-async def exercise_name_search_autocomplete(
-    itx: DoomItx, current: str
-) -> list[app_commands.Choice[str]]:
+async def exercise_name_search_autocomplete(itx: DoomItx, current: str) -> list[app_commands.Choice[str]]:
     return await autocomplete(current, itx.client.exercise_names_search)

@@ -123,9 +123,7 @@ class Maps(commands.Cog):
             new_level_name,
         )
         itx.client.map_cache[map_code]["levels"].append(new_level_name)
-        itx.client.map_cache[map_code]["choices"].append(
-            app_commands.Choice(name=new_level_name, value=new_level_name)
-        )
+        itx.client.map_cache[map_code]["choices"].append(app_commands.Choice(name=new_level_name, value=new_level_name))
 
     @_level.command(**utils.remove_level)
     @app_commands.describe(**utils.remove_level_args)
@@ -164,10 +162,7 @@ class Maps(commands.Cog):
             raise utils.InvalidMapCodeError
         if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
             raise utils.NoPermissionsError
-        if (
-            new_level_name
-            and new_level_name in itx.client.map_cache[map_code]["levels"]
-        ):
+        if new_level_name and new_level_name in itx.client.map_cache[map_code]["levels"]:
             raise utils.LevelExistsError
         return views.Confirm(itx, ephemeral=True)
 
@@ -183,11 +178,7 @@ class Maps(commands.Cog):
         view = await self._check_creator_code(itx, map_code)
 
         await itx.edit_original_response(
-            content=(
-                "Is this correct?\n"
-                f"Original level name: {level_name}\n"
-                f"Updated level name: {new_level_name}\n"
-            ),
+            content=("Is this correct?\n" f"Original level name: {level_name}\n" f"Updated level name: {new_level_name}\n"),
             view=view,
         )
         await view.wait()
@@ -209,11 +200,7 @@ class Maps(commands.Cog):
         )
         itx.client.map_cache[map_code]["choices"] = list(
             map(
-                lambda x: (
-                    app_commands.Choice(name=new_level_name, value=new_level_name)
-                    if x.name == level_name
-                    else x
-                ),
+                lambda x: (app_commands.Choice(name=new_level_name, value=new_level_name) if x.name == level_name else x),
                 itx.client.map_cache[map_code]["choices"],
             )
         )
@@ -239,18 +226,14 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.map_search)
     @app_commands.describe(**utils.map_search_args)
-    @app_commands.guilds(
-        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
-    )
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
     async def map_search(
         self,
         itx: DoomItx,
         map_type: app_commands.Transform[str, utils.MapTypeTransformer] | None = None,
         map_name: app_commands.Transform[str, utils.MapNameTransformer] | None = None,
         creator: app_commands.Transform[int, utils.UserTransformer] | None = None,
-        map_code: (
-            app_commands.Transform[str, utils.MapCodeAutoTransformer] | None
-        ) = None,
+        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer] | None = None,
     ) -> None:
         await itx.response.defer(ephemeral=True)
 
@@ -378,17 +361,14 @@ class Maps(commands.Cog):
         view = views.Paginator([embed], itx.user, None)
         await view.start(itx)
 
-    def create_map_embeds(
-        self, maps: list[database.DotRecord]
-    ) -> list[utils.Embed | utils.DoomEmbed]:
+    def create_map_embeds(self, maps: list[database.DotRecord]) -> list[utils.Embed | utils.DoomEmbed]:
         embed_list = []
         embed = utils.DoomEmbed(title="Map Search")
         for i, _map in enumerate(maps):
             embed.add_description_field(
                 name=f"{_map['map_code']}",
                 value=(
-                    self.display_official(_map["official"])
-                    + f"┣ `Rating` {utils.create_stars(_map['rating'])}\n"
+                    self.display_official(_map["official"]) + f"┣ `Rating` {utils.create_stars(_map['rating'])}\n"
                     f"┣ `Creator` {discord.utils.escape_markdown(_map['creators'])}\n"
                     f"┣ `Map` {_map['map_name']}\n"
                     f"┣ `Type` {_map['map_type']}\n"
@@ -400,15 +380,12 @@ class Maps(commands.Cog):
                 embed = utils.DoomEmbed(title="Map Search")
         return embed_list
 
-    def create_random_map_embeds(
-        self, _map: database.DotRecord, level: bool
-    ) -> utils.Embed | utils.DoomEmbed:
+    def create_random_map_embeds(self, _map: database.DotRecord, level: bool) -> utils.Embed | utils.DoomEmbed:
         embed = utils.DoomEmbed(title="Map Search")
         embed.add_description_field(
             name=f"{_map['map_code']}",
             value=(
-                self.display_official(_map['official'])
-                + f"┣ `Rating` {utils.create_stars(_map['rating'])}\n"
+                self.display_official(_map["official"]) + f"┣ `Rating` {utils.create_stars(_map['rating'])}\n"
                 f"┣ `Creator` {discord.utils.escape_markdown(_map['creators'])}\n"
                 f"┣ `Map` {_map['map_name']}\n"
                 f"┣ `Type` {_map['map_type']}\n"

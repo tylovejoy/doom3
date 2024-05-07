@@ -1,21 +1,14 @@
 from __future__ import annotations
 
 import typing
-from typing import Tuple, Any
+from typing import Any, Tuple
 
 from discord import app_commands
 from discord.ext import commands
 
 import utils
 import views
-from cogs.tournament.utils import (
-    Categories,
-    Category,
-    Difficulty,
-    MissionType,
-    Type,
-    MissionDifficulty,
-)
+from cogs.tournament.utils import Categories, Category, Difficulty, MissionDifficulty, MissionType, Type
 from cogs.tournament.utils.data import missions_embed
 from cogs.tournament.utils.errors import (
     InvalidMissionType,
@@ -63,10 +56,7 @@ class Missions(commands.Cog):
         if category == Category.GENERAL and mission_type not in MissionType.general():
             raise MismatchedMissionCategoryType
 
-        if (
-            category != Category.GENERAL
-            and mission_type not in MissionType.difficulty()
-        ):
+        if category != Category.GENERAL and mission_type not in MissionType.difficulty():
             raise MismatchedMissionCategoryType
 
         target, extra = self.validate_target(mission_type, target)
@@ -79,8 +69,7 @@ class Missions(commands.Cog):
         )
         if old_mission:
             content = (
-                "There's already a mission in this category and difficulty.\n"
-                "Are you sure you want to overwrite this?\n\n"
+                "There's already a mission in this category and difficulty.\n" "Are you sure you want to overwrite this?\n\n"
             )
         else:
             content = "Is this correct?\n\n"
@@ -112,9 +101,7 @@ class Missions(commands.Cog):
             extra,
         )
 
-    def validate_target(
-        self, mission_type: Type, target: str
-    ) -> tuple[float | int | Any, Any | None]:
+    def validate_target(self, mission_type: Type, target: str) -> tuple[float | int | Any, Any | None]:
         extra = None
         if mission_type == MissionType.MISSION_THRESHOLD:
             res, extra = target.split(maxsplit=1)
@@ -210,9 +197,7 @@ class Missions(commands.Cog):
                      difficulty != 'Hard',
                      difficulty != 'Expert'
         """
-        missions = await itx.client.database.fetch(
-            query, itx.client.current_tournament.id
-        )
+        missions = await itx.client.database.fetch(query, itx.client.current_tournament.id)
         if not missions:
             raise NoMissionExists
 
@@ -220,9 +205,7 @@ class Missions(commands.Cog):
         view = views.Confirm(itx)
         dropdown = TournamentRolesDropdown()
         view.add_item(dropdown)
-        await itx.edit_original_response(
-            content="Is this correct?", embed=embed, view=view
-        )
+        await itx.edit_original_response(content="Is this correct?", embed=embed, view=view)
         await view.wait()
         if not view.value:
             return

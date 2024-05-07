@@ -73,9 +73,7 @@ class RankCard(commands.Cog):
         return rank + number + ".png"
 
     @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
-    )
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
     async def rank(self, itx: core.DoomItx, user: discord.Member | None):
         await itx.response.defer(ephemeral=True)
 
@@ -88,18 +86,14 @@ class RankCard(commands.Cog):
 
         with io.BytesIO() as avatar_binary:
             await user.display_avatar.save(fp=avatar_binary)
-            image = await asyncio.to_thread(
-                self._create_card, avatar_binary, search, user
-            )
+            image = await asyncio.to_thread(self._create_card, avatar_binary, search, user)
             with io.BytesIO() as image_binary:
                 image.save(image_binary, "PNG")
                 image_binary.seek(0)
 
                 await itx.edit_original_response(
                     content="",
-                    attachments=[
-                        discord.File(fp=image_binary, filename="rank_card.png")
-                    ],
+                    attachments=[discord.File(fp=image_binary, filename="rank_card.png")],
                 )
 
     async def _get_card_data(self, itx: core.DoomItx, user: discord.Member):
@@ -191,9 +185,7 @@ class RankCard(commands.Cog):
         img.paste(portrait, (-60, -30), portrait)
         rank_x_offset = 50
         rank_y_offset = 37
-        for x_val, logo in zip(
-            [375, 508, 641, 774], [ta_logo, mc_logo, hc_logo]  # bo_logo]
-        ):
+        for x_val, logo in zip([375, 508, 641, 774], [ta_logo, mc_logo, hc_logo]):  # bo_logo]
             img.paste(
                 logo,
                 (x_val + old_x - rank_x_offset, 98 + old_y // 2 - rank_y_offset),
@@ -256,17 +248,11 @@ class RankCard(commands.Cog):
         else:
             place_font_size = 85
         place_font = ImageFont.truetype(font_file, place_font_size)
-        place_x = (
-            place_circle_x1
-            + (place_circle_x2 - place_circle_x1) // 2
-            - d.textlength(str(place), font=place_font) // 2
-        )
+        place_x = place_circle_x1 + (place_circle_x2 - place_circle_x1) // 2 - d.textlength(str(place), font=place_font) // 2
         ascent, _ = place_font.getmetrics()
         (_, _), (_, offset_y) = place_font.font.getsize(str(place))
         place_y = y // 2 - (ascent - offset_y)
-        d.text(
-            (place_x, place_y), str(place), fill=(255, 255, 255, 255), font=place_font
-        )
+        d.text((place_x, place_y), str(place), fill=(255, 255, 255, 255), font=place_font)
         pos_portrait = Image.open(f"data/portraits/{pos_portrait_f}").convert("RGBA")
         img.paste(pos_portrait, (x - 350, -28), pos_portrait)
         width, height = img.size
@@ -274,9 +260,7 @@ class RankCard(commands.Cog):
         return img
 
     @app_commands.command()
-    @app_commands.guilds(
-        discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306)
-    )
+    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
     async def xp_leaderboard(
         self,
         itx: core.DoomItx,
@@ -304,9 +288,7 @@ class RankCard(commands.Cog):
                 embed_list.append(embed)
                 embed = utils.DoomEmbed(title="XP Leaderboard")
         if not embed_list:
-            await itx.edit_original_response(
-                content="The XP Leaderboard for this season is currently empty."
-            )
+            await itx.edit_original_response(content="The XP Leaderboard for this season is currently empty.")
             return
         view = views.Paginator(embed_list, itx.user)
         await view.start(itx)

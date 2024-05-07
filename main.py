@@ -19,10 +19,9 @@ async def main() -> None:
             f"postgres://"
             f"{os.environ['PSQL_USER']}:"
             f"{os.environ['PSQL_PASSWORD']}@db/"
-            # f"{os.environ['PSQL_HOST']}:"
-            # f"{os.environ['PSQL_PORT']}/"
             f"{os.environ['PSQL_DATABASE']}"
         ) as pool:
+            assert pool is not None
             async with core.Doom() as bot:
                 bot.session = session
                 bot.pool = pool

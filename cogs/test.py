@@ -5,10 +5,9 @@ import datetime
 import io
 import typing
 
-import imgkit
-
 import chat_exporter
 import discord
+import imgkit
 from discord import app_commands
 from discord.app_commands import locale_str as _T
 from discord.ext import commands
@@ -22,7 +21,6 @@ if typing.TYPE_CHECKING:
 
 
 class Test(commands.Cog):
-
     @app_commands.command()
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     async def purge(
@@ -149,9 +147,7 @@ class Test(commands.Cog):
 
         for u in users:
             await u.send(timeout_notice(name=u.name))
-            await u.timeout(
-                datetime.timedelta(hours=1), reason=f"Cool off for an hour. {reason}"
-            )
+            await u.timeout(datetime.timedelta(hours=1), reason=f"Cool off for an hour. {reason}")
 
         content = (
             f"# Intervened in {itx.channel.mention}\n"
@@ -196,10 +192,7 @@ class Test(commands.Cog):
             else:
                 synced = await ctx.bot.tree.sync()
 
-            await ctx.send(
-                f"Synced {len(synced)} commands "
-                f"{'globally' if spec is None else 'to the current guild.'}"
-            )
+            await ctx.send(f"Synced {len(synced)} commands " f"{'globally' if spec is None else 'to the current guild.'}")
             return
 
         ret = 0
@@ -248,9 +241,7 @@ class Test(commands.Cog):
     @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
     # @app_commands.describe(user=_T("The user to bonk."))
     async def bonk(self, interaction: DoomItx, user: discord.User):
-        await interaction.response.send_message(
-            f":hammer: {user.mention}", ephemeral=True
-        )
+        await interaction.response.send_message(f":hammer: {user.mention}", ephemeral=True)
 
 
 async def setup(bot: core.Doom):

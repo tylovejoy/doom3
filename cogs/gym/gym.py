@@ -10,18 +10,18 @@ import cogs
 import database
 import utils
 from cogs.gym.utils import (
-    Units,
-    OneRepMax,
-    DuplicateExercise,
-    ExerciseDoesntExist,
     BODY_PARTS,
     EQUIPMENT,
+    DuplicateExercise,
+    ExerciseDoesntExist,
     ExerciseTransformer,
+    OneRepMax,
+    Units,
 )
 from cogs.gym.views import ExerciseView
 
 if TYPE_CHECKING:
-    from core import Doom, DoomItx, DoomCtx
+    from core import Doom, DoomCtx, DoomItx
 
 
 class Gym(commands.Cog):
@@ -132,9 +132,7 @@ class Gym(commands.Cog):
             raise ExerciseDoesntExist
         await itx.edit_original_response(content=content)
 
-    async def _one_rep_max_pr_submit(
-        self, exercise: str, itx: DoomItx, unit: str, weight: float
-    ) -> str:
+    async def _one_rep_max_pr_submit(self, exercise: str, itx: DoomItx, unit: str, weight: float) -> str:
         if unit == "lb":
             kg = self._convert_lb_to_kg(weight)
             lb = weight
@@ -193,9 +191,7 @@ class Gym(commands.Cog):
 
     @app_commands.command()
     @commands.is_owner()
-    async def add_exercise(
-        self, itx: DoomItx, name: str, category: Literal["Max", "Reps", "Time"]
-    ):
+    async def add_exercise(self, itx: DoomItx, name: str, category: Literal["Max", "Reps", "Time"]):
         if name in itx.client.exercise_category_map:
             raise DuplicateExercise
         await itx.response.send_message(f"Added {name} to exercise list.")
@@ -272,9 +268,7 @@ class Gym(commands.Cog):
                 ($3::text IS NULL OR name = $3::text)
             ORDER BY name;
         """
-        search = await itx.client.database.fetch(
-            query, location, equipment, exercise_name
-        )
+        search = await itx.client.database.fetch(query, location, equipment, exercise_name)
 
         if not search:
             raise utils.NoExercisesFound

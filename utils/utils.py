@@ -13,10 +13,7 @@ from thefuzz import fuzz
 
 import utils
 from cogs.tournament.utils.data import TournamentData, end_embed
-from cogs.tournament.utils.end_tournament import (
-    ExperienceCalculator,
-    SpreadsheetCreator,
-)
+from cogs.tournament.utils.end_tournament import ExperienceCalculator, SpreadsheetCreator
 from cogs.tournament.utils.utils import ANNOUNCEMENTS
 from utils import HALL_OF_FAME_ID, TOURNAMENT_SUBMISSIONS
 
@@ -81,11 +78,7 @@ NUMBER_EMOJI = {
 
 
 def split_nth_conditional(cur_i: int, n: int, collection: typing.Sequence) -> bool:
-    return (
-        (cur_i != 0 and cur_i % n == 0)
-        or (cur_i == 0 and len(collection) == 1)
-        or cur_i == len(collection) - 1
-    )
+    return (cur_i != 0 and cur_i % n == 0) or (cur_i == 0 and len(collection) == 1) or cur_i == len(collection) - 1
 
 
 async def tournament_task(
@@ -118,19 +111,12 @@ async def end_tournament_task(data: TournamentData):
 
 async def start_tournament(data: TournamentData):
     # Post announcement
-    mentions = [
-        data.client.get_guild(utils.GUILD_ID).get_role(_id).mention
-        for _id in data.mention_ids
-    ]
+    mentions = [data.client.get_guild(utils.GUILD_ID).get_role(_id).mention for _id in data.mention_ids]
 
-    await data.client.get_guild(utils.GUILD_ID).get_channel(ANNOUNCEMENTS).send(
-        "".join(mentions), embed=data.start_embed()
-    )
+    await data.client.get_guild(utils.GUILD_ID).get_channel(ANNOUNCEMENTS).send("".join(mentions), embed=data.start_embed())
     # Open submissions channel
     guild = data.client.get_guild(utils.GUILD_ID)
-    add_perms = guild.get_channel(TOURNAMENT_SUBMISSIONS).overwrites_for(
-        guild.default_role
-    )
+    add_perms = guild.get_channel(TOURNAMENT_SUBMISSIONS).overwrites_for(guild.default_role)
     add_perms.update(send_messages=True)
     await guild.get_channel(TOURNAMENT_SUBMISSIONS).set_permissions(
         guild.default_role,
@@ -145,9 +131,7 @@ async def end_tournament(data: TournamentData):
     guild = data.client.get_guild(utils.GUILD_ID)
     query = "UPDATE tournament SET active=FALSE WHERE id=$1;"
     await data.client.database.execute(query, data.id)
-    remove_perms = guild.get_channel(TOURNAMENT_SUBMISSIONS).overwrites_for(
-        guild.default_role
-    )
+    remove_perms = guild.get_channel(TOURNAMENT_SUBMISSIONS).overwrites_for(guild.default_role)
     remove_perms.update(send_messages=False)
     await guild.get_channel(TOURNAMENT_SUBMISSIONS).set_permissions(
         guild.default_role,
@@ -169,8 +153,7 @@ async def end_tournament(data: TournamentData):
     await SpreadsheetCreator(data, xp).create()
 
     mentions = [
-        data.client.get_guild(utils.GUILD_ID).get_role(_id).mention
-        for _id in data.client.current_tournament.mention_ids
+        data.client.get_guild(utils.GUILD_ID).get_role(_id).mention for _id in data.client.current_tournament.mention_ids
     ]
 
     await guild.get_channel(ANNOUNCEMENTS).send(

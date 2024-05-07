@@ -55,14 +55,10 @@ edit_level_args = {
     _level_name_a: _level_name,
 }
 
-submit_map = _Desc(
-    name=_T("submit-map"), description=_T("Submit your map to the database")
-)
+submit_map = _Desc(name=_T("submit-map"), description=_T("Submit your map to the database"))
 submit_map_args = {_map_code_a: _map_code, _map_name_a: _map_name}
 
-map_search = _Desc(
-    name=_T("map-search"), description=_T("Search for maps based on various filters")
-)
+map_search = _Desc(name=_T("map-search"), description=_T("Search for maps based on various filters"))
 map_search_args = {
     "map_type": _map_type,
     _map_name_a: _map_name,
@@ -72,9 +68,7 @@ map_search_args = {
 
 view_guide = _Desc(name=_T("guide"), description=_T("View guide(s) for a specific map"))
 view_guide_args = {_map_code_a: _map_code}
-add_guide = _Desc(
-    name=_T("add-guide"), description=_T("Add a guide for a specific map")
-)
+add_guide = _Desc(name=_T("add-guide"), description=_T("Add a guide for a specific map"))
 add_guide_args = {
     _map_code_a: _map_code,
     "url": _T("Valid URL to guide (YouTube, Streamable, etc)"),
@@ -84,34 +78,24 @@ add_guide_args = {
 mod_ = _Desc(name=_T("mod"), description=_T("Mod only commands"))
 keep_alive_ = _Desc(name=_T("keep-alive"), description=_T("Keep threads alive"))
 add_keep_alive = _Desc(name=_add, description=_T("Add a keep-alive to a thread"))
-remove_keep_alive = _Desc(
-    name=_remove, description=_T("Remove a keep-alive from a thread")
-)
+remove_keep_alive = _Desc(name=_remove, description=_T("Remove a keep-alive from a thread"))
 keep_alive_args = {"thread": _T("Thread")}
 
-remove_record = _Desc(
-    name=_T("remove-record"), description=_T("Remove a user's record")
-)
+remove_record = _Desc(name=_T("remove-record"), description=_T("Remove a user's record"))
 remove_record_args = {
     _user_a: _user,
     _map_code_a: _map_code,
     _level_name_a: _level_name,
 }
 
-change_name = _Desc(
-    name=_T("change-name"), description=_T("Change a user's display name")
-)
+change_name = _Desc(name=_T("change-name"), description=_T("Change a user's display name"))
 change_name_args = {_user_a: _user, _nickname_a: _nickname}
 
 # PERSONAL COG -----------------------------------------------------------------
-alerts = _Desc(
-    name=_T("alerts"), description=_T("Toggle Doombot verification alerts on/off")
-)
+alerts = _Desc(name=_T("alerts"), description=_T("Toggle Doombot verification alerts on/off"))
 alerts_args = {"value": _T("Alerts on/off")}
 
-name = _Desc(
-    name=_T(_name_a), description=_T("Change your display name in bot commands")
-)
+name = _Desc(name=_T(_name_a), description=_T("Change your display name in bot commands"))
 name_args = {_nickname_a: _nickname}
 
 brug_mode = _Desc(name=_T("brug-mode"), description=_T("Emojify text"))
@@ -127,9 +111,7 @@ u_add = _Desc(name=_T("u-add"), description=_T("Add insults, don't fuck up"))
 u_add_args = {"insult": "insult"}
 
 increase = _Desc(name=_T("increase"), description=_T("Increase! Beware the knife..."))
-decrease = _Desc(
-    name=_T("decrease"), description=_T("Decrease! Beware the growth pills...")
-)
+decrease = _Desc(name=_T("decrease"), description=_T("Decrease! Beware the growth pills..."))
 
 # RECORDS COG --------------------------------------------------
 personal_records_c = _DescC(name=_T("personal-records"))
@@ -137,9 +119,7 @@ world_records_c = _DescC(name=_T("world-records"))
 
 submit_record = _Desc(
     name=_T("submit-record"),
-    description=_T(
-        "Submit a record to the database. Video proof is required for full verification!"
-    ),
+    description=_T("Submit a record to the database. Video proof is required for full verification!"),
 )
 submit_record_args = {
     _map_code_a: _map_code,
