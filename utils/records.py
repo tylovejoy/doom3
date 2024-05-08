@@ -11,6 +11,7 @@ from discord import Embed, app_commands
 import cogs
 import database
 import utils
+from config import CONFIG
 from utils import DoomEmbed
 
 if typing.TYPE_CHECKING:
@@ -23,6 +24,12 @@ URL_REGEX = re.compile(
     r"[a-zA-Z0-9()]{1,6}\b"
     r"(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$"
 )
+
+PLACEMENTS = {
+    1: "<:_:1043226244575142018>",
+    2: "<:_:1043226243463659540>",
+    3: "<:_:1043226242335391794>",
+}
 
 
 class MapCodeTransformer(app_commands.Transformer):
@@ -157,27 +164,26 @@ def all_levels_records_embed(
             description = (
                 f"┣ `Name` {record['nickname']}\n"
                 f"┗ `Record` [{pretty_record(record['record'])}]"
-                f"({record['screenshot']}) "
-                f"{utils.TROPHY}\n"
+                f"({record['screenshot']}) 🏆\n"
             )
         elif not record["video"]:
             description = (
                 f"┣ `Name` {record['nickname']}\n"
                 f"┗ `Record` [{pretty_record(record['record'])}]"
                 f"({record['screenshot']}) "
-                f"{utils.HALF_VERIFIED}\n"
+                f"{CONFIG['HALF_VERIFIED']}\n"
             )
         else:
             description = (
                 f"┣ `Name` {record['nickname']}\n"
                 f"┣ `Record` [{pretty_record(record['record'])}]"
                 f"({record['screenshot']}) "
-                f"{utils.VERIFIED}\n "
+                f"{CONFIG['VERIFIED']}\n "
                 f"┗ `Video` [Link]({record['video']})\n"
             )
         embed.add_field(
             name=(
-                f"{utils.PLACEMENTS.get(record['rank_num'], '')} {make_ordinal(record['rank_num'])}"
+                f"{PLACEMENTS.get(record['rank_num'], '')} {make_ordinal(record['rank_num'])}"
                 if single
                 else record["level_name"]
             ),
@@ -207,14 +213,14 @@ def pr_records_embed(
                 f"┣ `Level` ***{record['level_name']}***\n"
                 f"┣ `Record` [{pretty_record(record['record'])}]"
                 f"({record['screenshot']}) "
-                f"{utils.HALF_VERIFIED}\n┃\n"
+                f"{CONFIG['HALF_VERIFIED']}\n┃\n"
             )
         else:
             description += (
                 f"┣ `Level` ***{record['level_name']}***\n"
                 f"┣ `Record` [{pretty_record(record['record'])}]"
                 f"({record['screenshot']})"
-                f"{utils.VERIFIED}\n "
+                f"{CONFIG['VERIFIED']}\n "
                 f"┣ `Video` [Link]({record['video']})\n┃\n"
             )
         if utils.split_nth_conditional(i, 9, records):

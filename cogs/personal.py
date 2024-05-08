@@ -11,6 +11,7 @@ from discord.ext import commands
 
 import utils
 import views
+from config import CONFIG
 
 if typing.TYPE_CHECKING:
     import core
@@ -40,7 +41,7 @@ class Personal(commands.Cog):
 
     @app_commands.command(**utils.alerts)
     @app_commands.describe(**utils.alerts_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def alerts(
         self,
         itx: DoomItx,
@@ -59,7 +60,7 @@ class Personal(commands.Cog):
 
     @app_commands.command(**utils.name)
     @app_commands.describe(**utils.name_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def nickname_change(
         self,
         itx: DoomItx,
@@ -79,18 +80,18 @@ class Personal(commands.Cog):
 
     @app_commands.command(**utils.brug_mode)
     @app_commands.describe(**utils.fun_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def brug_mode(self, itx: DoomItx, text: str):
         await itx.response.send_message(utils.emojify(text)[:2000])
 
     @app_commands.command(**utils.uwufier)
     @app_commands.describe(**utils.fun_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def uwufier(self, itx: DoomItx, text: str):
         await itx.response.send_message(utils.uwuify(text)[:2000])
 
     @app_commands.command(**utils.blarg)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=968553235239559239))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def blarg(self, itx: DoomItx):
         await itx.response.send_message("BLARG")
 

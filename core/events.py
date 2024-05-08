@@ -9,6 +9,7 @@ from discord.ext import commands
 
 import utils
 import views
+from config import CONFIG
 from views.roles import ColorRolesView, PronounRoles, ServerRelatedPings, TherapyRole, TournamentRoles
 
 if typing.TYPE_CHECKING:
@@ -82,7 +83,7 @@ class BotEvents(commands.Cog):
         assert self.bot.user
         if payload.user_id == self.bot.user.id:
             return
-        if payload.channel_id not in [utils.SPR_RECORDS, utils.RECORDS]:
+        if payload.channel_id not in [CONFIG["SPR_RECORDS"], CONFIG["RECORDS"]]:
             return
         if payload.emoji != discord.PartialEmoji.from_str("<:upper:787788134620332063>"):
             return
@@ -127,7 +128,7 @@ class BotEvents(commands.Cog):
                 if count < 10:
                     return
                 content = f"{count} {self.upper_emoji_converter(count)} <#{payload.channel_id}>"
-                top_record_channel = self.bot.get_channel(utils.TOP_RECORDS)
+                top_record_channel = self.bot.get_channel(CONFIG["TOP_RECORDS"])
                 if not top_record_id:
                     await self._post_new_top_record(content, payload, top_record_channel, connection=connection)
                 else:

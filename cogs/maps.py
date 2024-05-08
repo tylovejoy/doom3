@@ -10,6 +10,7 @@ from discord.ext import commands
 import database
 import utils
 import views
+from config import CONFIG
 
 if typing.TYPE_CHECKING:
     import core
@@ -24,18 +25,18 @@ class Maps(commands.Cog):
 
     _map_maker = app_commands.Group(
         **utils.map_maker_,
-        guild_ids=[utils.GUILD_ID],
+        guild_ids=[CONFIG["GUILD_ID"]],
     )
 
     _level = app_commands.Group(
         **utils.map_maker_level,
-        guild_ids=[utils.GUILD_ID],
+        guild_ids=[CONFIG["GUILD_ID"]],
         parent=_map_maker,
     )
 
     _creator = app_commands.Group(
         **utils.map_maker_creator,
-        guild_ids=[utils.GUILD_ID],
+        guild_ids=[CONFIG["GUILD_ID"]],
         parent=_map_maker,
     )
 
@@ -207,7 +208,7 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.submit_map)
     @app_commands.describe(**utils.submit_map_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def submit_map(
         self,
         itx: DoomItx,
@@ -226,7 +227,7 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.map_search)
     @app_commands.describe(**utils.map_search_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def map_search(
         self,
         itx: DoomItx,
@@ -292,7 +293,7 @@ class Maps(commands.Cog):
         await view.start(itx)
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def random_map(self, itx: DoomItx, random_level: bool | None = False) -> None:
         await itx.response.defer(ephemeral=True)
         query = """
@@ -422,7 +423,7 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.view_guide)
     @app_commands.describe(**utils.view_guide_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def view_guide(
         self,
         itx: DoomItx,
@@ -437,7 +438,7 @@ class Maps(commands.Cog):
 
     @app_commands.command(**utils.add_guide)
     @app_commands.describe(**utils.add_guide_args)
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def add_guide(
         self,
         itx: DoomItx,

@@ -10,6 +10,7 @@ import utils
 import views
 from cogs.tournament.utils import Categories, Categories_NoGen, Rank
 from cogs.tournament.utils.data import leaderboard_embed, rank_display
+from config import CONFIG
 from database import DotRecord
 from utils import pretty_record
 
@@ -22,7 +23,7 @@ class TournamentLeaderboards(commands.Cog):
         self.bot = bot
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=195387617972322306), discord.Object(id=utils.GUILD_ID))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def tournament_leaderboard(
         self,
         itx: core.DoomItx,

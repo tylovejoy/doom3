@@ -8,6 +8,7 @@ from discord.ext import commands
 
 import utils
 import views
+from config import CONFIG
 
 if typing.TYPE_CHECKING:
     import core
@@ -24,11 +25,11 @@ class ModCommands(commands.Cog):
 
     mod = app_commands.Group(
         **utils.mod_,
-        guild_ids=[utils.GUILD_ID],
+        guild_ids=[CONFIG["GUILD_ID"]],
     )
     keep_alive = app_commands.Group(
         **utils.keep_alive_,
-        guild_ids=[utils.GUILD_ID],
+        guild_ids=[CONFIG["GUILD_ID"]],
         parent=mod,
     )
 

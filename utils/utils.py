@@ -11,11 +11,10 @@ from discord import app_commands
 from discord.ext import tasks
 from thefuzz import fuzz
 
-import utils
 from cogs.tournament.utils.data import TournamentData, end_embed
 from cogs.tournament.utils.end_tournament import ExperienceCalculator, SpreadsheetCreator
 from cogs.tournament.utils.utils import ANNOUNCEMENTS
-from utils import HALL_OF_FAME_ID, TOURNAMENT_SUBMISSIONS
+from config import CONFIG
 
 if typing.TYPE_CHECKING:
     from core import DoomItx
@@ -111,14 +110,16 @@ async def end_tournament_task(data: TournamentData):
 
 async def start_tournament(data: TournamentData):
     # Post announcement
-    mentions = [data.client.get_guild(utils.GUILD_ID).get_role(_id).mention for _id in data.mention_ids]
+    mentions = [data.client.get_guild(CONFIG["GUILD_ID"]).get_role(_id).mention for _id in data.mention_ids]
 
-    await data.client.get_guild(utils.GUILD_ID).get_channel(ANNOUNCEMENTS).send("".join(mentions), embed=data.start_embed())
+    await data.client.get_guild(CONFIG["GUILD_ID"]).get_channel(ANNOUNCEMENTS).send(
+        "".join(mentions), embed=data.start_embed()
+    )
     # Open submissions channel
-    guild = data.client.get_guild(utils.GUILD_ID)
-    add_perms = guild.get_channel(TOURNAMENT_SUBMISSIONS).overwrites_for(guild.default_role)
+    guild = data.client.get_guild(CONFIG["GUILD_ID"])
+    add_perms = guild.get_channel(CONFIG["TOURNAMENT_SUBMISSIONS"]).overwrites_for(guild.default_role)
     add_perms.update(send_messages=True)
-    await guild.get_channel(TOURNAMENT_SUBMISSIONS).set_permissions(
+    await guild.get_channel(CONFIG["TOURNAMENT_SUBMISSIONS"]).set_permissions(
         guild.default_role,
         overwrite=add_perms,
         reason="Tournament Ended.",
@@ -128,12 +129,12 @@ async def start_tournament(data: TournamentData):
 
 
 async def end_tournament(data: TournamentData):
-    guild = data.client.get_guild(utils.GUILD_ID)
+    guild = data.client.get_guild(CONFIG["GUILD_ID"])
     query = "UPDATE tournament SET active=FALSE WHERE id=$1;"
     await data.client.database.execute(query, data.id)
-    remove_perms = guild.get_channel(TOURNAMENT_SUBMISSIONS).overwrites_for(guild.default_role)
+    remove_perms = guild.get_channel(CONFIG["TOURNAMENT_SUBMISSIONS"]).overwrites_for(guild.default_role)
     remove_perms.update(send_messages=False)
-    await guild.get_channel(TOURNAMENT_SUBMISSIONS).set_permissions(
+    await guild.get_channel(CONFIG["TOURNAMENT_SUBMISSIONS"]).set_permissions(
         guild.default_role,
         overwrite=remove_perms,
         reason="Tournament Ended.",
@@ -153,7 +154,7 @@ async def end_tournament(data: TournamentData):
     await SpreadsheetCreator(data, xp).create()
 
     mentions = [
-        data.client.get_guild(utils.GUILD_ID).get_role(_id).mention for _id in data.client.current_tournament.mention_ids
+        data.client.get_guild(CONFIG["GUILD_ID"]).get_role(_id).mention for _id in data.client.current_tournament.mention_ids
     ]
 
     await guild.get_channel(ANNOUNCEMENTS).send(
@@ -162,7 +163,7 @@ async def end_tournament(data: TournamentData):
     )
 
     hof_embed, lb_embeds = await data.hall_of_fame()
-    hof_msg = await guild.get_channel(HALL_OF_FAME_ID).send(embed=hof_embed)
+    hof_msg = await guild.get_channel(CONFIG["HALL_OF_FAME_ID"]).send(embed=hof_embed)
     hof_thread = await hof_msg.create_thread(name="Records Archive")
     file = discord.File(
         fp=r"DPK_Tournament.xlsx",

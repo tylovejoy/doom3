@@ -14,6 +14,7 @@ from PIL import Image, ImageDraw, ImageFont
 import utils
 import views
 from cogs.tournament.utils.transformers import SeasonsTransformer
+from config import CONFIG
 from utils import NoDataOnCurrentSeason
 
 if TYPE_CHECKING:
@@ -73,7 +74,7 @@ class RankCard(commands.Cog):
         return rank + number + ".png"
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def rank(self, itx: core.DoomItx, user: discord.Member | None):
         await itx.response.defer(ephemeral=True)
 
@@ -260,7 +261,7 @@ class RankCard(commands.Cog):
         return img
 
     @app_commands.command()
-    @app_commands.guilds(discord.Object(id=utils.GUILD_ID), discord.Object(id=195387617972322306))
+    @app_commands.guilds(CONFIG["GUILD_ID"])
     async def xp_leaderboard(
         self,
         itx: core.DoomItx,

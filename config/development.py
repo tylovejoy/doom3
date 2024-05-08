@@ -1,0 +1,17 @@
+import os
+
+config = {
+    "POSTGRESQL": f"postgresql://postgres:{os.environ['PSQL_PASSWORD']}@db/doom3",
+    "TOKEN": os.environ["TOKEN"],
+    "GUILD_ID": 195387617972322306,
+    # Roles
+    "STAFF": 1047262740315643925,
+    # Channels
+    "NEW_MAPS": 856602254769782835,
+    "VERIFICATION_QUEUE": 811467249100652586,
+    "SPR_RECORD": 801496775390527548,
+    "RECORDS": 856513618091049020,
+    "TOP_RECORDS": None,
+    "HALL_OF_FAME_ID": None,
+    "TOURNAMENT_SUBMISSIONS": None,
+}
