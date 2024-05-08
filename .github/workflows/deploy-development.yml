@@ -6,7 +6,13 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: dev
+    env: 
+      TOKEN: ${{ secrets.TOKEN }}
+      LOGGING_URL: ${{ secrets.LOGGING_URL }}
+      PSQL_EXPOSE_PORT: ${{ secrets.PSQL_EXPOSE_PORT }}
+      PSQL_PASSWORD: ${{ secrets.PSQL_PASSWORD }}
+      PSQL_USER: ${{ secrets.PSQL_USER }}
+      PYTHON_ENV: ${{ secrets.PYTHON_ENV }}
     steps:
     - uses: actions/checkout@v2
 
