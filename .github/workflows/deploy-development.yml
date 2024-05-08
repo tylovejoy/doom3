@@ -1,0 +1,23 @@
+on:
+  push: 
+    branches:
+    - development
+    
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy to Docker Host
+      uses: wshihadeh/docker-deployment-action@v2
+      with:
+        remote_docker_host: ${{ secrets.USERHOST }}
+        ssh_private_key: ${{ secrets.DOCKER_SSH_PRIVATE_KEY }}
+        ssh_public_key: ${{ secrets.DOCKER_SSH_PUBLIC_KEY }}
+        deployment_mode: docker-compose
+        copy_stack_file: true
+        deploy_path: /home/nebula/doom-dev
+        stack_file_name: docker-compose.yml
+        keep_files: 5
+        args: up -d
+        docker_prune: 'false'
+        pull_images_first: 'false'
