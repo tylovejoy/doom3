@@ -8,12 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev
     env: 
-      TOKEN: ${{ env.TOKEN }}
-      LOGGING_URL: ${{ env.LOGGING_URL }}
-      PSQL_EXPOSE_PORT: ${{ env.PSQL_EXPOSE_PORT }}
-      PSQL_PASSWORD: ${{ env.PSQL_PASSWORD }}
-      PSQL_USER: ${{ env.PSQL_USER }}
-      PYTHON_ENV: ${{ env.PYTHON_ENV }}
+      TOKEN: '${{ secrets.TOKEN }}'
+      LOGGING_URL: '${{ secrets.LOGGING_URL }}'
+      PSQL_EXPOSE_PORT: '${{ secrets.PSQL_EXPOSE_PORT }}'
+      PSQL_PASSWORD: '${{ secrets.PSQL_PASSWORD }}'
+      PSQL_USER: '${{ secrets.PSQL_USER }}'
+      PYTHON_ENV: '${{ secrets.PYTHON_ENV }}'
     steps:
     # need checkout before using docker-compose-remote-action
     - uses: actions/checkout@v2
