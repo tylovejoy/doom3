@@ -1,0 +1,26 @@
+on:
+  push: 
+    branches:
+    - development
+ 
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    env: 
+      TOKEN: ${{ secrets.TOKEN }}
+      LOGGING_URL: ${{ secrets.LOGGING_URL }}
+      PSQL_EXPOSE_PORT: ${{ secrets.PSQL_EXPOSE_PORT }}
+      PSQL_PASSWORD: ${{ secrets.PSQL_PASSWORD }}
+      PSQL_USER: ${{ secrets.PSQL_USER }}
+      PYTHON_ENV: ${{ secrets.PYTHON_ENV }}
+    steps:
+    # need checkout before using docker-compose-remote-action
+    - uses: actions/checkout@v2
+    - uses: chaplyk/docker-compose-remote-action@v1.1
+      with:
+        ssh_host: ${{ secrets.SSH_HOST }}
+        ssh_user: ${{ secrets.SSH_USER }}
+        ssh_key: ${{ secrets.SSH_KEY }}
+        compose_file: docker-compose.yml
+        build: true
