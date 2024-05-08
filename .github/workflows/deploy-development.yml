@@ -15,7 +15,6 @@ jobs:
       PYTHON_ENV: ${{ secrets.PYTHON_ENV }}
     steps:
     - uses: actions/checkout@v2
-
     - uses: tylovejoy/github-action-ssh-docker-compose@master
       name: Docker-Compose Remote Deployment
       with:
