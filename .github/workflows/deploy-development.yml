@@ -14,11 +14,24 @@ jobs:
       PSQL_USER: ${{ secrets.PSQL_USER }}
       PYTHON_ENV: ${{ secrets.PYTHON_ENV }}
     steps:
+    # need checkout before using docker-compose-remote-action
     - uses: actions/checkout@v2
-    - uses: tylovejoy/github-action-ssh-docker-compose@master
-      name: Docker-Compose Remote Deployment
+    - uses: chaplyk/docker-compose-remote-action@v1.1
       with:
         ssh_host: ${{ secrets.HOST }}
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
         ssh_user: ${{ secrets.SSH_USER }}
-        docker_compose_prefix: doom-dev
+        ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        compose_file: docker-compose.yml
+        build: true
+
+
+      
+    # steps:
+    # - uses: actions/checkout@v2
+    # - uses: tylovejoy/github-action-ssh-docker-compose@master
+    #   name: Docker-Compose Remote Deployment
+    #   with:
+    #     ssh_host: ${{ secrets.HOST }}
+    #     ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+    #     ssh_user: ${{ secrets.SSH_USER }}
+    #     docker_compose_prefix: doom-dev
