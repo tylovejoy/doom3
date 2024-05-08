@@ -5,13 +5,10 @@ services:
       options:
         syslog-format: "rfc5424"
         syslog-address: "${LOGGING_URL}"
-    env_file:
-      - .env
     build: .
     environment:
       - TOKEN=${TOKEN}
       - PSQL_PASSWORD=${PSQL_PASSWORD}
-      - PSQL_HOST=${PSQL_HOST}
       - PYTHON_ENV=${PYTHON_ENV}
     depends_on:
       - db
