@@ -1,13 +1,13 @@
 # on:
-#   push: 
+#   push:
 #     branches:
 #     - development
- 
+
 # jobs:
 #   deploy:
 #     runs-on: ubuntu-latest
 #     environment: dev
-#     env: 
+#     env:
 #       TOKEN: '${{ secrets.TOKEN }}'
 #       LOGGING_URL: '${{ secrets.LOGGING_URL }}'
 #       PSQL_EXPOSE_PORT: '${{ secrets.PSQL_EXPOSE_PORT }}'
