@@ -6,6 +6,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: dev
     env: 
       TOKEN: ${{ secrets.TOKEN }}
       LOGGING_URL: ${{ secrets.LOGGING_URL }}
