@@ -1,16 +1,32 @@
 from __future__ import annotations
 
-import textwrap
 import typing
 
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord.utils import MISSING
 
-import database
-import utils
 import views
 from config import CONFIG
+from utilities import (
+    ConfirmationBaseView,
+    CreatorTransformer,
+    Embed,
+    ExistingMapCodeAutocompleteTransformer,
+    ExistingMapCodeTransformer,
+    Map,
+    MapLevelTransformer,
+    MapMetadata,
+    MapNameTransformer,
+    MapTypeTransformer,
+    UserTransformer,
+    create_stars,
+    errors,
+    translations,
+    split_nth_conditional,
+    URLTransformer,
+)
 
 if typing.TYPE_CHECKING:
     import core
@@ -24,217 +40,180 @@ class Maps(commands.Cog):
         self.bot = bot
 
     _map_maker = app_commands.Group(
-        **utils.map_maker_,
+        **translations.map_maker_,
         guild_ids=[CONFIG["GUILD_ID"]],
     )
 
     _level = app_commands.Group(
-        **utils.map_maker_level,
+        **translations.map_maker_level,
         guild_ids=[CONFIG["GUILD_ID"]],
         parent=_map_maker,
     )
 
     _creator = app_commands.Group(
-        **utils.map_maker_creator,
+        **translations.map_maker_creator,
         guild_ids=[CONFIG["GUILD_ID"]],
         parent=_map_maker,
     )
 
+    async def cog_load(self):
+        query = "SELECT name, color FROM all_map_names;"
+        rows = await self.bot.database.fetch(query)
+        if not rows:
+            return
+        metadata = [MapMetadata(name, color) for name, color in rows]
+        self.bot.map_metadata = {const.NAME: const for const in metadata}
+
     @_creator.command(
-        **utils.remove_creator,
+        **translations.remove_creator,
     )
-    @app_commands.describe(**utils.creator_args)
+    @app_commands.describe(**translations.creator_args)
     async def remove_creator(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
-        creator: app_commands.Transform[int, utils.UserTransformer],
+        map_code: app_commands.Transform[str, ExistingMapCodeAutocompleteTransformer],
+        creator: app_commands.Transform[int, CreatorTransformer],
     ) -> None:
         await itx.response.defer(ephemeral=True)
-        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.NoPermissionsError
-
-        if creator not in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.CreatorDoesntExist
-        query = "DELETE FROM map_creators WHERE map_code = $1 AND user_id = $2;"
-        await itx.client.database.execute(
-            query,
-            map_code,
-            creator,
-        )
-        itx.client.map_cache[map_code]["user_ids"].remove(creator)
+        creator_ids = await self.bot.database.fetch_creator_ids_for_map_code(map_code)
+        if itx.user.id not in creator_ids:
+            raise errors.NoPermissionsError
+        if creator not in creator_ids:
+            raise errors.CreatorDoesntExist
+        await self.bot.database.remove_creator_from_map_code(creator, map_code)
+        nickname = await self.bot.database.fetch_user_nickname(itx.user.id)
 
         await itx.edit_original_response(
-            content=(
-                f"Removing **{itx.client.all_users[creator]['nickname']}** "
-                f"from list of creators for map code **{map_code}**."
-            )
+            content=f"Removing **{nickname}** from list of creators for map code **{map_code}**."
         )
 
-    @_creator.command(**utils.add_creator)
-    @app_commands.describe(**utils.creator_args)
+    @_creator.command(**translations.add_creator)
+    @app_commands.describe(**translations.creator_args)
     async def add_creator(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
-        creator: app_commands.Transform[int, utils.UserTransformer],
+        map_code: app_commands.Transform[str, ExistingMapCodeAutocompleteTransformer],
+        creator: app_commands.Transform[int, UserTransformer],
     ) -> None:
         await itx.response.defer(ephemeral=True)
-        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.NoPermissionsError
+        creator_ids = await self.bot.database.fetch_creator_ids_for_map_code(map_code)
+        if itx.user.id not in creator_ids:
+            raise errors.NoPermissionsError
+        if creator in creator_ids:
+            raise errors.CreatorAlreadyExists
+        await self.bot.database.add_creator_to_map_code(creator, map_code)
+        nickname = await self.bot.database.fetch_user_nickname(itx.user.id)
+        await itx.edit_original_response(content="Adding **{nickname}** to list of creators for map code **{map_code}**.")
 
-        if creator in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.CreatorAlreadyExists
-        query = "INSERT INTO map_creators (map_code, user_id) VALUES ($1, $2)"
-        await itx.client.database.execute(
-            query,
-            map_code,
-            creator,
-        )
-        itx.client.map_cache[map_code]["user_ids"].append(creator)
-
-        await itx.edit_original_response(
-            content=(
-                f"Adding **{itx.client.all_users[creator]['nickname']}** "
-                f"to list of creators for map code **{map_code}**."
-            )
-        )
-
-    @_level.command(**utils.add_level)
-    @app_commands.describe(**utils.add_level_args)
+    @_level.command(**translations.add_level)
+    @app_commands.describe(**translations.add_level_args)
     async def add_level_name(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
+        map_code: app_commands.Transform[str, ExistingMapCodeAutocompleteTransformer],
         new_level_name: str,
     ) -> None:
-        view = await self._check_creator_code(itx, map_code, new_level_name)
+        creator_ids = await self.bot.database.fetch_creator_ids_for_map_code(map_code)
+        if itx.user.id not in creator_ids:
+            raise errors.NoPermissionsError
 
-        await itx.edit_original_response(
-            content="Is this correct?\n" f"Adding level name: {new_level_name}\n",
-            view=view,
-        )
-        await view.wait()
+        all_levels = await self.bot.database.fetch_level_names_of_map_code(map_code)
+        if new_level_name in all_levels:
+            raise errors.LevelExistsError
+
+        view = ConfirmationBaseView(itx, "Is this correct?\n" f"Adding level name: {new_level_name}\n")
+        await view.start()
+
         if not view.value:
             return
-        query = "INSERT INTO map_levels (map_code, level) VALUES ($1, $2);"
-        await itx.client.database.execute(
-            query,
-            map_code,
-            new_level_name,
-        )
-        itx.client.map_cache[map_code]["levels"].append(new_level_name)
-        itx.client.map_cache[map_code]["choices"].append(app_commands.Choice(name=new_level_name, value=new_level_name))
 
-    @_level.command(**utils.remove_level)
-    @app_commands.describe(**utils.remove_level_args)
+        await self.bot.database.add_map_level_to_map_code(map_code, new_level_name)
+
+    @_level.command(**translations.remove_level)
+    @app_commands.describe(**translations.remove_level_args)
     async def delete_level_names(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
-        level_name: app_commands.Transform[str, utils.MapLevelTransformer],
+        map_code: app_commands.Transform[str, ExistingMapCodeAutocompleteTransformer],
+        level_name: app_commands.Transform[str, MapLevelTransformer],
     ) -> None:
-        view = await self._check_creator_code(itx, map_code)
-        await itx.edit_original_response(
-            content="Is this correct?\nDeleting level name: {map_level}\n",
-            view=view,
-        )
-        await view.wait()
+
+        creator_ids = await self.bot.database.fetch_creator_ids_for_map_code(map_code)
+        if itx.user.id not in creator_ids:
+            raise errors.NoPermissionsError
+
+        all_levels = await self.bot.database.fetch_level_names_of_map_code(map_code)
+        if level_name not in all_levels:
+            raise errors.LevelDoesntExistError
+
+        view = ConfirmationBaseView(itx, "Is this correct?\nDeleting level name: {map_level}\n")
+        await view.start()
+
         if not view.value:
             return
-        query = "DELETE FROM map_levels WHERE map_code=$1 AND level=$2;"
-        await itx.client.database.execute(
-            query,
-            map_code,
-            level_name,
-        )
-        itx.client.map_cache[map_code]["levels"].remove(level_name)
-        itx.client.map_cache[map_code]["choices"] = list(
-            filter(
-                lambda x: x.name != level_name,
-                itx.client.map_cache[map_code]["choices"],
-            )
-        )
 
-    @staticmethod
-    async def _check_creator_code(itx, map_code, new_level_name=None):
-        await itx.response.defer(ephemeral=True)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
-        if itx.user.id not in itx.client.map_cache[map_code]["user_ids"]:
-            raise utils.NoPermissionsError
-        if new_level_name and new_level_name in itx.client.map_cache[map_code]["levels"]:
-            raise utils.LevelExistsError
-        return views.Confirm(itx, ephemeral=True)
+        await self.bot.database.remove_map_level_from_map_code(map_code, level_name)
 
-    @_level.command(**utils.edit_level)
-    @app_commands.describe(**utils.edit_level_args)
+    @_level.command(**translations.edit_level)
+    @app_commands.describe(**translations.edit_level_args)
     async def edit_level_names(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
-        level_name: app_commands.Transform[str, utils.MapLevelTransformer],
+        map_code: app_commands.Transform[str, ExistingMapCodeAutocompleteTransformer],
+        level_name: app_commands.Transform[str, MapLevelTransformer],
         new_level_name: str,
     ) -> None:
-        view = await self._check_creator_code(itx, map_code)
+        creator_ids = await self.bot.database.fetch_creator_ids_for_map_code(map_code)
+        if itx.user.id not in creator_ids:
+            raise errors.NoPermissionsError
 
-        await itx.edit_original_response(
-            content=("Is this correct?\n" f"Original level name: {level_name}\n" f"Updated level name: {new_level_name}\n"),
-            view=view,
+        all_levels = await self.bot.database.fetch_level_names_of_map_code(map_code)
+        if level_name not in all_levels:
+            raise errors.LevelDoesntExistError
+
+        if new_level_name in all_levels:
+            raise errors.LevelExistsError
+
+        view = ConfirmationBaseView(
+            itx,
+            "Is this correct?\nOriginal level name: {level_name}\nUpdated level name: {new_level_name}\n",
         )
-        await view.wait()
+        await view.start()
         if not view.value:
             return
-        query = "UPDATE map_levels SET level=$3 WHERE map_code=$1 AND level=$2;"
-        await itx.client.database.execute(
-            query,
-            map_code,
-            level_name,
-            new_level_name,
-        )
 
-        itx.client.map_cache[map_code]["levels"] = list(
-            map(
-                lambda x: new_level_name if x == level_name else x,
-                itx.client.map_cache[map_code]["levels"],
-            )
-        )
-        itx.client.map_cache[map_code]["choices"] = list(
-            map(
-                lambda x: (app_commands.Choice(name=new_level_name, value=new_level_name) if x.name == level_name else x),
-                itx.client.map_cache[map_code]["choices"],
-            )
-        )
+        await self.bot.database.rename_level_name_for_map_code(map_code, level_name, new_level_name)
 
-    @app_commands.command(**utils.submit_map)
-    @app_commands.describe(**utils.submit_map_args)
+    @app_commands.command(**translations.submit_map)
+    @app_commands.describe(**translations.submit_map_args)
     @app_commands.guilds(CONFIG["GUILD_ID"])
     async def submit_map(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
-        map_name: app_commands.Transform[str, utils.MapNameTransformer],
+        map_code: app_commands.Transform[str, ExistingMapCodeTransformer],
+        map_name: app_commands.Transform[str, MapNameTransformer],
         image: discord.Attachment | None,
     ) -> None:
-        modal = views.MapSubmit()
-        modal.data = {
-            "map_code": map_code,
-            "map_name": map_name,
-            "creator_name": itx.user.name,
-            "image": image,
-        }
+        map_data = Map(
+            bot=self.bot,
+            map_code=map_code,
+            map_name=map_name,
+            primary_creator=itx.user.id,
+            image=image,
+        )
+        modal = MapSubmissionModal(map_data)
         await itx.response.send_modal(modal)
 
-    @app_commands.command(**utils.map_search)
-    @app_commands.describe(**utils.map_search_args)
+    @app_commands.command(**translations.map_search)
+    @app_commands.describe(**translations.map_search_args)
     @app_commands.guilds(CONFIG["GUILD_ID"])
     async def map_search(
         self,
         itx: DoomItx,
-        map_type: app_commands.Transform[str, utils.MapTypeTransformer] | None = None,
-        map_name: app_commands.Transform[str, utils.MapNameTransformer] | None = None,
-        creator: app_commands.Transform[int, utils.UserTransformer] | None = None,
-        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer] | None = None,
+        map_type: app_commands.Transform[str, MapTypeTransformer] | None = None,
+        map_name: app_commands.Transform[str, MapNameTransformer] | None = None,
+        creator: app_commands.Transform[int, UserTransformer] | None = None,
+        map_code: app_commands.Transform[str, ExistingMapCodeAutocompleteTransformer] | None = None,
     ) -> None:
         await itx.response.defer(ephemeral=True)
 
@@ -249,7 +228,7 @@ class Maps(commands.Cog):
             SELECT map_code,
                    map_type,
                    map_name,
-                   "desc",
+                   "desc" AS description,
                    official,
                    image,
                    creators,
@@ -277,18 +256,19 @@ class Maps(commands.Cog):
             GROUP BY map_code, map_type, map_name, "desc", official, creators, creators_ids, image
             ORDER BY map_code
             """
-        maps = await itx.client.database.fetch(
+        rows = await itx.client.database.fetch(
             query,
             map_type,
             map_name,
             map_code,
             creator,
         )
-        if not maps:
-            raise utils.NoMapsFoundError
+        if not rows:
+            raise errors.NoMapsFoundError
+        maps = [Map(self.bot, **row) for row in rows]
         embeds = self.create_map_embeds(maps)
-        if map_code and maps[0].get("image", None):
-            embeds[0].set_image(url=maps[0].image)
+        if map_code and maps[0].image_url:
+            embeds[0].set_image(url=maps[0].image_url)
         view = views.Paginator(embeds, itx.user, None)
         await view.start(itx)
 
@@ -314,9 +294,9 @@ class Maps(commands.Cog):
             SELECT map_code,
                    map_type,
                    map_name,
-                   "desc",
+                   "desc" as description,
                    official,
-                   image,
+                   image as image_url,
                    creators,
                    creators_ids,
                    level,
@@ -349,113 +329,71 @@ class Maps(commands.Cog):
                    creators,
                    creators_ids,
                    level, avg_rating
-                   
+                   LIMIT 1
         """
-        embed = utils.DoomEmbed(title="Map Search")
-        embed.set_thumbnail(url=None)
-        _map = await itx.client.database.fetchrow(query)
-        if not _map:
-            raise utils.NoMapsFoundError
-        embed = self.create_random_map_embeds(_map, random_level)
-        if _map.get("image", None):
-            embed.set_image(url=_map.image)
+
+        row = await itx.client.database.fetchrow(query)
+        if not row:
+            raise errors.NoMapsFoundError
+
+        _map = Map(self.bot, **row)
+        embed = self.create_random_map_embed(_map, random_level)
+        if _map.image_url:
+            embed.set_image(url=_map.image_url)
         view = views.Paginator([embed], itx.user, None)
         await view.start(itx)
 
-    def create_map_embeds(self, maps: list[database.DotRecord]) -> list[utils.Embed | utils.DoomEmbed]:
+    def create_map_embeds(self, maps: list[Map]) -> list[Embed | discord.Embed]:
         embed_list = []
-        embed = utils.DoomEmbed(title="Map Search")
+        embed = Embed(title="Map Search")
         for i, _map in enumerate(maps):
-            embed.add_description_field(
-                name=f"{_map['map_code']}",
-                value=(
-                    self.display_official(_map["official"]) + f"┣ `Rating` {utils.create_stars(_map['rating'])}\n"
-                    f"┣ `Creator` {discord.utils.escape_markdown(_map['creators'])}\n"
-                    f"┣ `Map` {_map['map_name']}\n"
-                    f"┣ `Type` {_map['map_type']}\n"
-                    f"┗ `Description` {_map['desc']}"
-                ),
-            )
-            if utils.split_nth_conditional(i, 10, maps):
+            embed.add_description_field(**_map.map_search_embed_to_dict())
+            if split_nth_conditional(i, 10, maps):
                 embed_list.append(embed)
-                embed = utils.DoomEmbed(title="Map Search")
+                embed = Embed(title="Map Search")
         return embed_list
 
-    def create_random_map_embeds(self, _map: database.DotRecord, level: bool) -> utils.Embed | utils.DoomEmbed:
-        embed = utils.DoomEmbed(title="Map Search")
-        embed.add_description_field(
-            name=f"{_map['map_code']}",
-            value=(
-                self.display_official(_map["official"]) + f"┣ `Rating` {utils.create_stars(_map['rating'])}\n"
-                f"┣ `Creator` {discord.utils.escape_markdown(_map['creators'])}\n"
-                f"┣ `Map` {_map['map_name']}\n"
-                f"┣ `Type` {_map['map_type']}\n"
-                f"┗ `Description` {_map['desc']}"
-            ),
-        )
+    def create_random_map_embed(self, _map: Map, level: bool | None) -> Embed | discord.Embed:
+        embed = Embed(title="Map Search")
+        embed.add_description_field(**_map.map_search_embed_to_dict())
         if level:
             embed.add_field(
                 name="Random Level",
-                value=f"{_map['level']} - {utils.create_stars(_map['avg_rating'])}",
+                value=f"{_map.level} - {create_stars(_map.avg_rating)}",
             )
         return embed
 
-    @staticmethod
-    def display_official(official: bool) -> str:
-        return (
-            (
-                "┃<:_:998055526468423700>"
-                "<:_:998055528355860511>"
-                "<:_:998055530440437840>"
-                "<:_:998055532030079078>"
-                "<:_:998055534068510750>"
-                "<:_:998055536346021898>\n"
-                "┃<:_:998055527412142100>"
-                "<:_:998055529219887154>"
-                "<:_:998055531346415656>"
-                "<:_:998055533225455716>"
-                "<:_:998055534999654480>"
-                "<:_:998055537432338532>\n"
-            )
-            if official
-            else ""
-        )
-
-    @app_commands.command(**utils.view_guide)
-    @app_commands.describe(**utils.view_guide_args)
+    @app_commands.command(**translations.view_guide)
+    @app_commands.describe(**translations.view_guide_args)
     @app_commands.guilds(CONFIG["GUILD_ID"])
     async def view_guide(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
+        map_code: app_commands.Transform[str, ExistingMapCodeAutocompleteTransformer],
     ):
         guides = await self._check_guides(itx, map_code)
         if not guides:
-            raise utils.NoGuidesExistError
+            raise errors.NoGuidesExistError
 
         view = views.Paginator(guides, itx.user)
         await view.start(itx)
 
-    @app_commands.command(**utils.add_guide)
-    @app_commands.describe(**utils.add_guide_args)
+    @app_commands.command(**translations.add_guide)
+    @app_commands.describe(**translations.add_guide_args)
     @app_commands.guilds(CONFIG["GUILD_ID"])
     async def add_guide(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeAutoTransformer],
-        url: app_commands.Transform[str, utils.URLTransformer],
+        map_code: app_commands.Transform[str, ExistingMapCodeAutocompleteTransformer],
+        url: app_commands.Transform[str, URLTransformer],
     ):
         guides = await self._check_guides(itx, map_code)
 
         if url in guides:
-            raise utils.GuideExistsError
+            raise errors.GuideExistsError
 
-        view = views.Confirm(itx, ephemeral=True)
-        await itx.edit_original_response(
-            content=f"Is this correct?\nMap code: {map_code}\nURL: {url}",
-            view=view,
-        )
-        await view.wait()
+        view = ConfirmationBaseView(itx, f"Is this correct?\nMap code: {map_code}\nURL: {url}")
+        await view.start()
 
         if not view.value:
             return
@@ -469,14 +407,142 @@ class Maps(commands.Cog):
     @staticmethod
     async def _check_guides(itx: DoomItx, map_code: str) -> list[str]:
         await itx.response.defer(ephemeral=True)
-        if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
         query = "SELECT url FROM guides WHERE map_code=$1"
         guides = await itx.client.database.fetch(
             query,
             map_code,
         )
+        if not guides:
+            return []
         return [x["url"] for x in guides]
+
+
+class ConfirmationMapSubmit(ConfirmationBaseView):
+    def __init__(
+        self,
+        itx: DoomItx,
+        initial_message: str,
+        map_type_select: MapTypesSelect,
+        embed: discord.Embed = MISSING,
+        attachment: discord.File = MISSING,
+    ):
+        super().__init__(itx, initial_message, embed, attachment)
+        self.map_type = map_type_select
+        self.add_item(self.map_type)
+
+    async def map_submit_enable(self):
+        values = getattr(self, "map_type").values
+        if all(values):
+            self.accept.disabled = False
+            await self.itx.edit_original_response(view=self)
+
+    @property
+    def map_types(self):
+        return [x for x in self.map_type.values]
+
+
+class MapTypesSelect(discord.ui.Select):
+    view: ConfirmationMapSubmit
+
+    def __init__(self, options: list[str]) -> None:
+        _options = [discord.SelectOption(label=option, value=option) for option in options]
+        super().__init__(options=_options, placeholder="Map type(s)?", max_values=len(options), row=0)
+
+    async def callback(self, itx: DoomItx):
+        await itx.response.defer(ephemeral=True)
+        for x in self.options:
+            x.default = x.value in self.values
+        await self.view.map_submit_enable()
+
+
+class MapSubmissionModal(discord.ui.Modal):
+    description = discord.ui.TextInput(label="Description", style=discord.TextStyle.paragraph, required=False)
+    levels = discord.ui.TextInput(
+        label="Level Names",
+        style=discord.TextStyle.paragraph,
+        placeholder=(
+            "Add all level names, each on a new line.\n"
+            "Level 1\n"
+            "Level 2\n"
+            "Trial of Agony\n"
+            "Speedrunning Death\n"
+            "Etc.\n"
+        ),
+    )
+
+    def __init__(self, data: Map):
+        super().__init__(title="Map Submission")
+        self.data = data
+
+    async def on_submit(self, itx: DoomItx):
+        await itx.response.defer(ephemeral=True, thinking=True)
+        map_types = await itx.client.database.fetch_all_map_types()
+        if not map_types:
+            raise ValueError("Map types are missing.")
+        select = MapTypesSelect(map_types)
+        view = ConfirmationMapSubmit(itx, "", select)
+        await view.start()
+        if not view.value:
+            return
+
+        self.data.set_map_types(view.map_types)
+        self.data.set_levels(self.sanitized_levels)
+        self.data.set_description(self.description.value)
+        embed = self.data.build_preview_embed()
+
+        attachment = self.data.image
+        image = MISSING
+        new_map_image = MISSING
+        if isinstance(attachment, discord.Attachment):
+            image = await attachment.to_file(filename="image.png")
+            new_map_image = await attachment.to_file(filename="image.png")
+
+        view = ConfirmationBaseView(itx, "Is this correct?", embed, image)
+        await view.start()
+        if not view.value:
+            return
+        try:
+            await self.data.commit()
+        except Exception as e:
+            ...
+        assert self.data.primary_creator
+        nickname = await itx.client.database.fetch_user_nickname(self.data.primary_creator)
+        embed.title = f"New Map by {nickname}"
+        embed.remove_field(0)
+        embed.set_image(url="attachment://image.png")
+        assert itx.guild
+        new_map_channel = itx.guild.get_channel(CONFIG["NEW_MAPS"])
+        assert isinstance(new_map_channel, discord.TextChannel)
+        new_map_alert = await new_map_channel.send(embed=embed, file=new_map_image)
+        if new_map_alert.attachments:
+            query = "UPDATE maps SET image = $2 WHERE map_code = $1;"
+            await itx.client.database.execute(
+                query,
+                self.data.map_code,
+                new_map_alert.attachments[0].url,
+            )
+        await new_map_alert.create_thread(name=f"Discuss {self.data.map_code} here.")
+        map_maker = itx.guild.get_role(CONFIG["MAP_MAKER"])
+        assert isinstance(itx.user, discord.Member) and map_maker
+        if map_maker not in itx.user.roles:
+            await itx.user.add_roles(map_maker)
+
+        reminder = (
+            "**Friendly Reminder**\n\n"
+            "You have access to a few commands to edit the map once it has been submitted.\n\n"
+            "Do you have multiple creators on this map? Add them or remove them with these commands:\n"
+            "`/map-maker creator add`\n"
+            "`/map-maker creator remove`\n\n"
+            "Do you want to edit a level name in the bot? Use one of these:\n"
+            "`/map-maker level add`\n"
+            "`/map-maker level remove`\n"
+            "`/map-maker level edit`\n"
+        )
+        await itx.user.send(reminder)
+
+    @property
+    def sanitized_levels(self):
+        return list(set(map(str.strip, filter(lambda x: bool(x), self.levels.value.split("\n")))))
 
 
 async def setup(bot):

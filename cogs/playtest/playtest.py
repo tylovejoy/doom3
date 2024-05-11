@@ -7,7 +7,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import utils
+import utilities
 from config import CONFIG
 
 if TYPE_CHECKING:
@@ -75,8 +75,8 @@ class Playtesting(commands.Cog):
     async def submit_playtest(
         self,
         itx: core.DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeTransformer],
-        map_name: app_commands.Transform[str, utils.MapNameTransformer],
+        map_code: app_commands.Transform[str, utilities.MapCodeFormattingTransformer],
+        map_name: app_commands.Transform[str, utilities.MapNameTransformer],
         category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"],
         level_name: str,
     ):

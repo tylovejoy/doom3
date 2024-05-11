@@ -14,7 +14,6 @@ from discord.ext import commands
 
 import utils
 from config import CONFIG
-from views import MAP_DATA
 
 if typing.TYPE_CHECKING:
     import core

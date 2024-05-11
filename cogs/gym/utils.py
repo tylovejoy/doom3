@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal
 from discord import app_commands
 
 import cogs
+import utilities.utils
 import utils
 from utils import BaseParkourException
 
@@ -122,7 +123,7 @@ class OneRepMax:
 class ExerciseTransformer(app_commands.Transformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
         if value not in itx.client.exercise_category_map:
-            value = utils.fuzz_(value, itx.client.exercise_category_map)
+            value = utilities.utils.fuzz_(value, itx.client.exercise_category_map)
         return value
 
     async def autocomplete(self, itx: DoomItx, value: int | float | str) -> list[app_commands.Choice[str]]:

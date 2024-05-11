@@ -11,6 +11,7 @@ from discord.app_commands import Transform
 from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 
+import utilities.utils
 import utils
 import views
 from cogs.tournament.utils.transformers import SeasonsTransformer
@@ -285,7 +286,7 @@ class RankCard(commands.Cog):
                 value=f"XP: {record['xp']}",
                 inline=False,
             )
-            if utils.split_nth_conditional(i, 9, records):
+            if utilities.utils.split_nth_conditional(i, 9, records):
                 embed_list.append(embed)
                 embed = utils.DoomEmbed(title="XP Leaderboard")
         if not embed_list:

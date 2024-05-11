@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import cogs
+import utilities.utils
 import utils
 import views
 from config import CONFIG
@@ -30,8 +31,8 @@ class Tags(discord.ext.commands.GroupCog, group_name=utils.tags["name"]):
     ) -> None:
         await itx.response.defer()
         if name not in itx.client.tag_cache:
-            fuzzed_options = utils.fuzz_multiple(name, itx.client.tag_cache)
-            fuzz_desc = [f"{utils.NUMBER_EMOJI[i + 1]} - {x}\n" for i, x in enumerate(fuzzed_options)]
+            fuzzed_options = utilities.utils.fuzz_multiple(name, itx.client.tag_cache)
+            fuzz_desc = [f"{NUMBER_EMOJI[i + 1]} - {x}\n" for i, x in enumerate(fuzzed_options)]
 
             embed = utils.DoomEmbed(
                 title="Tags",
@@ -69,3 +70,17 @@ async def setup(bot: core.Doom):
             discord.Object(id=CONFIG["GUILD_ID"]),
         ],
     )
+
+
+NUMBER_EMOJI = {
+    1: "1️⃣",
+    2: "2️⃣",
+    3: "3️⃣",
+    4: "4️⃣",
+    5: "5️⃣",
+    6: "6️⃣",
+    7: "7️⃣",
+    8: "8️⃣",
+    9: "9️⃣",
+    10: "🔟",
+}

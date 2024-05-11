@@ -10,6 +10,8 @@ from discord.ext import commands
 import utils
 import views
 from config import CONFIG
+from utilities import translations, errors
+import utilities
 
 if typing.TYPE_CHECKING:
     import core
@@ -23,39 +25,39 @@ class Records(commands.Cog):
         self.bot = bot
         self.bot.tree.add_command(
             app_commands.ContextMenu(
-                **utils.personal_records_c,
+                **translations.personal_records_c,
                 callback=self.pr_context_callback,
                 guild_ids=[CONFIG["GUILD_ID"]],
             )
         )
         self.bot.tree.add_command(
             app_commands.ContextMenu(
-                **utils.world_records_c,
+                **translations.world_records_c,
                 callback=self.wr_context_callback,
                 guild_ids=[CONFIG["GUILD_ID"]],
             )
         )
 
-    @app_commands.command(**utils.submit_record)
-    @app_commands.describe(**utils.submit_record_args)
+    @app_commands.command(**translations.submit_record)
+    @app_commands.describe(**translations.submit_record_args)
     @app_commands.guilds(CONFIG["GUILD_ID"])
-    @app_commands.choices(rating=utils.ALL_STARS_CHOICES)
+    # @app_commands.choices(rating=utils.ALL_STARS_CHOICES)
     async def submit_record(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeRecordsTransformer],
-        level_name: app_commands.Transform[str, utils.MapLevelTransformer],
-        record: app_commands.Transform[float, utils.RecordTransformer],
+        map_code: app_commands.Transform[str, utilities.ExistingMapCodeAutocompleteTransformer],
+        level_name: app_commands.Transform[str, utilities.MapLevelTransformer],
+        record: app_commands.Transform[float, utilities.RecordTransformer],
         screenshot: discord.Attachment,
-        video: app_commands.Transform[str, utils.URLTransformer] | None,
+        video: app_commands.Transform[str, utilities.URLTransformer] | None,
         rating: int | None,
     ) -> None:
         await itx.response.defer(ephemeral=False)
         if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
+            raise errors.InvalidMapCodeError
 
         if level_name not in itx.client.map_cache[map_code]["levels"]:
-            raise utils.InvalidMapLevelError
+            raise errors.InvalidMapLevelError
 
         query = """
             SELECT record, hidden_id FROM records r 
@@ -70,7 +72,7 @@ class Records(commands.Cog):
             itx.user.id,
         )
         if old_row and old_row["record"] < record:
-            raise utils.RecordNotFasterError
+            raise errors.RecordNotFasterError
 
         user = itx.client.all_users[itx.user.id]
 
@@ -140,19 +142,19 @@ class Records(commands.Cog):
                 itx.user.id,
             )
 
-    @app_commands.command(**utils.leaderboard)
-    @app_commands.describe(**utils.leaderboard_args)
+    @app_commands.command(**translations.leaderboard)
+    @app_commands.describe(**translations.leaderboard_args)
     @app_commands.guilds(CONFIG["GUILD_ID"])
     async def view_records(
         self,
         itx: DoomItx,
-        map_code: app_commands.Transform[str, utils.MapCodeRecordsTransformer],
-        level_name: app_commands.Transform[str, utils.MapLevelTransformer] | None,
+        map_code: app_commands.Transform[str, utilities.ExistingMapCodeAutocompleteTransformer],
+        level_name: app_commands.Transform[str, utilities.MapLevelTransformer] | None,
         verified: bool | None = False,
     ) -> None:
         await itx.response.defer(ephemeral=True)
         if map_code not in itx.client.map_cache.keys():
-            raise utils.InvalidMapCodeError
+            raise errors.InvalidMapCodeError
 
         query = """
         WITH all_tournament_records AS (SELECT user_id,
@@ -233,7 +235,7 @@ class Records(commands.Cog):
 
         records = await itx.client.database.fetch(query, map_code, bool(level_name), level_name, verified)
         if not records:
-            raise utils.NoRecordsFoundError
+            raise errors.NoRecordsFoundError
 
         if level_name:
             embeds = utils.all_levels_records_embed(records, f"Leaderboard - {map_code} - {level_name}", True)
@@ -243,8 +245,8 @@ class Records(commands.Cog):
         view = views.Paginator(embeds, itx.user)
         await view.start(itx)
 
-    @app_commands.command(**utils.personal_records)
-    @app_commands.describe(**utils.personal_records_args)
+    @app_commands.command(**translations.personal_records)
+    @app_commands.describe(**translations.personal_records_args)
     @app_commands.guilds(CONFIG["GUILD_ID"])
     async def personal_records_slash(
         self,
@@ -304,7 +306,7 @@ class Records(commands.Cog):
         """
         records = await itx.client.database.fetch(query, user.id, wr_only)
         if not records:
-            raise utils.NoRecordsFoundError
+            raise errors.NoRecordsFoundError
         embeds = utils.pr_records_embed(
             records,
             f"Personal {'World ' if wr_only else ''}Records | {itx.client.all_users[user.id]['nickname']}",
@@ -313,12 +315,12 @@ class Records(commands.Cog):
         await view.start(itx)
 
     @app_commands.command(name="verification-stats")
-    @app_commands.describe(**utils.u_args)
+    @app_commands.describe(**translations.u_args)
     @app_commands.guilds(CONFIG["GUILD_ID"])
     async def verification_stats(
         self,
         itx: DoomItx,
-        user: app_commands.Transform[int, utils.UserTransformer] | None = None,
+        user: app_commands.Transform[int, utilities.UserTransformer] | None = None,
     ):
         await itx.response.defer(ephemeral=True)
         if user:
@@ -332,6 +334,8 @@ class Records(commands.Cog):
                 query,
                 user,
             )
+            if not res:
+                raise ValueError("User has no verification stats.")
             await itx.edit_original_response(content=f"{res['nickname']} has **{res['amount']}** verifications!")
         else:
             query = """
@@ -346,6 +350,8 @@ class Records(commands.Cog):
                 ORDER BY amount DESC;
             """
             res = await itx.client.database.fetch(query)
+            if not res:
+                raise ValueError("There are no verification stats.")
             leaderboard = ""
             for placement, record in enumerate(res):
                 leaderboard += f"`{utils.make_ordinal(record['rank']):^6}` `{record['amount']:^6}` `{record['nickname']}`\n"

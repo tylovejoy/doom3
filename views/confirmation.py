@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import discord
 
+import utilities.utils
 import utils
 from config import CONFIG
 
@@ -63,7 +64,7 @@ class RejectButton(discord.ui.Button):
             content=content,
             view=self.view,
         )
-        await utils.delete_interaction(self.view.original_itx, minutes=1)
+        await utilities.utils.delete_interaction(self.view.original_itx, seconds=60)
         self.view.stop()
 
 

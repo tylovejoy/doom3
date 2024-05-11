@@ -10,6 +10,7 @@ from discord import Embed, app_commands
 
 import cogs
 import database
+import utilities.utils
 import utils
 from config import CONFIG
 from utils import DoomEmbed
@@ -35,7 +36,7 @@ PLACEMENTS = {
 class MapCodeTransformer(app_commands.Transformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
         value = value.upper().replace("O", "0").lstrip().rstrip()
-        if not re.match(utils.CODE_VERIFICATION, value):
+        if not re.match(utilities.utils.CODE_VERIFICATION, value):
             raise utils.IncorrectCodeFormatError
         return value
 
@@ -53,7 +54,7 @@ class MapCodeRecordsTransformer(MapCodeAutoTransformer):
         if value not in itx.client.map_cache.keys():
             raise utils.InvalidMapCodeError
 
-        if not re.match(utils.CODE_VERIFICATION, value):
+        if not re.match(utilities.utils.CODE_VERIFICATION, value):
             raise utils.IncorrectCodeFormatError
 
         return value
@@ -63,7 +64,7 @@ class MapLevelTransformer(app_commands.Transformer):
     async def transform(self, itx: DoomItx, value: str) -> str:
         assert itx.client.map_cache
         if value not in itx.client.map_cache[itx.namespace.map_code.upper()]["levels"]:
-            value = utils.fuzz_(value, itx.client.map_cache[itx.namespace.map_code.upper()]["levels"])
+            value = utilities.utils.fuzz_(value, itx.client.map_cache[itx.namespace.map_code.upper()]["levels"])
         return value
 
     async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]]:
@@ -91,17 +92,6 @@ class RecordTransformer(app_commands.Transformer):
         except ValueError:
             raise utils.IncorrectRecordFormatError
         return value
-
-
-class URLTransformer(app_commands.Transformer):
-    async def transform(self, itx: DoomItx, value: str) -> str:
-        value = value.strip()
-        if not value.startswith("https://") and not value.startswith("http://"):
-            value = "https://" + value
-        async with itx.client.session.get(value) as resp:
-            if resp.status != 200:
-                raise utils.IncorrectURLFormatError
-            return str(resp.url)
 
 
 def time_convert(string: str) -> float:
@@ -190,7 +180,7 @@ def all_levels_records_embed(
             value=description,
             inline=False,
         )
-        if utils.split_nth_conditional(i, 9, records):
+        if utilities.utils.split_nth_conditional(i, 9, records):
             embed = utils.set_embed_thumbnail_maps(record["map_name"], embed)
             embed_list.append(embed)
             embed = utils.DoomEmbed(title=title)
@@ -223,7 +213,7 @@ def pr_records_embed(
                 f"{CONFIG['VERIFIED']}\n "
                 f"┣ `Video` [Link]({record['video']})\n┃\n"
             )
-        if utils.split_nth_conditional(i, 9, records):
+        if utilities.utils.split_nth_conditional(i, 9, records):
             cur_code, description = _add_pr_field(cur_code, description, embed, record)
             embed_list.append(embed)
             embed = utils.DoomEmbed(title=title)

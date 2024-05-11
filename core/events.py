@@ -135,7 +135,7 @@ class BotEvents(commands.Cog):
                     assert isinstance(top_record_channel, discord.TextChannel)
                     await top_record_channel.get_partial_message(top_record_id).edit(content=content)
 
-    async def _post_new_top_record(self, content, payload, top_record_channel, /, connection: asyncpg.Connection):
+    async def _post_new_top_record(self, content, payload, top_record_channel, *, connection: asyncpg.Connection):
         channel = self.bot.get_channel(payload.channel_id)
         assert isinstance(channel, discord.TextChannel)
         original_msg = await channel.fetch_message(payload.message_id)

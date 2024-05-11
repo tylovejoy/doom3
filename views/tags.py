@@ -6,7 +6,7 @@ import discord.ui
 from discord import app_commands
 
 import views
-from utils import NUMBER_EMOJI
+from cogs.tags import NUMBER_EMOJI
 
 if typing.TYPE_CHECKING:
     from core import DoomItx

@@ -9,7 +9,8 @@ import typing
 import discord
 from discord import app_commands
 
-import utils
+from .embeds import ErrorEmbed
+from .utils import delete_interaction
 
 if typing.TYPE_CHECKING:
     from core import DoomItx
@@ -87,6 +88,10 @@ class LevelExistsError(BaseParkourException):
     """This level already exists!"""
 
 
+class LevelDoesntExistError(BaseParkourException):
+    """This level is not associated with this map."""
+
+
 class NoGuidesExistError(BaseParkourException):
     """No guides exist for this map code."""
 
@@ -117,8 +122,8 @@ class NoDataOnCurrentSeason(BaseParkourException):
 
 async def on_app_command_error(interaction: DoomItx, error: app_commands.errors.AppCommandError):
     exception = getattr(error, "original", error)
-    if isinstance(exception, utils.BaseParkourException):
-        embed = utils.ErrorEmbed(description=str(exception))
+    if isinstance(exception, BaseParkourException):
+        embed = ErrorEmbed(description=str(exception))
         await _respond(embed, interaction)
     elif isinstance(exception, app_commands.CommandOnCooldown):
         now = discord.utils.utcnow()
@@ -127,7 +132,7 @@ async def on_app_command_error(interaction: DoomItx, error: app_commands.errors.
             return
         seconds = float(search.group(1))
         end = now + datetime.timedelta(seconds=seconds)
-        embed = utils.ErrorEmbed(
+        embed = ErrorEmbed(
             description=(
                 "Command is on cooldown. Cooldown ends "
                 f"{discord.utils.format_dt(end, style='R')}.\n"
@@ -135,11 +140,11 @@ async def on_app_command_error(interaction: DoomItx, error: app_commands.errors.
             )
         )
         await _respond(embed, interaction)
-        await utils.delete_interaction(interaction, minutes=seconds / 60)
+        await delete_interaction(interaction, seconds=seconds)
     else:
         edit = interaction.edit_original_response if interaction.response.is_done() else interaction.response.send_message
 
-        embed = utils.ErrorEmbed(
+        embed = ErrorEmbed(
             description=("Unknown.\n" "It has been logged and sent to <@141372217677053952>.\n" "Please try again later."),
             unknown=True,
         )
@@ -173,10 +178,10 @@ async def on_app_command_error(interaction: DoomItx, error: app_commands.errors.
                     filename="error.log",
                 ),
             )
-    await utils.delete_interaction(interaction, minutes=15)
+    await delete_interaction(interaction, seconds=600)
 
 
-async def _respond(embed: discord.Embed | utils.DoomEmbed | utils.ErrorEmbed, itx: DoomItx):
+async def _respond(embed: discord.Embed | ErrorEmbed, itx: DoomItx):
     if itx.response.is_done():
         await itx.edit_original_response(
             embed=embed,

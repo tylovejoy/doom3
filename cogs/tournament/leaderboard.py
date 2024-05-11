@@ -6,6 +6,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import utilities.utils
 import utils
 import views
 from cogs.tournament.utils import Categories, Categories_NoGen, Rank
@@ -76,7 +77,7 @@ class TournamentLeaderboards(commands.Cog):
                 value=(f"> *Record:* {pretty_record(record['record'])}\n" f"> [Screenshot]({record['screenshot']})\n\n"),
                 inline=False,
             )
-            if utils.split_nth_conditional(i, 9, records):
+            if utilities.utils.split_nth_conditional(i, 9, records):
                 embed_list.append(embed)
                 embed = leaderboard_embed(
                     description="",

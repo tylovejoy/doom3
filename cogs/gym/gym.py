@@ -139,7 +139,8 @@ class Gym(commands.Cog):
         else:
             kg = weight
             lb = self._convert_kg_to_lb(weight)
-        async with database.Acquire(pool=itx.client.pool) as con:
+
+        async with self.bot.database.pool.acquire() as con:
             query = """
                 INSERT INTO gym_records(user_id, exercise, value)
                 VALUES ($1, $2, $3) 
@@ -154,9 +155,8 @@ class Gym(commands.Cog):
             )
         return f"{itx.user.mention} your {exercise} PR is set to {kg} kg / {lb} lb. <:_:1029045690829115402>"
 
-    @staticmethod
-    async def _reps_pr_submit(exercise: str, itx: DoomItx, value: float):
-        async with database.Acquire(pool=itx.client.pool) as con:
+    async def _reps_pr_submit(self, exercise: str, itx: DoomItx, value: float):
+        async with self.bot.database.pool.acquire() as con:
             query = """
                 INSERT INTO gym_records(user_id, exercise, value)
                 VALUES ($1, $2, $3)
@@ -172,9 +172,8 @@ class Gym(commands.Cog):
 
         return f"{itx.user.mention} your {exercise} PR is set to {int(value)} reps. <:_:1029045690829115402>"
 
-    @staticmethod
-    async def _time_pr_submit(exercise: str, itx: DoomItx, value: float):
-        async with database.Acquire(pool=itx.client.pool) as con:
+    async def _time_pr_submit(self, exercise: str, itx: DoomItx, value: float):
+        async with self.bot.database.pool.acquire() as con:
             query = """
                 INSERT INTO gym_records(user_id, exercise, value) 
                 VALUES ($1, $2, $3) 
@@ -222,7 +221,7 @@ class Gym(commands.Cog):
 
         """
         await itx.response.defer(ephemeral=False)
-        async with database.Acquire(pool=itx.client.pool) as con:
+        async with self.bot.database.pool.acquire() as con:
             query = """
                 SELECT * FROM gym_records WHERE exercise = $1 ORDER BY value DESC;
             """

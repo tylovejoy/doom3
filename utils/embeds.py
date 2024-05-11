@@ -38,30 +38,6 @@ class DoomEmbed(discord.Embed):
         self.description += f"```ansi\n\u001b[1;37m{name}\n```{value}\n"  # \u001b[{format};{color}m
 
 
-class ErrorEmbed(DoomEmbed):
-    def __init__(
-        self,
-        *,
-        description: str,
-        unknown: bool = False,
-    ):
-        if unknown:
-            super().__init__(
-                title="Uh oh! Something went wrong.",
-                description=description,
-                color=discord.Color.red(),
-                thumbnail="https://bkan0n.com/assets/images/icons/error.png",
-            )
-        else:
-            super().__init__(
-                title="What happened?",
-                description=description,
-                color=discord.Color.yellow(),
-            )
-
-            self.set_footer(text="If you have any questions, message nebula#6662")
-
-
 def set_embed_thumbnail_maps(map_name: str, embed: discord.Embed) -> discord.Embed | DoomEmbed:
     """
     The embed_thumbnail_setter function takes a map name

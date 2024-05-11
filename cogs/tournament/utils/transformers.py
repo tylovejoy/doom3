@@ -5,6 +5,7 @@ import typing
 from discord import app_commands
 
 import cogs
+import utilities.utils
 import utils
 from cogs.tournament.utils.utils import parse
 
@@ -25,7 +26,7 @@ class SeasonsTransformer(app_commands.Transformer):
         rows = await itx.client.database.fetch(query)
         values = {row["name"]: row["number"] for row in rows}
         if value not in values:
-            value = utils.fuzz_(value, values)
+            value = utilities.utils.fuzz_(value, values)
         return values[value]
 
     async def autocomplete(self, itx: core.DoomItx, value: str) -> list[app_commands.Choice[str]]:
@@ -97,5 +98,5 @@ async def map_level_autocomplete(itx: core.DoomItx, value: str, arg: str) -> lis
 
 async def map_level_transform(itx: core.DoomItx, value: str, arg: str) -> str:
     if value not in itx.client.map_cache[getattr(itx.namespace, arg)]["levels"]:
-        value = utils.fuzz_(value, itx.client.map_cache[getattr(itx.namespace, arg)]["levels"])
+        value = utilities.utils.fuzz_(value, itx.client.map_cache[getattr(itx.namespace, arg)]["levels"])
     return value

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import aiohttp
 import asyncpg
@@ -16,6 +17,9 @@ from utils import MapCacheData, UserCacheData
 
 log = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from utilities import MapMetadata
+
 
 class Doom(commands.Bot):
     """Doom bot class inherited from commands.Bot."""
@@ -23,6 +27,7 @@ class Doom(commands.Bot):
     pool: asyncpg.Pool
     database: database.Database
     session: aiohttp.ClientSession
+    map_metadata: dict[str, MapMetadata]
 
     def __init__(self) -> None:
         super().__init__("?", intents=self._generate_intents(), help_command=None)

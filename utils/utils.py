@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 import datetime
-import operator
-import re
 import typing
 
 import discord
 from discord import app_commands
 from discord.ext import tasks
-from thefuzz import fuzz
 
 from cogs.tournament.utils.data import TournamentData, end_embed
 from cogs.tournament.utils.end_tournament import ExperienceCalculator, SpreadsheetCreator
@@ -17,38 +13,7 @@ from cogs.tournament.utils.utils import ANNOUNCEMENTS
 from config import CONFIG
 
 if typing.TYPE_CHECKING:
-    from core import DoomItx
-
-CODE_VERIFICATION = re.compile(r"^[A-Z0-9]{4,6}$")
-
-
-async def delete_interaction(itx: DoomItx, *, minutes: int | float):
-    """Delete an itx message after x minutes. Fails silently.
-    Args:
-        itx (discord.Interaction): Interaction to find original message.
-        minutes (int): Minutes (use 0 for no delay)
-    """
-    if minutes < 0:
-        raise ValueError("Time cannot be negative.")
-    await asyncio.sleep(60 * minutes)
-    try:
-        await itx.delete_original_response()
-    except (discord.HTTPException, discord.NotFound, discord.Forbidden):
-        ...
-
-
-def fuzz_(string: str, iterable: typing.Iterable[str]) -> str:
-    """Fuzz a value."""
-    values = [(val, fuzz.partial_ratio(string, val)) for val in iterable]
-    return str(max(values, key=operator.itemgetter(1))[0])
-
-
-def fuzz_multiple(string: str, iterable: typing.Iterable[str]) -> list[str]:
-    """Fuzz a value."""
-    values = [(val, fuzz.partial_ratio(string, val)) for val in iterable]
-    values = sorted(values, key=operator.itemgetter(1), reverse=True)[:10]
-    values = list(map(lambda x: x[0], values))
-    return values
+    pass
 
 
 class MapCacheData(typing.TypedDict):
@@ -60,24 +25,6 @@ class MapCacheData(typing.TypedDict):
 class UserCacheData(typing.TypedDict):
     nickname: str
     alertable: bool
-
-
-NUMBER_EMOJI = {
-    1: "1️⃣",
-    2: "2️⃣",
-    3: "3️⃣",
-    4: "4️⃣",
-    5: "5️⃣",
-    6: "6️⃣",
-    7: "7️⃣",
-    8: "8️⃣",
-    9: "9️⃣",
-    10: "🔟",
-}
-
-
-def split_nth_conditional(cur_i: int, n: int, collection: typing.Sequence) -> bool:
-    return (cur_i != 0 and cur_i % n == 0) or (cur_i == 0 and len(collection) == 1) or cur_i == len(collection) - 1
 
 
 async def tournament_task(
