@@ -55,6 +55,9 @@ class VerificationView(discord.ui.View):
             query,
             itx.message.id,
         )
+        if not row:
+            return
+
         original_message = await self.find_original_message(itx, row["channel_id"], row["message_id"])
         if not original_message:
             return
