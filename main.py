@@ -18,8 +18,7 @@ async def main() -> None:
         async with database.DatabaseConnection(
             f"postgres://"
             f"{os.environ['PSQL_USER']}:"
-            f"{os.environ['PSQL_PASSWORD']}@db/"
-            f"{os.environ['PSQL_DATABASE']}"
+            f"{os.environ['PSQL_PASSWORD']}@db/doom3"
         ) as pool:
             assert pool is not None
             async with core.Doom() as bot:
