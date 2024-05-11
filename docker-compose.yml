@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   bot:
     logging:
@@ -7,6 +5,7 @@ services:
       options:
         syslog-format: "rfc5424"
         syslog-address: "${LOGGING_URL}"
+    container_name: doom-bot
     build: .
     environment:
       - TOKEN=${TOKEN}
