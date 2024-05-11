@@ -16,9 +16,7 @@ async def main() -> None:
     discord.utils.setup_logging()
     async with aiohttp.ClientSession() as session:
         async with database.DatabaseConnection(
-            f"postgres://"
-            f"{os.environ['PSQL_USER']}:"
-            f"{os.environ['PSQL_PASSWORD']}@db/doom3"
+            f"postgres://{os.environ['PSQL_USER']}:{os.environ['PSQL_PASSWORD']}@db/doom3"
         ) as pool:
             assert pool is not None
             async with core.Doom() as bot:
