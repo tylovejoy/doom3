@@ -1,10 +1,10 @@
+name: doom-postgres
+
 services:
   db:
     container_name: doom-postgres
     build: .
     restart: unless-stopped
-    ports:
-      - "5432"
     volumes:
       - "$HOME/doom-postgres/:/var/lib/postgresql/data"
     environment:
@@ -16,20 +16,29 @@ services:
   dbgate:
     image: dbgate/dbgate
     restart: always
-    ports:
-      - 3000:3000
     volumes:
       - dbgate-data:/root/.dbgate
     environment:
-      CONNECTIONS: psql
-      SINGLE_CONNECTION: psql
-      LABEL_psql: Postgres - Doom
-      SERVER_psql: db
-      PORT_psql: 5432
-      PASSWORD_MODE_psql: askUser
-      ENGINE_psql: postgres@dbgate-plugin-postgres
+      CONNECTIONS: PSQL
+      LABEL_PSQL: PostgreSQL - Doom
+      SERVER_PSQL: db
+      PASSWORD_MODE_PSQL: askUser
+      PORT_PSQL: 5432
+      ENGINE_PSQL: postgres@dbgate-plugin-postgres
     networks:
       - doom-network
+      - contabo_network
+
+  webdb:
+      image: webdb/app
+      restart: always
+      volumes:
+          - "$HOME/.webdb:/usr/src/app/static/version"
+      environment:
+        - SCAN_HOSTS=db
+      networks:
+        - doom-network
+        - contabo_network
 
 
 volumes:
@@ -38,3 +47,6 @@ volumes:
 
 networks:
   doom-network:
+    external: true
+  contabo_network:
+    external: true
