@@ -27,5 +27,8 @@ __all__ = [
     "split_nth_conditional",
     "errors",
     "translations",
-    "URLTransformer"
+    "URLTransformer",
+    "fuzz_",
+    "fuzz_multiple",
+    "CODE_VERIFICATION",
 ]
