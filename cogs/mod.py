@@ -3,10 +3,10 @@ from __future__ import annotations
 import typing
 
 import discord
+import utils
 from discord import app_commands
 from discord.ext import commands
 
-import utils
 import views
 from config import CONFIG
 
@@ -21,7 +21,7 @@ class ModCommands(commands.Cog):
 
     async def cog_check(self, ctx: DoomCtx) -> bool:
         return True
-        # return bool(ctx.author.get_role(utils.STAFF))
+        # return bool(ctx.author.get_role(utils-old.STAFF))
 
     mod = app_commands.Group(
         **utils.mod_,

@@ -6,14 +6,15 @@ import typing
 from typing import Literal
 
 import discord.utils
+from utils import make_ordinal, pretty_record
 
 from config import CONFIG
-from utils import make_ordinal, pretty_record
 
 if typing.TYPE_CHECKING:
     import core
 
 import utils
+
 from cogs.tournament.utils import Categories, Category, CategoryData, Rank
 from cogs.tournament.utils.utils import role_map
 
@@ -49,8 +50,8 @@ def base_embed(
     embed = utils.DoomEmbed(
         title="Doomfist Parkour Tournament",
         description=description,
-        thumbnail="https://bkan0n.com/assets/images/icons/gold_cup.png",
-        image=f"https://bkan0n.com/assets/images/icons/tournament_{embed_type}_banner.png",
+        thumbnail="https://doom.pk/assets/images/icons/gold_cup.png",
+        image=f"https://doom.pk/assets/images/icons/tournament_{embed_type}_banner.png",
         color=discord.Color.gold(),
     )
     return embed
@@ -59,8 +60,8 @@ def base_embed(
 def leaderboard_embed(description: str, category: Categories, rank: Rank | None):
     embed = base_embed(description=description, embed_type="leaderboard")
     if rank:
-        embed.set_thumbnail(url=f"https://bkan0n.com/assets/images/icons/{rank.lower()}.png")
-    embed.set_image(url=f"https://bkan0n.com/assets/images/tournament/{category.lower().replace(' ', '_')}.png")
+        embed.set_thumbnail(url=f"https://doom.pk/assets/images/icons/{rank.lower()}.png")
+    embed.set_image(url=f"https://doom.pk/assets/images/tournament/{category.lower().replace(' ', '_')}.png")
 
     embed.colour = discord.Color.from_str(category_color[category])
     return embed

@@ -3,10 +3,9 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+import errors
+import utils
 from discord import app_commands
-
-from utilities import errors
-import utilities
 
 if TYPE_CHECKING:
     from core import DoomItx
@@ -17,14 +16,18 @@ def sanitize_map_code_input(value: str) -> str:
 
 
 class MapCodeFormattingTransformer(app_commands.Transformer):
+    """Transform map codes for maps that do not exist."""
+
     async def transform(self, itx: DoomItx, value: str) -> str:
         value = sanitize_map_code_input(value)
-        if not re.match(utilities.CODE_VERIFICATION, value):
+        if not re.match(utils.CODE_VERIFICATION, value):
             raise errors.IncorrectCodeFormatError
         return value
 
 
 class ExistingMapCodeTransformer(MapCodeFormattingTransformer):
+    """Transform map code arguments for maps that already exist."""
+
     async def transform(self, itx: DoomItx, value: str) -> str:
         transformed = await super().transform(itx, value)
         query = "SELECT EXISTS(SELECT 1 FROM maps WHERE maps.map_code=$1);"
@@ -35,6 +38,8 @@ class ExistingMapCodeTransformer(MapCodeFormattingTransformer):
 
 
 class ExistingMapCodeAutocompleteTransformer(ExistingMapCodeTransformer):
+    """Transform and autocomplete map code arguments for maps that do not exist."""
+
     async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]] | None:
         query = """
             SELECT maps.map_code
@@ -49,6 +54,8 @@ class ExistingMapCodeAutocompleteTransformer(ExistingMapCodeTransformer):
 
 
 class UserTransformer(app_commands.Transformer):
+    """Transform and autocomplete text into User from database."""
+
     async def transform(self, itx: DoomItx, value: str) -> int:
         query = "SELECT user_id FROM users ORDER BY similarity(nickname, $1) LIMIT 1"
         user_id = await itx.client.database.fetchval(query, value)
@@ -70,6 +77,8 @@ class UserTransformer(app_commands.Transformer):
 
 
 class CreatorTransformer(UserTransformer):
+    """Transform and autocomplete text into map creators from database."""
+
     async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]] | None:
 
         query = """
@@ -88,6 +97,8 @@ class CreatorTransformer(UserTransformer):
 
 
 class MapLevelTransformer(app_commands.Transformer):
+    """Transform and autocomplete text into map levels per map code from database."""
+
     async def transform(self, itx: DoomItx, value: str) -> str:
         query = """
             SELECT level
@@ -99,7 +110,7 @@ class MapLevelTransformer(app_commands.Transformer):
         level_name = await itx.client.database.fetchval(query, itx.namespace.map_code, value)
         if not level_name:
             level_names = await itx.client.database.fetch_level_names_of_map_code(itx.namespace.map_code)
-            return utilities.fuzz_(value, level_names)
+            return utils.fuzz_(value, level_names)
         return level_name
 
     async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]] | None:
@@ -118,11 +129,13 @@ class MapLevelTransformer(app_commands.Transformer):
 
 
 class MapNameTransformer(app_commands.Transformer):
+    """Transform and autocomplete text into map names from database."""
+
     async def transform(self, itx: DoomItx, value: str) -> str:
         map_names = await itx.client.database.fetch_all_map_names()
         if not map_names:
             raise errors.InvalidMapNameError
-        return utilities.fuzz_(value, map_names)
+        return utils.fuzz_(value, map_names)
 
     async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]] | None:
         map_names = await itx.client.database.fetch_similar_map_names(value)
@@ -132,11 +145,13 @@ class MapNameTransformer(app_commands.Transformer):
 
 
 class MapTypeTransformer(app_commands.Transformer):
+    """Transform and autocomplete text into map types from database."""
+
     async def transform(self, itx: DoomItx, value: str) -> str:
         map_types = await itx.client.database.fetch_all_map_types()
         if not map_types:
             raise errors.InvalidMapTypeError
-        return utilities.fuzz_(value, map_types)
+        return utils.fuzz_(value, map_types)
 
     async def autocomplete(self, itx: DoomItx, value: str) -> list[app_commands.Choice[str]] | None:
         map_types = await itx.client.database.fetch_similar_map_types(value)
@@ -146,6 +161,8 @@ class MapTypeTransformer(app_commands.Transformer):
 
 
 class URLTransformer(app_commands.Transformer):
+    """Transform text into URLs."""
+
     async def transform(self, itx: DoomItx, value: str) -> str:
         value = value.strip()
         if not value.startswith("https://") and not value.startswith("http://"):
@@ -154,3 +171,14 @@ class URLTransformer(app_commands.Transformer):
             if resp.status != 200:
                 raise errors.IncorrectURLFormatError
             return str(resp.url)
+
+
+class RecordTransformer(app_commands.Transformer):
+    """Transform seconds or HH:MM:SS.ss formatted text into a float from database."""
+
+    async def transform(self, itx: DoomItx, value: str) -> float:
+        try:
+            _value = utils.time_convert(value)
+        except ValueError:
+            raise errors.IncorrectRecordFormatError
+        return _value

@@ -61,7 +61,7 @@ class ErrorEmbed(discord.Embed):
                 description=description,
                 color=discord.Color.red(),
             )
-            self.set_thumbnail(url="http://bkan0n.com/assets/images/icons/error.png")
+            self.set_thumbnail(url="http://doom.pk/assets/images/icons/error.png")
         else:
             super().__init__(
                 title="What happened?",

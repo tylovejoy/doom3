@@ -51,7 +51,7 @@ def set_embed_thumbnail_maps(map_name: str, embed: discord.Embed) -> discord.Emb
         The embed object with the thumbnail set to a map's image
     """
     map_name = re.sub(r"[:'\s]", "", map_name).lower()
-    embed.set_thumbnail(url=f"https://bkan0n.com/assets/images/maps/{map_name}.png")
+    embed.set_thumbnail(url=f"http://doom.pk/assets/images/maps/{map_name}.png")
     return embed
 
 

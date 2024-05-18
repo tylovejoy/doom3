@@ -198,3 +198,17 @@ class Database:
             description,
             image_url,
         )
+
+    async def fetch_previous_record_submission(self, map_code: str, level_name: str, user_id: int) -> asyncpg.Record | None:
+        query = """
+                    SELECT record, hidden_id FROM records r 
+                    LEFT OUTER JOIN maps m on r.map_code = m.map_code
+                    WHERE r.map_code = $1 AND level_name = $2 AND user_id = $3
+                    ORDER BY inserted_at DESC
+                """
+        return await self.fetchrow(
+            query,
+            map_code,
+            level_name,
+            user_id,
+        )

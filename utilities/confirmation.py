@@ -69,7 +69,7 @@ class ConfirmationBaseView(discord.ui.View):
         await itx.response.send_message("Rejected.", ephemeral=True)
         self.stop()
 
-    async def start(self):
+    async def start(self) -> discord.InteractionMessage | None:
         if self.itx.response.is_done():
             send = functools.partial(self.itx.edit_original_response, attachments=self.attachments)
         else:

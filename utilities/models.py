@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     from core import Doom
 
 
-_MAPS_BASE_URL = "https://bkan0n.com/assets/images/map_banners/"
+_MAPS_BASE_URL = "https://doom.pk/assets/images/map_banners/"
 
 
 @dataclass
@@ -120,3 +121,70 @@ class Map:
                 )
                 await self.bot.database.add_creator_to_map_code(self.primary_creator, self.map_code, connection=conn)
                 await self.bot.database.add_multiple_map_levels(self.map_code, self.levels, connection=conn)
+
+
+@dataclass
+class Record:
+    bot: Doom
+    map_code: str
+    level_name: str
+    record: float
+    screenshot: str = ""
+    video: str | None = None
+    nickname: str | None = None
+    user_image: str | None = None
+    tournament: bool = False
+    verified: bool = False
+    map_name: str = ""
+    rank_num: int | None = None
+
+    @property
+    def pretty_record(self):
+        """
+        The pretty_record property takes the record time for a given
+        document and returns a string representation of that time.
+        The function is used to display the record times in an easily
+        readable format on the leaderboard page.
+
+        Returns:
+            A string
+        """
+        record = float(self.record)
+        negative = "-" if record < 0 else ""
+        dt = datetime.datetime.min + datetime.timedelta(seconds=abs(record))
+        hour_remove = 0
+        seconds_remove = -4
+
+        if dt.hour == 0 and dt.minute == 0:
+            hour_remove = 6
+            if dt.second < 10:
+                hour_remove += 1
+
+        elif dt.hour == 0:
+            hour_remove = 3
+            if dt.minute < 10:
+                hour_remove = 4
+
+        if dt.microsecond == 0:
+            seconds_remove = -4
+
+        return negative + dt.strftime("%H:%M:%S.%f")[hour_remove:seconds_remove]
+
+    def build_embed(self):
+        if not self.video:
+            description = f"`   Code ` {self.map_code}\n`  Level ` {self.level_name}\n` Record ` {self.pretty_record}\n"
+        else:
+            description = (
+                f"`   Code ` {self.map_code}\n"
+                f"`  Level ` {self.level_name}\n"
+                f"` Record ` {self.pretty_record}\n"
+                f"`  Video ` [Link]({self.video})\n"
+            )
+
+        embed = discord.Embed(
+            title="New Personal Record!",
+            description=description,
+        )
+        embed.set_author(name=self.nickname, icon_url=self.user_image)
+        embed.set_image(url="attachment://image.png")
+        return embed

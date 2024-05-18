@@ -4,10 +4,11 @@ import typing
 from typing import TYPE_CHECKING
 
 import discord
+import utils
 from discord import app_commands
 from discord.ext import commands
+from utils import DoomEmbed
 
-import utils
 import views
 from cogs.tournament.utils import Categories_NoGen, Ranks
 from cogs.tournament.utils.errors import ModalError
@@ -16,7 +17,6 @@ from cogs.tournament.views.announcement import TournamentAnnouncementModal, Tour
 from cogs.tournament.views.info import TournamentInfoView, all_info_embeds
 from cogs.tournament.views.seasons import SeasonManager
 from config import CONFIG
-from utils import DoomEmbed
 
 if TYPE_CHECKING:
     import core
@@ -112,11 +112,11 @@ class OrgCommands(commands.Cog):
             raise ModalError
 
         if not thumbnail:
-            thumbnail = "https://bkan0n.com/assets/images/icons/gold_cup.png"
+            thumbnail = "https://doom.pk/assets/images/icons/gold_cup.png"
         else:
             thumbnail = thumbnail.url
         if not image:
-            image = "https://bkan0n.com/assets/images/icons/tournament_announcement_banner.png"
+            image = "https://doom.pk/assets/images/icons/tournament_announcement_banner.png"
         else:
             image = image.url
 

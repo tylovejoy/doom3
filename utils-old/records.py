@@ -6,14 +6,14 @@ import re
 import typing
 
 import discord
+import utils
 from discord import Embed, app_commands
+from utils import DoomEmbed
 
 import cogs
 import database
 import utilities.utils
-import utils
 from config import CONFIG
-from utils import DoomEmbed
 
 if typing.TYPE_CHECKING:
     from core import DoomItx

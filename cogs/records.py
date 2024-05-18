@@ -4,14 +4,14 @@ import contextlib
 import typing
 
 import discord
+import utils
 from discord import app_commands
 from discord.ext import commands
 
-import utils
+import utilities
 import views
 from config import CONFIG
-from utilities import translations, errors
-import utilities
+from utilities import ConfirmationBaseView, Record, errors, translations
 
 if typing.TYPE_CHECKING:
     import core
@@ -41,7 +41,6 @@ class Records(commands.Cog):
     @app_commands.command(**translations.submit_record)
     @app_commands.describe(**translations.submit_record_args)
     @app_commands.guilds(CONFIG["GUILD_ID"])
-    # @app_commands.choices(rating=utils.ALL_STARS_CHOICES)
     async def submit_record(
         self,
         itx: DoomItx,
@@ -53,60 +52,52 @@ class Records(commands.Cog):
         rating: int | None,
     ) -> None:
         await itx.response.defer(ephemeral=False)
-        if map_code not in itx.client.map_cache.keys():
-            raise errors.InvalidMapCodeError
 
-        if level_name not in itx.client.map_cache[map_code]["levels"]:
-            raise errors.InvalidMapLevelError
-
-        query = """
-            SELECT record, hidden_id FROM records r 
-            LEFT OUTER JOIN maps m on r.map_code = m.map_code
-            WHERE r.map_code = $1 AND level_name = $2 AND user_id = $3
-            ORDER BY inserted_at DESC
-        """
-        old_row = await itx.client.database.fetchrow(
-            query,
-            map_code,
-            level_name,
-            itx.user.id,
-        )
-        if old_row and old_row["record"] < record:
+        previous_record = await self.bot.database.fetch_previous_record_submission(map_code, level_name, itx.user.id)
+        if previous_record and previous_record["record"] < record:
             raise errors.RecordNotFasterError
 
-        user = itx.client.all_users[itx.user.id]
+        user_nickname = await self.bot.database.fetch_user_nickname(itx.user.id)
+        confirmation_image = await screenshot.to_file(filename="image.png")
+        data = Record(
+            self.bot,
+            map_code,
+            level_name,
+            record,
+            "",
+            video,
+            nickname=user_nickname,
+            user_image=itx.user.display_avatar.url,
+        )
+        # embed = utils.record_embed(
+        #     {
+        #         "map_code": map_code,
+        #         "map_level": level_name,
+        #         "record": utils.pretty_record(record),
+        #         "video": video,
+        #         "user_name": user_nickname,
+        #         "user_url": itx.user.display_avatar.url,
+        #     }
+        # )
+        embed = data.build_embed()
 
-        view = views.Confirm(
-            itx,
-            "⌛ Waiting for verification...\n",
-        )
-        new_screenshot = await screenshot.to_file(filename="image.png")
-
-        embed = utils.record_embed(
-            {
-                "map_code": map_code,
-                "map_level": level_name,
-                "record": utils.pretty_record(record),
-                "video": video,
-                "user_name": user["nickname"],
-                "user_url": itx.user.display_avatar.url,
-            }
-        )
-        channel_msg = await itx.edit_original_response(
-            content=f"{itx.user.mention}, is this correct?",
-            embed=embed,
-            view=view,
-            attachments=[new_screenshot],
-        )
-        await view.wait()
+        view = ConfirmationBaseView(itx, f"{itx.user.mention}, is this correct?", embed=embed, attachment=confirmation_image)
+        await view.start()
         if not view.value:
             return
-        new_screenshot2 = await screenshot.to_file(filename="image.png")
-        verification_msg = await itx.client.get_channel(CONFIG["VERIFICATION_QUEUE"]).send(embed=embed, file=new_screenshot2)
 
-        if old_row and old_row["hidden_id"]:
+        channel_image = await screenshot.to_file(filename="image.png")
+        await itx.channel.send("Waiting for verification...", embed=embed, file=channel_image)
+        # TODO: Send message to channel and use it as 'channel_msg'
+
+        verification_image = await screenshot.to_file(filename="image.png")
+        verification_queue = itx.client.get_channel(CONFIG["VERIFICATION_QUEUE"])
+        verification_msg = await verification_queue.send(embed=embed, file=verification_image)
+
+        if previous_record and previous_record["hidden_id"]:
             with contextlib.suppress(discord.NotFound):
-                await itx.guild.get_channel(CONFIG["VERIFICATION_QUEUE"]).get_partial_message(old_row["hidden_id"]).delete()
+                await verification_queue.get_partial_message(previous_record["hidden_id"]).delete()
+            # TODO: Delete Hidden ID from previous record
 
         view = views.VerificationView()
         await verification_msg.edit(view=view)
