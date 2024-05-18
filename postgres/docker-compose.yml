@@ -12,6 +12,11 @@ services:
       - POSTGRES_USER=${PSQL_USER}
     networks:
       - doom-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   dbgate:
     image: dbgate/dbgate
@@ -40,6 +45,27 @@ services:
         - doom-network
         - contabo_network
 
+  backup:
+    image: eeshugerman/postgres-backup-s3:15
+    container_name: pg-backup-utility
+    environment:
+      SCHEDULE: '@weekly'     # optional
+      BACKUP_KEEP_DAYS: 7     # optional
+      S3_REGION: us-west-002
+      S3_ACCESS_KEY_ID: ${KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${KEY_SECRET}
+      S3_BUCKET: doom-backups
+      S3_PREFIX: backups
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      POSTGRES_HOST: db
+      POSTGRES_DATABASE: doom3
+      POSTGRES_USER: ${PSQL_USER}
+      POSTGRES_PASSWORD: ${PSQL_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - doom-network
 
 volumes:
   dbgate-data:
